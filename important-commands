@@ -1,0 +1,4 @@
+# Visualize the dataset
+python -m commonroad_rl.tools.visualize_cr ./environment/commonroad_rl/tutorials/data/highD/xmls/DEU_LocationBLower-3_1_T-1.xml
+
+./environment/commonroad_rl/tutorials
