@@ -157,3 +157,4 @@ venv.bak/
 save_model/*
 evaluate_model/*
 environment/*
+expert_data/*

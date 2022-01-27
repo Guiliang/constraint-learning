@@ -1,5 +1,5 @@
 import os
-
+import numpy as np
 import gym
 import yaml
 
@@ -61,12 +61,12 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
     return env
 
 
-def make_eval_env(env_id, config_path, save_dir, use_cost=False, normalize_obs=True, log_file=None):
+def make_eval_env(env_id, config_path, save_dir, mode='test', use_cost=False, normalize_obs=True, log_file=None):
     with open(config_path, "r") as config_file:
         env_configs = yaml.safe_load(config_file)
     env_configs["test_env"] = True
     # env = [lambda: gym.make(env_id, **env_configs)]
-    env = [make_env(env_id, env_configs, 0, os.path.join(save_dir, "test"))]
+    env = [make_env(env_id, env_configs, 0, os.path.join(save_dir, mode))]
     env = vec_env.DummyVecEnv(env)
     if use_cost:
         env = vec_env.VecCostWrapper(env)
@@ -82,3 +82,42 @@ def make_eval_env(env_id, config_path, save_dir, use_cost=False, normalize_obs=T
         env = vec_env.VecTransposeImage(env)
 
     return env
+
+
+def sample_from_agent(agent, env, rollouts):
+    if isinstance(env, vec_env.VecEnv):
+        assert env.num_envs == 1, "You must pass only one environment when using this function"
+
+    orig_observations, observations, actions = [], [], []
+    rewards, lengths = [], []
+    for i in range(rollouts):
+        # Avoid double reset, as VecEnv are reset automatically
+        if i == 0:
+            obs = env.reset()
+        # benchmark_id = env.venv.envs[0].benchmark_id
+        # print('senario id', benchmark_id)
+
+        done, state = False, None
+        episode_reward = 0.0
+        episode_length = 0
+        while not done:
+            orig_observations.append(env.get_original_obs())
+            observations.append(obs)
+
+            action, state = agent.predict(obs, state=state, deterministic=False)
+            obs, reward, done, _info = env.step(action)
+
+            actions.append(action)
+            episode_reward += reward
+            episode_length += 1
+
+        rewards.append(episode_reward)
+        lengths.append(episode_length)
+
+    orig_observations = np.squeeze(np.array(orig_observations), axis=1)
+    observations = np.squeeze(np.array(observations), axis=1)
+    actions = np.squeeze(np.array(actions), axis=1)
+    rewards = np.squeeze(np.array(rewards), axis=1)
+    lengths = np.array(lengths)
+
+    return orig_observations, observations, actions, rewards, lengths

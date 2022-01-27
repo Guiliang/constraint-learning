@@ -1,4 +1,8 @@
 # Visualize the dataset
 python -m commonroad_rl.tools.visualize_cr ./environment/commonroad_rl/tutorials/data/highD/xmls/DEU_LocationBLower-3_1_T-1.xml
 
-./environment/commonroad_rl/tutorials
+# git push
+git push --set-upstream https://git.uwaterloo.ca/ppoupart/constraint-learning.git galen
+
+# upload file
+scp /home/g233liu/PycharmProjects/constraint-RL-auto-driving/environment/commonroad_rl.zip galen@q.vectorinstitute.ai:/scratch/gobi2/galen/Projects/constraint-RL-auto-driving/environment/

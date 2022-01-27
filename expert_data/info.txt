@@ -1,0 +1,34 @@
+{'DEU_LocationBUpper-3_19_T-1', 'DEU_LocationBLower-3_15_T-1', 'DEU_LocationBUpper-3_15_T-1', 'DEU_LocationBLower-3_12_T-1', 'DEU_LocationBLower-3_22_T-1', 'DEU_LocationBUpper-3_14_T-1', 'DEU_LocationBLower-3_21_T-1', 'DEU_LocationBUpper-3_17_T-1', 'DEU_LocationBUpper-3_24_T-1', 'DEU_LocationBLower-3_18_T-1', 'DEU_LocationBUpper-3_9_T-1', 'DEU_LocationBLower-3_7_T-1', 'DEU_LocationBUpper-3_6_T-1', 'DEU_LocationBLower-3_16_T-1', 'DEU_LocationBLower-3_3_T-1', 'DEU_LocationBLower-3_23_T-1', 'DEU_LocationBLower-3_17_T-1', 'DEU_LocationBUpper-3_4_T-1', 'DEU_LocationBUpper-3_10_T-1'}
+
+{'DEU_LocationBLower-3_14_T-1', 'DEU_LocationBUpper-3_26_T-1', 'DEU_LocationBLower-3_1_T-1', 'DEU_LocationBUpper-3_22_T-1', 'DEU_LocationBLower-3_8_T-1', 'DEU_LocationBLower-3_11_T-1', 'DEU_LocationBUpper-3_21_T-1', 'DEU_LocationBLower-3_9_T-1', 'DEU_LocationBLower-3_4_T-1', 'DEU_LocationBUpper-3_8_T-1'}
+
+
+0:  DEU_LocationBUpper-3_19_T-1
+1:  DEU_LocationBLower-3_15_T-1
+2:  DEU_LocationBUpper-3_15_T-1
+3:  DEU_LocationBLower-3_12_T-1
+4:  DEU_LocationBLower-3_22_T-1
+5:  DEU_LocationBUpper-3_14_T-1
+6:  DEU_LocationBLower-3_21_T-1
+7:  DEU_LocationBUpper-3_17_T-1
+8:  DEU_LocationBUpper-3_24_T-1
+9:  DEU_LocationBLower-3_18_T-1
+10: DEU_LocationBUpper-3_9_T-1
+11: DEU_LocationBLower-3_7_T-1
+12: DEU_LocationBUpper-3_6_T-1
+13: DEU_LocationBLower-3_16_T-1
+14: DEU_LocationBLower-3_3_T-1
+15: DEU_LocationBLower-3_23_T-1
+16: DEU_LocationBLower-3_17_T-1
+17: DEU_LocationBUpper-3_4_T-1
+18: DEU_LocationBUpper-3_10_T-1
+19: DEU_LocationBLower-3_14_T-1
+20: DEU_LocationBUpper-3_26_T-1
+21: DEU_LocationBLower-3_1_T-1
+22: DEU_LocationBUpper-3_22_T-1
+23: DEU_LocationBLower-3_8_T-1
+24: DEU_LocationBLower-3_11_T-1
+25: DEU_LocationBUpper-3_21_T-1
+26: DEU_LocationBLower-3_9_T-1
+27: DEU_LocationBLower-3_4_T-1
+28: DEU_LocationBUpper-3_8_T-1
