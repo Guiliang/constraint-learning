@@ -34,4 +34,5 @@ dependencies:
       - pillow
       - psutil
       - mpl-scatter-density
+      - imageio
 

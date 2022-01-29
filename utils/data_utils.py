@@ -143,3 +143,12 @@ def read_running_logs(log_path):
         is_time_out.append(results[6])
 
     return rewards, is_collision, is_off_road, is_goal_reached, is_time_out
+
+
+def save_game_record(info, file):
+    is_collision = info["is_collision"]
+    is_time_out = info["is_time_out"]
+    is_off_road = info["is_off_road"]
+    is_goal_reached = info["is_goal_reached"]
+    current_step = info["current_episode_time_step"]
+    file.write("{0}, {1}, {2}, {3}, {4}\n".format(current_step, is_collision, is_time_out, is_off_road, is_goal_reached))

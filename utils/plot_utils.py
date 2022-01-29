@@ -1,3 +1,5 @@
+import os
+import imageio
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import numpy as np
@@ -87,3 +89,24 @@ def plot_shadow_curve(draw_keys,
         plt.show()
     else:
         plt.savefig('{0}_shadow.png'.format(plot_name))
+
+
+def pngs2gif(png_dir):
+    """
+    transfer .png imgs to a .gif
+    :param png_dir: the path of imgs
+    """
+    # png_dir = '../animation/png'
+    images = []
+    images_path = []
+    for file_name in sorted(os.listdir(png_dir)):
+        if file_name.endswith('.png'):
+            file_path = os.path.join(png_dir, file_name)
+            images_path.append(file_path)
+    for image_path in images_path:
+        images.append(imageio.imread(image_path))
+    imageio.mimsave(os.path.join(png_dir, 'trajectory.gif'), images)
+
+
+# if __name__ == "__main__":
+#     pngs2gif('../evaluate_model/PPO-highD/train_ppo_highD-Jan-27-2022-05:04/img/DEU_LocationBLower-3_1_T-1')

@@ -11,7 +11,7 @@ from stable_baselines3 import PPO
 from commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
 
-from utils.data_utils import load_config, read_args
+from utils.data_utils import load_config, read_args, save_game_record
 
 # def make_env(env_id, seed,  , info_keywords=()):
 #     log_dir = 'icrl/test_log'
@@ -31,6 +31,7 @@ from utils.data_utils import load_config, read_args
 #
 #     return _init
 from utils.env_utils import make_env
+from utils.plot_utils import pngs2gif
 
 
 class CommonRoadVecEnv(DummyVecEnv):
@@ -126,7 +127,7 @@ def main(args):
     with open(config['env']['config_path'], "r") as config_file:
         env_configs = yaml.safe_load(config_file)
 
-    load_model_name = 'train_ppo_highD-Jan-25-2022'
+    load_model_name = 'train_ppo_highD-Jan-27-2022-05:04'
 
     evaluation_path = os.path.join('../evaluate_model', config['task'], load_model_name)
     if not os.path.exists(evaluation_path):
@@ -143,7 +144,7 @@ def main(args):
     model = load_model(os.path.join('../save_model', config['task'], load_model_name))
 
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios = 0, 0, 0, 0, 0
-    num_scenarios = -1
+    num_scenarios = 20
     # In case there a no scenarios at all
     try:
         obs = env.reset()
@@ -157,10 +158,17 @@ def main(args):
         env.render()
         benchmark_id = env.venv.envs[0].benchmark_id
         print('senario id', benchmark_id, file=log_file, flush=True)
+
+        game_info_file = open(os.path.join(viz_path, benchmark_id, 'info_record.txt'), 'w')
+        game_info_file.write('current_step, is_collision, is_time_out, is_off_road, is_goal_reached\n')
         while not done:
             action, state = model.predict(obs, state=state, deterministic=False)
             obs, reward, done, info = env.step(action)
+            save_game_record(info[0], game_info_file)
             env.render()
+        game_info_file.close()
+
+        pngs2gif(png_dir=os.path.join(viz_path, benchmark_id))
 
         # log collision rate, off-road rate, and goal-reaching rate
         info = info[0]

@@ -157,5 +157,7 @@ venv.bak/
 save_model/*
 evaluate_model/*
 environment/*
-expert_data/*
+data/highD/*
+data/inD/*
+data/expert_data/*
 tmp*
