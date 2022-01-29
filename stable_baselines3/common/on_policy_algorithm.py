@@ -457,19 +457,19 @@ class OnPolicyWithCostAlgorithm(BaseAlgorithm):
             logger.record("time/time_elapsed", int(time.time() - self.start_time), exclude="tensorboard")
             logger.record("time/total_timesteps", self.num_timesteps, exclude="tensorboard")
 
-            if self.info_buffers is not None and self.verbose == 2:
-                for key in self.info_buffers:
-                    if len(self.info_buffers[key]) > 0:
-                        logger.record("infos/" + key, safe_mean(self.info_buffers[key]))
+            # if self.info_buffers is not None and self.verbose == 2:
+            #     for key in self.info_buffers:
+            #         if len(self.info_buffers[key]) > 0:
+            #             logger.record("infos/" + key, safe_mean(self.info_buffers[key]))
             if len(self.ep_info_buffer) > 0 and len(self.ep_info_buffer[0]) > 0:
                 keywords = {key for ep_info in self.ep_info_buffer for key in ep_info.keys()}
-                keywords -= {'r', 'l', 't'}
+                keywords -= {'reward', 'len', 'time'}
                 for keyword in keywords:
                     logger.record(f"rollout/ep_{keyword}_mean", safe_mean([ep_info[keyword] for ep_info in self.ep_info_buffer]))
                     logger.record(f"rollout/ep_{keyword}_max", np.max([ep_info[keyword] for ep_info in self.ep_info_buffer]))
                     logger.record(f"rollout/ep_{keyword}_min", np.min([ep_info[keyword] for ep_info in self.ep_info_buffer]))
-                logger.record("rollout/ep_rew_mean", safe_mean([ep_info["r"] for ep_info in self.ep_info_buffer]))
-                logger.record("rollout/ep_len_mean", safe_mean([ep_info["l"] for ep_info in self.ep_info_buffer]))
+                logger.record("rollout/ep_rew_mean", safe_mean([ep_info["reward"] for ep_info in self.ep_info_buffer]))
+                logger.record("rollout/ep_len_mean", safe_mean([ep_info["len"] for ep_info in self.ep_info_buffer]))
 
         while self.num_timesteps < total_timesteps:
 
@@ -483,7 +483,7 @@ class OnPolicyWithCostAlgorithm(BaseAlgorithm):
             # Display training infos
             if log_interval is not None and iteration % log_interval == 0:
                 training_infos(iteration)
-                logger.dump(step=self.num_timesteps)
+                # logger.dump(step=self.num_timesteps)
 
             self.train()
 

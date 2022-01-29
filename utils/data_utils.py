@@ -1,6 +1,8 @@
 import argparse
 import os
 import shutil
+from collections import deque
+
 import yaml
 import numpy as np
 
@@ -103,3 +105,41 @@ def del_and_make(d):
     if os.path.isdir(d):
         shutil.rmtree(d)
     os.makedirs(d)
+
+
+def compute_moving_average(result_all, average_num=100):
+    result_moving_average_all = []
+    moving_values = deque([], maxlen=average_num)
+    for result in result_all:
+        moving_values.append(result)
+        result_moving_average_all.append(np.mean(moving_values))
+    return result_moving_average_all
+
+
+def read_running_logs(log_path):
+    rewards = []
+    is_collision = []
+    is_off_road = []
+    is_goal_reached = []
+    is_time_out = []
+
+    with open(log_path, 'r') as file:
+        running_logs = file.readlines()
+
+    for running_performance in running_logs[2:]:
+        log_items = running_performance.split(',')
+        if len(log_items) != 7:
+            continue
+        try:
+            results = [float(item.replace("\n", "")) for item in log_items]
+        except:
+            continue
+        if results[0] > 50 or results[0] < -50:
+            continue
+        rewards.append(results[0])
+        is_collision.append(results[3])
+        is_off_road.append(results[4])
+        is_goal_reached.append(results[5])
+        is_time_out.append(results[6])
+
+    return rewards, is_collision, is_off_road, is_goal_reached, is_time_out

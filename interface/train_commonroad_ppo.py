@@ -37,13 +37,14 @@ def train(args):
         log_file = open(log_file_path, 'w')
     else:
         log_file = None
-
+    debug_msg = ''
     if debug_mode:
         config['env']['num_threads'] = 1
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 20000
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
+        debug_msg = 'debug-'
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
 
@@ -51,11 +52,12 @@ def train(args):
     # today = datetime.date.today()
     # currentTime = today.strftime("%b-%d-%Y-%h-%m")
 
-    save_model_mother_dir = '{0}/{1}/{2}-{3}/'.format(
+    save_model_mother_dir = '{0}/{1}/{4}{2}-{3}/'.format(
         config['env']['save_dir'],
         config['task'],
         args.config_file.split('/')[-1].split('.')[0],
-        current_time_date
+        current_time_date,
+        debug_msg
     )
 
     if not os.path.exists(save_model_mother_dir):

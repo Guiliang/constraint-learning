@@ -19,8 +19,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from tqdm import tqdm
 
-import commonroad_rl.gym_commonroad
-
+import commonroad_rl.gym_commonroad  # registering the environment, pls don't remove this line
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make
 from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
 from utils.model_utils import get_net_arch
@@ -34,7 +33,7 @@ def null_cost(x, *args):
 def load_expert_data(expert_path, num_rollouts):
     file_names = [i for i in range(29)]
     sample_names = random.sample(file_names, num_rollouts)
-
+    # TODO: this function must be rewritten
     expert_mean_reward = []
     for i in range(num_rollouts):
         file_name = sample_names[i]
@@ -64,13 +63,14 @@ def train(config):
         log_file = open(log_file_path, 'w')
     else:
         log_file = None
-
+    debug_msg = ''
     if debug_mode:
         config['env']['num_threads'] = 1
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 20000
+        config['PPO']['forward_timesteps'] = 2000
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
+        debug_msg = 'debug-'
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
 
@@ -78,11 +78,12 @@ def train(config):
     # today = datetime.date.today()
     # currentTime = today.strftime("%b-%d-%Y-%h-%m")
 
-    save_model_mother_dir = '{0}/{1}/{2}-{3}/'.format(
+    save_model_mother_dir = '{0}/{1}/{4}{2}-{3}/'.format(
         config['env']['save_dir'],
         config['task'],
         args.config_file.split('/')[-1].split('.')[0],
-        current_time_date
+        current_time_date,
+        debug_msg
     )
 
     if not os.path.exists(save_model_mother_dir):
@@ -116,7 +117,7 @@ def train(config):
                                  use_cost=False,
                                  normalize_obs=not config['env']['dont_normalize_obs'],
                                  log_file=log_file)
-
+    # We don't need cost when during evaluation
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
         os.mkdir(save_test_mother_dir)
@@ -124,7 +125,7 @@ def train(config):
                              config_path=config['env']['config_path'],
                              save_dir=save_test_mother_dir,
                              mode='valid',
-                             use_cost=config['env']['use_cost'],
+                             use_cost=False,
                              normalize_obs=not config['env']['dont_normalize_obs'],
                              log_file=log_file)
 
@@ -188,8 +189,8 @@ def train(config):
         cost_gamma=config['PPO']['cost_gamma'],
         cost_gae_lambda=config['PPO']['cost_gae_lambda'],
         clip_range=config['PPO']['clip_range'],
-        clip_range_reward_vf=None if not config['CN']['clip_range_reward_vf'] else config['CN']['clip_range_reward_vf'],
-        clip_range_cost_vf=None if not config['CN']['clip_range_cost_vf'] else config['CN']['clip_range_cost_vf'],
+        clip_range_reward_vf=None if not config['PPO']['clip_range_reward_vf'] else config['PPO']['clip_range_reward_vf'],
+        clip_range_cost_vf=None if not config['PPO']['clip_range_cost_vf'] else config['PPO']['clip_range_cost_vf'],
         ent_coef=config['PPO']['ent_coef'],
         reward_vf_coef=config['PPO']['reward_vf_coef'],
         cost_vf_coef=config['PPO']['cost_vf_coef'],
@@ -238,12 +239,12 @@ def train(config):
     # print(utils.colorize("\nBeginning training", color="green", bold=True), flush=True)
     print("\nBeginning training", file=log_file, flush=True)
     best_true_reward, best_true_cost, best_forward_kl, best_reverse_kl = -np.inf, np.inf, np.inf, np.inf
-    for itr in range(config['PPO']['n_iters']):
+    for itr in range(config['running']['n_iters']):
         if config['PPO']['reset_policy'] and itr != 0:
             # print(utils.colorize("Resetting agent", color="green", bold=True), flush=True)
             print("\nResetting agent", file=log_file, flush=True)
             nominal_agent = create_nominal_agent()
-        current_progress_remaining = 1 - float(itr) / float(config['PPO']['n_iters'])
+        current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
         # Update agent
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
@@ -322,7 +323,7 @@ def train(config):
         metrics.update(backward_metrics)
 
         # Log
-        if config.verbose > 0:
+        if config['verbose'] > 0:
             icrl_logger.write(metrics, {k: None for k in metrics.keys()}, step=itr)
 
 
