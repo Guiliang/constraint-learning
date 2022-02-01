@@ -14,7 +14,6 @@ def plot_results(results_moving_average, label='Rewards'):
 
 
 def generate_plots():
-
     plot_key = ['Rewards', 'collision_rate', 'off_road_rate', 'goal_reach_rate', 'time_out_rate']
     log_path = '../save_model/PPO-highD/train_ppo_highD-Jan-27-2022-05:04/monitor.csv'
 
@@ -23,7 +22,7 @@ def generate_plots():
 
     for idx in range(len(plot_key)):
         results_moving_average = compute_moving_average(result_all=results[idx], average_num=100)
-        plot_results(results_moving_average, label=plot_key[idx])
+        plot_results(results_moving_average, label=plot_key[idx] + '_' + log_path.split('/')[3])
 
 
 if __name__ == "__main__":
