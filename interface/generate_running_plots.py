@@ -8,15 +8,20 @@ def plot_results(results_moving_average, label='Rewards', save_label=''):
     plot_curve(draw_keys=['PPO'],
                x_dict=plot_x_dict,
                y_dict=plot_y_dict,
-               xlabel='Time Step',
+               xlabel='Episode',
                ylabel=label,
                plot_name='./plot_results/{0}'.format(save_label))
 
 
 def generate_plots():
+    mode = 'test'
     plot_key = ['Rewards', 'collision_rate', 'off_road_rate', 'goal_reach_rate', 'time_out_rate']
-    # log_path = '../save_model/PPO-highD/train_ppo_highD-Feb-01-2022-10:31/monitor.csv'
-    log_path = '../save_model/PPO-highD/train_ppo_highD_percent_0_5-Feb-01-2022-10:28/monitor.csv'
+    log_path = '../save_model/PPO-highD/train_ppo_highD-Feb-01-2022-10:31/'
+    # log_path = '../save_model/PPO-highD/train_ppo_highD_percent_0_5-Feb-01-2022-10:28/'
+    if mode == 'train':
+        log_path += 'monitor.csv'
+    else:
+        log_path += 'test/test.monitor.csv'
 
     # rewards, is_collision, is_off_road, is_goal_reached, is_time_out = read_running_logs(log_path=log_path)
     results = read_running_logs(log_path=log_path)
@@ -26,7 +31,7 @@ def generate_plots():
                                                         average_num=100)
         plot_results(results_moving_average,
                      label=plot_key[idx],
-                     save_label=plot_key[idx] + '_' + log_path.split('/')[3])
+                     save_label=plot_key[idx] + '_' + log_path.split('/')[3] + '_' + mode)
 
 
 if __name__ == "__main__":
