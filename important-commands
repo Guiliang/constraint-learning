@@ -4,5 +4,7 @@ python -m commonroad_rl.tools.visualize_cr ./environment/commonroad_rl/tutorials
 # git push
 git push --set-upstream https://git.uwaterloo.ca/ppoupart/constraint-learning.git galen
 
+git pull https://git.uwaterloo.ca/ppoupart/constraint-learning.git galen --allow-unrelated-histories
+
 # upload file
 scp /home/g233liu/PycharmProjects/constraint-RL-auto-driving/environment/commonroad_rl.zip galen@q.vectorinstitute.ai:/scratch/gobi2/galen/Projects/constraint-RL-auto-driving/environment/

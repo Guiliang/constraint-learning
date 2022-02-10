@@ -162,4 +162,7 @@ data/inD/*
 data/expert_data/*
 tmp*
 *.zip
+*.out
+slurm*
+
 
