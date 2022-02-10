@@ -150,7 +150,7 @@ venv.bak/
 .DS_Store
 .idea
 # *.xml
-*.sh
+#*.sh
 *.pickle
 
 # for this project
