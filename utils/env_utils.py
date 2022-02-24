@@ -27,6 +27,8 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
         env_configs = yaml.safe_load(config_file)
     if debug_mode:
         env_configs['train_reset_config_path'] += '_debug'
+        env_configs['test_reset_config_path'] += '_debug'
+        env_configs['meta_scenario_path'] += '_debug'
     env = [make_env(env_id, env_configs, i, save_dir, base_seed)
            for i in range(num_threads)]
     env = vec_env.DummyVecEnv(env)
@@ -69,8 +71,9 @@ def make_eval_env(env_id, config_path, save_dir, mode='test', use_cost=False, no
         env_configs = yaml.safe_load(config_file)
     if debug_mode:
         env_configs['train_reset_config_path'] += '_debug'
+        env_configs['test_reset_config_path'] += '_debug'
+        env_configs['meta_scenario_path'] += '_debug'
     env_configs["test_env"] = True
-    env_configs['test_reset_config_path'] += '_debug'
     # env = [lambda: gym.make(env_id, **env_configs)]
     env = [make_env(env_id, env_configs, 0, os.path.join(save_dir, mode))]
     env = vec_env.DummyVecEnv(env)

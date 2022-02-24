@@ -12,4 +12,4 @@ log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
 conda activate cr37
 cd ./interface/
-python train_icrl.py ../config/train_ICRL_highD.yaml -l "$log_dir"
+python train_icrl.py ../config/train_ICRL_highD.yaml -d 1 -l "$log_dir"
