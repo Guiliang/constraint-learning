@@ -77,7 +77,6 @@ LOGGER = logging.getLogger(__name__)
 
 def create_environments(env_id: str, viz_path: str, test_path: str, model_path: str,
                         normalize=True, env_kwargs=None, testing_env=False, debug_mode=False) -> CommonRoadVecEnv:
-
     """
     Create CommonRoad vectorized environment
 
@@ -89,8 +88,9 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
     # :param hyperparam_filename: The filename of the hyperparameters
     :param env_kwargs: Keyword arguments to be passed to the environment
     """
-    env_kwargs.update({"visualization_path": viz_path,
-                       "play": True})
+    env_kwargs.update({"visualization_path": viz_path})
+    if testing_env:
+        env_kwargs.update({"play": False})
     # env_kwargs["test_env"] = True
     if debug_mode:
         env_kwargs['train_reset_config_path'] += '_debug'
@@ -129,7 +129,7 @@ def load_model(model_path: str):
     return model
 
 
-def evaluate():
+def run():
     # config, debug_mode, log_file_path = load_config(args)
 
     # if log_file_path is not None:
@@ -137,10 +137,11 @@ def evaluate():
     # else:
     debug_mode = True
     log_file = None
-    if_testing_env = True
 
     load_model_name = 'train_ppo_highD-Feb-01-2022-10:31'
     task_name = 'PPO-highD'
+    data_generate_type = 'no-off_road'
+    if_testing_env = False
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
     with open(os.path.join(model_loading_path, 'model_hyperparameters.yaml')) as reader:
@@ -162,7 +163,7 @@ def evaluate():
     if not os.path.exists(viz_path):
         os.mkdir(viz_path)
 
-    save_expert_data_path = os.path.join('../data/expert_data/', load_model_name)
+    save_expert_data_path = os.path.join('../data/expert_data/', '{0}_{1}'.format(data_generate_type, load_model_name))
     if not os.path.exists(save_expert_data_path):
         os.mkdir(save_expert_data_path)
 
@@ -236,19 +237,22 @@ def evaluate():
         elif info.get("is_goal_reached", 0) == 1:
             termination_reason = "goal_reached"
 
-        if termination_reason == "goal_reached":
-            print('goal reached', file=log_file, flush=True)
-            success += 1
-            print('saving exper data', file=log_file, flush=True)
+        if termination_reason not in data_generate_type:
+            print('saving expert data with terminal reason: {0}'.format(termination_reason), file=log_file, flush=True)
             saving_expert_data = {
                 'observations': np.asarray(obs_all),
                 'actions': np.asarray(action_all),
                 'original_observations': np.asarray(original_obs_all),
                 'reward_sum': reward_sum
             }
-            with open(os.path.join(save_expert_data_path, 'scene-{0}_len-{1}.pkl'.format(count, running_step)), 'wb') as file:
+            with open(os.path.join(save_expert_data_path,
+                                   'scene-{0}_len-{1}.pkl'.format(benchmark_id, running_step)), 'wb') as file:
                 # A new file will be created
                 pickle.dump(saving_expert_data, file)
+
+        if termination_reason == "goal_reached":
+            print('goal reached', file=log_file, flush=True)
+            success += 1
 
         if out_of_scenarios:
             break
@@ -259,4 +263,4 @@ def evaluate():
 
 if __name__ == '__main__':
     # args = read_args()
-    evaluate()
+    run()

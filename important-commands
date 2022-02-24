@@ -1,3 +1,21 @@
+# transfer raw data to .xml files
+cd ./environment/install
+git clone https://gitlab.lrz.de/tum-cps/dataset-converters.git
+python -m src.main highD ../../../data/highD/raw/ ../../../data/highD/xmls/ --num_time_steps_scenario 1000
+python -m src.main inD ../../../data/inD/raw/ ../../../data/inD/xmls/ --num_time_steps_scenario 1000
+
+# validate the .xml files
+python -m commonroad_rl.tools.validate_cr -s ./commonroad_rl/tools/XML_commonRoad_XSD_2020a.xsd ../data/highD/xmls/*
+python -m commonroad_rl.tools.validate_cr -s ./commonroad_rl/tools/XML_commonRoad_XSD_2020a.xsd ../data/inD/xmls/*
+
+# compute the .pickle files
+python -m commonroad_rl.tools.pickle_scenario.xml_to_pickle -i ../data/highD/xmls -o ../data/highD/pickles
+python -m commonroad_rl.tools.pickle_scenario.xml_to_pickle -i ../data/inD/xmls -o ../data/inD/pickles
+
+# split the dataset
+python -m commonroad_rl.utils_run.split_dataset -i ../data/highD/pickles/problem -otrain ../data/highD/pickles/problem_train -otest ../data/highD/pickles/problem_test -tr_r 0.7
+python -m commonroad_rl.utils_run.split_dataset -i ../data/inD/pickles/problem -otrain ../data/inD/pickles/problem_train -otest ../data/inD/pickles/problem_test -tr_r 0.7
+
 # Visualize the dataset
 python -m commonroad_rl.tools.visualize_cr ./environment/commonroad_rl/tutorials/data/highD/xmls/DEU_LocationBLower-3_1_T-1.xml
 
@@ -15,3 +33,6 @@ git pull origin galen
 
 # upload file
 scp /home/g233liu/PycharmProjects/constraint-RL-auto-driving/environment/commonroad_rl.zip galen@q.vectorinstitute.ai:/scratch/gobi2/galen/Projects/constraint-RL-auto-driving/environment/
+
+# download file
+scp -r galen@q.vectorinstitute.ai:/scratch/gobi2/galen/Projects/constraint-RL-auto-driving/save_model/PPO-highD/train_ppo_highD_no_collision-* /home/g233liu/PycharmProjects/constraint-RL-auto-driving/save_model/PPO-highD/

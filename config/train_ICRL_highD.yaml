@@ -4,7 +4,7 @@ device: 'cuda'
 verbose: 1
 seed: 3
 env:
-  config_path: "../config/highD_environment_configurations_no_collision.yaml"
+  config_path: "../config/highD_environment_configurations_no_offroad.yaml"
   train_env_id : 'commonroad-v1'
   eval_env_id: 'commonroad-v1'
   save_dir: '../save_model'
@@ -22,7 +22,7 @@ running:
   n_eval_episodes: 100
   save_every: 10
   expert_rollouts: 10
-  expert_path: '../data/expert_data'
+  expert_path: '../data/expert_data/no-off_road_train_ppo_highD-Feb-01-2022-10:31/'
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'

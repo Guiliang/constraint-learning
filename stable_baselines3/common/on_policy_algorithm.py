@@ -186,6 +186,8 @@ class OnPolicyAlgorithm(BaseAlgorithm):
             self._last_obs = new_obs
             self._last_orginal_obs = new_original_obs
             self._last_dones = dones
+            if dones[0]:
+                print('debug')
 
         self.extras = {'last_values':values, 'dones':dones}
         rollout_buffer.compute_returns_and_advantage(values, dones=dones)

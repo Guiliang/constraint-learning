@@ -7,6 +7,7 @@ import numpy as np
 
 def plot_curve(draw_keys, x_dict, y_dict, plot_name,
                linewidth=3, xlabel=None, ylabel=None,
+               title=None,
                apply_rainbow=False,
                img_size=(8, 5), axis_size=15, legend_size=15):
     import matplotlib as mpl
@@ -29,6 +30,8 @@ def plot_curve(draw_keys, x_dict, y_dict, plot_name,
         plt.xlabel(xlabel, fontsize=axis_size)
     if ylabel is not None:
         plt.ylabel(ylabel, fontsize=axis_size)
+    if title is not None:
+        plt.title(title, fontsize=axis_size)
     if not plot_name:
         plt.show()
     else:

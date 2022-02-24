@@ -4,11 +4,11 @@ device: 'cuda'
 verbose: 1
 seed: 3
 env:
-  config_path: "../config/highD_environment_configurations_ppo.yaml"
+  config_path: "../config/highD_environment_configurations.yaml"
   train_env_id : 'commonroad-v1'
   eval_env_id: 'commonroad-v1'
   save_dir: '../save_model'
-  expert_path: 'expert_data'
+#  expert_path: 'expert_data'
   expert_rollouts: 10
   cost_info_str: ''
   num_threads: 5

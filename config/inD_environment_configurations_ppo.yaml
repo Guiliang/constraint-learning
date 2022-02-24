@@ -43,7 +43,7 @@ lanelet_configs:
   - 25
   strict_off_road_check: true
 max_lane_merge_range: 5000.0
-meta_scenario_path: ../data/highD/pickles/meta_scenario
+meta_scenario_path: ../data/inD/pickles/meta_scenario
 render_configs:
   render_combine_frames: false
   render_dynamic_extrapolated_positions: false
@@ -58,7 +58,7 @@ render_configs:
   render_surrounding_area: false
   render_surrounding_obstacles_lane_based: false
 #reward_configs_hybrid:  # we are not using the hybrid rewards
-#  reward_collision: 0.0
+#  reward_collision: -50.0
 #  reward_friction: 0.0
 #  reward_friction_violation: 0.0
 #  reward_get_close_coefficient: 0.5
@@ -73,12 +73,6 @@ render_configs:
 #  reward_stop_sign_vel: 0.0
 #  reward_time_out: -10.0
 reward_type: sparse_reward
-reward_configs_sparse:
-  reward_goal_reached: 50.
-  reward_collision: 0.
-  reward_off_road: -50.
-  reward_time_out: -10.
-  reward_friction_violation: 0.
 surrounding_configs:
   dummy_dist: 100.0
   dummy_dist_rate: 0.0
@@ -98,13 +92,13 @@ termination_configs:
   terminate_on_goal_reached: true
   terminate_on_off_road: true
   terminate_on_time_out: true
-test_reset_config_path: ../data/highD/pickles/problem_test
+test_reset_config_path: ../data/inD/pickles/problem_test
 traffic_sign_configs:
   observe_priority_sign: false
   observe_right_of_way_sign: false
   observe_stop_sign: false
   observe_yield_sign: false
-train_reset_config_path: ../data/highD/pickles/problem_train
+train_reset_config_path: ../data/inD/pickles/problem_train
 vehicle_params:
   vehicle_model: 0
   vehicle_type: 2

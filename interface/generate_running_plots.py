@@ -10,14 +10,18 @@ def plot_results(results_moving_average, label='Rewards', save_label=''):
                y_dict=plot_y_dict,
                xlabel='Episode',
                ylabel=label,
+               title='{0}'.format(save_label),
                plot_name='./plot_results/{0}'.format(save_label))
 
 
 def generate_plots():
-    mode = 'test'
+    mode = 'train'
     plot_key = ['Rewards', 'collision_rate', 'off_road_rate', 'goal_reach_rate', 'time_out_rate']
-    log_path = '../save_model/PPO-highD/train_ppo_highD-Feb-01-2022-10:31/'
+    # log_path = '../save_model/PPO-highD/train_ppo_highD-Feb-01-2022-10:31/'
     # log_path = '../save_model/PPO-highD/train_ppo_highD_percent_0_5-Feb-01-2022-10:28/'
+    # log_path = '../save_model/PPO-highD/train_ppo_highD-Jan-27-2022-05:04/'
+    # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-Feb-11-2022-08:57/'
+    log_path = '../save_model/PPO-highD/train_ppo_highD_no_offroad-Feb-11-2022-08:58/'
     if mode == 'train':
         log_path += 'monitor.csv'
     else:

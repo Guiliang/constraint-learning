@@ -41,7 +41,7 @@ def train(args):
     if debug_mode:
         config['env']['num_threads'] = 1
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 2000
+        config['PPO']['forward_timesteps'] = 100 # 2000
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
         debug_msg = 'debug-'
@@ -78,7 +78,8 @@ def train(args):
                                normalize_cost=not config['env']['dont_normalize_cost'],
                                cost_info_str=config['env']['cost_info_str'],
                                reward_gamma=config['env']['reward_gamma'],
-                               cost_gamma=config['env']['cost_gamma'])
+                               cost_gamma=config['env']['cost_gamma'],
+                               debug_mode=debug_mode)
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
@@ -89,6 +90,7 @@ def train(args):
                              save_dir=save_test_mother_dir,
                              use_cost=config['env']['use_cost'],
                              normalize_obs=not config['env']['dont_normalize_obs'],
+                             debug_mode=debug_mode,
                              log_file=log_file)
 
     # Set specs
