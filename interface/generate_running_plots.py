@@ -20,8 +20,8 @@ def generate_plots():
     # log_path = '../save_model/PPO-highD/train_ppo_highD-Feb-01-2022-10:31/'
     # log_path = '../save_model/PPO-highD/train_ppo_highD_percent_0_5-Feb-01-2022-10:28/'
     # log_path = '../save_model/PPO-highD/train_ppo_highD-Jan-27-2022-05:04/'
-    # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-Feb-11-2022-08:57/'
-    log_path = '../save_model/PPO-highD/train_ppo_highD_no_offroad-Feb-11-2022-08:58/'
+    log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-Feb-11-2022-08:57/'
+    # log_path = '../save_model/PPO-highD/train_ppo_highD_no_offroad-Feb-11-2022-08:58/'
     if mode == 'train':
         log_path += 'monitor.csv'
     else:

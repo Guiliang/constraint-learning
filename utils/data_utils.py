@@ -17,17 +17,20 @@ def load_config(args=None):
     assert os.path.exists(args.config_file), "Invalid configs file {0}".format(args.config_file)
     with open(args.config_file) as reader:
         config = yaml.safe_load(reader)
-    return config, args.DEBUG_MODE, args.LOG_FILE_PATH
+    return config, args.DEBUG_MODE, args.LOG_FILE_PATH, args.PART_DATA
 
 
 def read_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("config_file", help="path to configs file")
-    parser.add_argument("-t", "--train_flag", help="if training",
-                        dest="TRAIN_FLAG",
-                        default='1', required=False)
+    # parser.add_argument("-t", "--train_flag", help="if training",
+    #                     dest="TRAIN_FLAG",
+    #                     default='1', required=False)
     parser.add_argument("-d", "--debug_mode", help="whether to use the debug mode",
                         dest="DEBUG_MODE",
+                        default=False, required=False)
+    parser.add_argument("-p", "--part_data", help="whether to use the partial dataset",
+                        dest="PART_DATA",
                         default=False, required=False)
     parser.add_argument("-l", "--log_file", help="log file", dest="LOG_FILE_PATH", default=None, required=False)
     args = parser.parse_args()

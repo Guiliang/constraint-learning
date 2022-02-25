@@ -62,7 +62,7 @@ def load_expert_data(expert_path, num_rollouts, log_file):
 
 
 def train(config):
-    config, debug_mode, log_file_path = load_config(args)
+    config, debug_mode, log_file_path, partial_data = load_config(args)
 
     if log_file_path is not None:
         log_file = open(log_file_path, 'w')
@@ -76,6 +76,8 @@ def train(config):
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
         debug_msg = 'debug-'
+    if partial_data:
+        debug_msg += 'part-'
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
 
@@ -110,7 +112,7 @@ def train(config):
                                cost_info_str=config['env']['cost_info_str'],
                                reward_gamma=config['env']['reward_gamma'],
                                cost_gamma=config['env']['cost_gamma'],
-                               debug_mode=debug_mode,)
+                               part_data=debug_mode, )
 
     # We don't need cost when taking samples
     save_valid_mother_dir = os.path.join(save_model_mother_dir, "valid/")
@@ -122,7 +124,7 @@ def train(config):
                                  mode='valid',
                                  use_cost=False,
                                  normalize_obs=not config['env']['dont_normalize_obs'],
-                                 debug_mode=debug_mode,
+                                 part_data=debug_mode,
                                  log_file=log_file)
     # We don't need cost when during evaluation
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
@@ -134,7 +136,7 @@ def train(config):
                              mode='valid',
                              use_cost=False,
                              normalize_obs=not config['env']['dont_normalize_obs'],
-                             debug_mode=debug_mode,
+                             part_data=debug_mode,
                              log_file=log_file)
 
     # Set specs

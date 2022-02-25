@@ -21,11 +21,11 @@ def make_env(env_id, env_configs, rank, log_dir, seed=0):
 
 
 def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
-                   use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True, debug_mode=False,
+                   use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True, part_data=False,
                    **kwargs):
     with open(config_path, "r") as config_file:
         env_configs = yaml.safe_load(config_file)
-    if debug_mode:
+    if part_data:
         env_configs['train_reset_config_path'] += '_debug'
         env_configs['test_reset_config_path'] += '_debug'
         env_configs['meta_scenario_path'] += '_debug'
@@ -66,10 +66,10 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
 
 
 def make_eval_env(env_id, config_path, save_dir, mode='test', use_cost=False, normalize_obs=True,
-                  debug_mode=False,log_file=None):
+                  part_data=False, log_file=None):
     with open(config_path, "r") as config_file:
         env_configs = yaml.safe_load(config_file)
-    if debug_mode:
+    if part_data:
         env_configs['train_reset_config_path'] += '_debug'
         env_configs['test_reset_config_path'] += '_debug'
         env_configs['meta_scenario_path'] += '_debug'

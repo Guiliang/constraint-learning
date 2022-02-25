@@ -140,7 +140,7 @@ def run():
 
     load_model_name = 'train_ppo_highD-Feb-01-2022-10:31'
     task_name = 'PPO-highD'
-    data_generate_type = 'no-off_road'
+    data_generate_type = 'no-collision'
     if_testing_env = False
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
@@ -180,7 +180,7 @@ def run():
 
     model = load_model(model_loading_path)
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios = 0, 0, 0, 0, 0
-    num_scenarios = 200
+    num_scenarios = 50
     # In case there a no scenarios at all
     try:
         obs = env.reset()
@@ -249,6 +249,7 @@ def run():
                                    'scene-{0}_len-{1}.pkl'.format(benchmark_id, running_step)), 'wb') as file:
                 # A new file will be created
                 pickle.dump(saving_expert_data, file)
+            count += 1
 
         if termination_reason == "goal_reached":
             print('goal reached', file=log_file, flush=True)
@@ -256,7 +257,6 @@ def run():
 
         if out_of_scenarios:
             break
-        count += 1
 
     print('total', count, 'success', success, file=log_file, flush=True)
 

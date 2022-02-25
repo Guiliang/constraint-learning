@@ -31,7 +31,7 @@ def null_cost(x, *args):
 
 
 def train(args):
-    config, debug_mode, log_file_path = load_config(args)
+    config, debug_mode, log_file_path, partial_data = load_config(args)
 
     if log_file_path is not None:
         log_file = open(log_file_path, 'w')
@@ -45,9 +45,11 @@ def train(args):
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
         debug_msg = 'debug-'
+        partial_data = True
+    if partial_data:
+        debug_msg += 'part-'
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
-
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
     # today = datetime.date.today()
     # currentTime = today.strftime("%b-%d-%Y-%h-%m")
@@ -79,7 +81,7 @@ def train(args):
                                cost_info_str=config['env']['cost_info_str'],
                                reward_gamma=config['env']['reward_gamma'],
                                cost_gamma=config['env']['cost_gamma'],
-                               debug_mode=debug_mode)
+                               part_data=partial_data)
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
@@ -90,8 +92,8 @@ def train(args):
                              save_dir=save_test_mother_dir,
                              use_cost=config['env']['use_cost'],
                              normalize_obs=not config['env']['dont_normalize_obs'],
-                             debug_mode=debug_mode,
-                             log_file=log_file)
+                             log_file=log_file,
+                             part_data=partial_data)
 
     # Set specs
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
