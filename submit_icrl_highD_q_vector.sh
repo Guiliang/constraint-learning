@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --time=48:00:00
 #SBATCH --mem=24GB
-#SBATCH --job-name=PPO
+#SBATCH --job-name=ICRL
 task_name="train-highD-PPO"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
