@@ -168,6 +168,9 @@ class OnPolicyAlgorithm(BaseAlgorithm):
             new_obs, rewards, dones, infos = env.step(clipped_actions)
             new_original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else new_obs
 
+            # if infos[0]['is_off_road']:
+            #     print('debugging')
+
             self.num_timesteps += env.num_envs
 
             # Give access to local variables
@@ -186,8 +189,8 @@ class OnPolicyAlgorithm(BaseAlgorithm):
             self._last_obs = new_obs
             self._last_orginal_obs = new_original_obs
             self._last_dones = dones
-            if dones[0]:
-                print('debug')
+            # if dones[0]:
+            #     print('debug')
 
         self.extras = {'last_values':values, 'dones':dones}
         rollout_buffer.compute_returns_and_advantage(values, dones=dones)

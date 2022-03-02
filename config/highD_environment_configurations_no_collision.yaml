@@ -93,7 +93,7 @@ surrounding_configs:
   observe_lane_rect_surrounding: false
   observe_lidar_circle_surrounding: false
 termination_configs:
-  terminate_on_collision: true
+  terminate_on_collision: false
   terminate_on_friction_violation: false
   terminate_on_goal_reached: true
   terminate_on_off_road: true

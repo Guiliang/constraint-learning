@@ -96,7 +96,7 @@ termination_configs:
   terminate_on_collision: true
   terminate_on_friction_violation: false
   terminate_on_goal_reached: true
-  terminate_on_off_road: true
+  terminate_on_off_road: false
   terminate_on_time_out: true
 test_reset_config_path: ../data/highD/pickles/problem_test
 traffic_sign_configs:

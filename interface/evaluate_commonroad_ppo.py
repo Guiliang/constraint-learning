@@ -139,7 +139,8 @@ def evaluate():
     log_file = None
     if_testing_env = True
 
-    load_model_name = 'train_ppo_highD-Feb-01-2022-10:31'
+    # load_model_name = 'train_ppo_highD-Feb-01-2022-10:31'
+    load_model_name = 'train_ppo_highD_no_offroad-Feb-11-2022-08:58'
     task_name = 'PPO-highD'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
@@ -210,7 +211,7 @@ def evaluate():
             original_obs_all.append(original_obs)
             action_all.append(action)
             save_game_record(info[0], game_info_file)
-            # env.render()
+            env.render()
             obs = new_obs
             running_step += 1
         game_info_file.close()
