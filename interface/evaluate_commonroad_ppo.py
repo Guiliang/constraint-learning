@@ -140,7 +140,10 @@ def evaluate():
     if_testing_env = True
 
     # load_model_name = 'train_ppo_highD-Feb-01-2022-10:31'
-    load_model_name = 'train_ppo_highD_no_offroad-Feb-11-2022-08:58'
+    # load_model_name = 'train_ppo_highD_no_offroad-Feb-11-2022-08:58'
+    # load_model_name = 'train_ppo_highD_no_collision-Feb-11-2022-08:57'
+    # load_model_name = 'part-train_ppo_highD_no_collision-Mar-02-2022-00:38'
+    load_model_name = 'debug-part-train_ppo_highD_no_offroad-Mar-03-2022-19:41'
     task_name = 'PPO-highD'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)

@@ -21,7 +21,8 @@ def make_env(env_id, env_configs, rank, log_dir, seed=0):
 
 
 def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
-                   use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True, part_data=False,
+                   use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True,
+                   log_file=None, part_data=False,
                    **kwargs):
     with open(config_path, "r") as config_file:
         env_configs = yaml.safe_load(config_file)
@@ -62,6 +63,7 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
     #         env = vec_env.VecNormalize(
     #             env, training=True, norm_obs=normalize_obs, norm_reward=False, norm_cost=False,
     #             gamma=kwargs['reward_gamma'])
+    print("The obs space is {0}".format(len(env.obs_rms.mean)), file=log_file, flush=True)
     return env
 
 
