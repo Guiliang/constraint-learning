@@ -33,6 +33,7 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
     env = [make_env(env_id, env_configs, i, save_dir, base_seed)
            for i in range(num_threads)]
     env = vec_env.DummyVecEnv(env)
+    print("The obs space is {0}".format(len(env.observation_space.high)), file=log_file, flush=True)
     if use_cost:
         env = vec_env.VecCostWrapper(env)
     if normalize_reward and normalize_cost:
@@ -63,7 +64,6 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
     #         env = vec_env.VecNormalize(
     #             env, training=True, norm_obs=normalize_obs, norm_reward=False, norm_cost=False,
     #             gamma=kwargs['reward_gamma'])
-    print("The obs space is {0}".format(len(env.obs_rms.mean)), file=log_file, flush=True)
     return env
 
 

@@ -36,3 +36,30 @@ scp /home/g233liu/PycharmProjects/constraint-RL-auto-driving/environment/commonr
 
 # download file
 scp -r galen@q.vectorinstitute.ai:/scratch/gobi2/galen/Projects/constraint-RL-auto-driving/save_model/PPO-highD/train_ppo_highD_no_collision-* /home/g233liu/PycharmProjects/constraint-RL-auto-driving/save_model/PPO-highD/
+
+# reinstall environment
+source /h/galen/miniconda3/bin/activate
+
+~/miniconda3/bin/conda init
+
+conda remove --name galen-cr37 --all
+
+rm -rf commonroad-rl/
+
+git clone https://gitlab.lrz.de/tum-cps/commonroad-rl.git
+
+cd commonroad-rl/
+
+conda env create -n galen-cr37 -f environment.yml
+
+git submodule init
+
+git submodule update --recursive || exit_with_error "Update submodules failed"
+
+bash scripts/install.sh -e galen-cr37 --no-root
+
+source activate galen-cr37
+
+pip install pytest
+
+pytest commonroad_rl/tests --scope unit module -m "not slow"

@@ -10,6 +10,6 @@ task_name="train-highD-PPO"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
-conda activate cr37
+conda activate galen-cr37
 cd ./interface/
 python train_commonroad_icrl.py ../config/train_ICRL_highD_offroad_constraint.yaml -p 1 -l "$log_dir"
