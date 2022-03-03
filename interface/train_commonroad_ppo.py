@@ -84,135 +84,135 @@ def train(args):
                                log_file=log_file,
                                part_data=partial_data)
 
-    # save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
-    # if not os.path.exists(save_test_mother_dir):
-    #     os.mkdir(save_test_mother_dir)
-    #
-    # eval_env = make_eval_env(env_id=config['env']['eval_env_id'],
-    #                          config_path=config['env']['config_path'],
-    #                          save_dir=save_test_mother_dir,
-    #                          use_cost=config['env']['use_cost'],
-    #                          normalize_obs=not config['env']['dont_normalize_obs'],
-    #                          log_file=log_file,
-    #                          part_data=partial_data)
-    #
-    # # Set specs
-    # is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
-    # print('is_discrete', is_discrete, file=log_file, flush=True)
-    # obs_dim = train_env.observation_space.shape[0]
-    # acs_dim = train_env.action_space.n if is_discrete else train_env.action_space.shape[0]
-    #
-    # # Logger
-    # if log_file is None:
-    #     ppo_logger = logger.HumanOutputFormat(sys.stdout)
-    # else:
-    #     ppo_logger = logger.HumanOutputFormat(log_file)
-    #
-    # create_ppo_agent = lambda: PPO(
-    #     policy=config['PPO']['policy_name'],
-    #     env=train_env,
-    #     learning_rate=config['PPO']['learning_rate'],
-    #     n_steps=config['PPO']['n_steps'],
-    #     batch_size=config['PPO']['batch_size'],
-    #     n_epochs=config['PPO']['n_epochs'],
-    #     gamma=config['PPO']['reward_gamma'],
-    #     gae_lambda=config['PPO']['reward_gae_lambda'],
-    #     clip_range=config['PPO']['clip_range'],
-    #     ent_coef=config['PPO']['ent_coef'],
-    #     vf_coef=config['PPO']['reward_vf_coef'],
-    #     max_grad_norm=config['PPO']['max_grad_norm'],
-    #     use_sde=config['PPO']['use_sde'],
-    #     sde_sample_freq=config['PPO']['sde_sample_freq'],
-    #     target_kl=config['PPO']['target_kl'],
-    #     verbose=config['verbose'],
-    #     seed=config['seed'],
-    #     device=config['device'],
-    #     policy_kwargs=dict(net_arch=get_net_arch(config)))
-    #
-    # ppo_agent = create_ppo_agent()
-    #
-    # # Callbacks
-    # all_callbacks = []
-    # if config['PPO']['use_curiosity_driven_exploration']:
-    #     explorationCallback = ExplorationRewardCallback(obs_dim, acs_dim, device=config.device)
-    #     all_callbacks.append(explorationCallback)
-    #
-    # # Warmup
-    # # Warmup
-    # timesteps = 0.
-    # if config['PPO']['warmup_timesteps']:
-    #     # print(colorize("\nWarming up", color="green", bold=True), file=log_file, flush=True)
-    #     print("\nWarming up", file=log_file, flush=True)
-    #     with ProgressBarManager(config['PPO']['warmup_timesteps']) as callback:
-    #         ppo_agent.learn(total_timesteps=config['PPO']['warmup_timesteps'],
-    #                             callback=callback)
-    #         timesteps += ppo_agent.num_timesteps
-    #
-    # # Train
-    # start_time = time.time()
-    # # print(colorize("\nBeginning training", color="green", bold=True), file=log_file, flush=True)
-    # print("\nBeginning training", file=log_file, flush=True)
-    # best_true_reward = -np.inf
-    # for itr in range(config['running']['n_iters']):
-    #     if config['PPO']['reset_policy'] and itr != 0:
-    #         # print(colorize("Resetting agent", color="green", bold=True), file=log_file, flush=True)
-    #         print("Resetting agent", file=log_file, flush=True)
-    #         ppo_agent = create_ppo_agent()
-    #
-    #     current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
-    #
-    #     # Update agent
-    #     with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
-    #         ppo_agent.learn(
-    #             total_timesteps=config['PPO']['forward_timesteps'],
-    #             callback=[callback] + all_callbacks
-    #         )
-    #         forward_metrics = logger.Logger.CURRENT.name_to_value
-    #         timesteps += ppo_agent.num_timesteps
-    #
-    #     # Evaluate:
-    #     # reward on true environment
-    #     sync_envs_normalization(train_env, eval_env)
-    #     average_true_reward, std_true_reward = evaluate_policy(ppo_agent, eval_env,
-    #                                                            n_eval_episodes=config['running']['n_eval_episodes'],
-    #                                                            deterministic=False)
-    #
-    #     # Save
-    #     # (1) periodically
-    #     if itr % config['running']['save_every'] == 0:
-    #         path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
-    #         del_and_make(path)
-    #         ppo_agent.save(os.path.join(path, "nominal_agent"))
-    #         if isinstance(train_env, VecNormalize):
-    #             train_env.save(os.path.join(path, "train_env_stats.pkl"))
-    #
-    #     # (2) best
-    #     if average_true_reward > best_true_reward:
-    #         # print(colorize("Saving new best model", color="green", bold=True), flush=True, file=log_file)
-    #         print("Saving new best model", flush=True, file=log_file)
-    #         ppo_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
-    #         if isinstance(train_env, VecNormalize):
-    #             train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))
-    #
-    #     # Update best metrics
-    #     if average_true_reward > best_true_reward:
-    #         best_true_reward = average_true_reward
-    #
-    #     # Collect metrics
-    #     metrics = {
-    #         "time(m)": (time.time() - start_time) / 60,
-    #         "run_iter": itr,
-    #         "timesteps": timesteps,
-    #         "true/reward": average_true_reward,
-    #         "true/reward_std": std_true_reward,
-    #         "best_true/best_reward": best_true_reward
-    #     }
-    #
-    #     metrics.update({k.replace("train/", "forward/"): v for k, v in forward_metrics.items()})
-    #
-    #     # Log
-    #     if config['verbose'] > 0:
-    #         ppo_logger.write(metrics, {k: None for k in metrics.keys()}, step=itr)
+    save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
+    if not os.path.exists(save_test_mother_dir):
+        os.mkdir(save_test_mother_dir)
+
+    eval_env = make_eval_env(env_id=config['env']['eval_env_id'],
+                             config_path=config['env']['config_path'],
+                             save_dir=save_test_mother_dir,
+                             use_cost=config['env']['use_cost'],
+                             normalize_obs=not config['env']['dont_normalize_obs'],
+                             log_file=log_file,
+                             part_data=partial_data)
+
+    # Set specs
+    is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
+    print('is_discrete', is_discrete, file=log_file, flush=True)
+    obs_dim = train_env.observation_space.shape[0]
+    acs_dim = train_env.action_space.n if is_discrete else train_env.action_space.shape[0]
+
+    # Logger
+    if log_file is None:
+        ppo_logger = logger.HumanOutputFormat(sys.stdout)
+    else:
+        ppo_logger = logger.HumanOutputFormat(log_file)
+
+    create_ppo_agent = lambda: PPO(
+        policy=config['PPO']['policy_name'],
+        env=train_env,
+        learning_rate=config['PPO']['learning_rate'],
+        n_steps=config['PPO']['n_steps'],
+        batch_size=config['PPO']['batch_size'],
+        n_epochs=config['PPO']['n_epochs'],
+        gamma=config['PPO']['reward_gamma'],
+        gae_lambda=config['PPO']['reward_gae_lambda'],
+        clip_range=config['PPO']['clip_range'],
+        ent_coef=config['PPO']['ent_coef'],
+        vf_coef=config['PPO']['reward_vf_coef'],
+        max_grad_norm=config['PPO']['max_grad_norm'],
+        use_sde=config['PPO']['use_sde'],
+        sde_sample_freq=config['PPO']['sde_sample_freq'],
+        target_kl=config['PPO']['target_kl'],
+        verbose=config['verbose'],
+        seed=config['seed'],
+        device=config['device'],
+        policy_kwargs=dict(net_arch=get_net_arch(config)))
+
+    ppo_agent = create_ppo_agent()
+
+    # Callbacks
+    all_callbacks = []
+    if config['PPO']['use_curiosity_driven_exploration']:
+        explorationCallback = ExplorationRewardCallback(obs_dim, acs_dim, device=config.device)
+        all_callbacks.append(explorationCallback)
+
+    # Warmup
+    # Warmup
+    timesteps = 0.
+    if config['PPO']['warmup_timesteps']:
+        # print(colorize("\nWarming up", color="green", bold=True), file=log_file, flush=True)
+        print("\nWarming up", file=log_file, flush=True)
+        with ProgressBarManager(config['PPO']['warmup_timesteps']) as callback:
+            ppo_agent.learn(total_timesteps=config['PPO']['warmup_timesteps'],
+                                callback=callback)
+            timesteps += ppo_agent.num_timesteps
+
+    # Train
+    start_time = time.time()
+    # print(colorize("\nBeginning training", color="green", bold=True), file=log_file, flush=True)
+    print("\nBeginning training", file=log_file, flush=True)
+    best_true_reward = -np.inf
+    for itr in range(config['running']['n_iters']):
+        if config['PPO']['reset_policy'] and itr != 0:
+            # print(colorize("Resetting agent", color="green", bold=True), file=log_file, flush=True)
+            print("Resetting agent", file=log_file, flush=True)
+            ppo_agent = create_ppo_agent()
+
+        current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
+
+        # Update agent
+        with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
+            ppo_agent.learn(
+                total_timesteps=config['PPO']['forward_timesteps'],
+                callback=[callback] + all_callbacks
+            )
+            forward_metrics = logger.Logger.CURRENT.name_to_value
+            timesteps += ppo_agent.num_timesteps
+
+        # Evaluate:
+        # reward on true environment
+        sync_envs_normalization(train_env, eval_env)
+        average_true_reward, std_true_reward = evaluate_policy(ppo_agent, eval_env,
+                                                               n_eval_episodes=config['running']['n_eval_episodes'],
+                                                               deterministic=False)
+
+        # Save
+        # (1) periodically
+        if itr % config['running']['save_every'] == 0:
+            path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
+            del_and_make(path)
+            ppo_agent.save(os.path.join(path, "nominal_agent"))
+            if isinstance(train_env, VecNormalize):
+                train_env.save(os.path.join(path, "train_env_stats.pkl"))
+
+        # (2) best
+        if average_true_reward > best_true_reward:
+            # print(colorize("Saving new best model", color="green", bold=True), flush=True, file=log_file)
+            print("Saving new best model", flush=True, file=log_file)
+            ppo_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
+            if isinstance(train_env, VecNormalize):
+                train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))
+
+        # Update best metrics
+        if average_true_reward > best_true_reward:
+            best_true_reward = average_true_reward
+
+        # Collect metrics
+        metrics = {
+            "time(m)": (time.time() - start_time) / 60,
+            "run_iter": itr,
+            "timesteps": timesteps,
+            "true/reward": average_true_reward,
+            "true/reward_std": std_true_reward,
+            "best_true/best_reward": best_true_reward
+        }
+
+        metrics.update({k.replace("train/", "forward/"): v for k, v in forward_metrics.items()})
+
+        # Log
+        if config['verbose'] > 0:
+            ppo_logger.write(metrics, {k: None for k in metrics.keys()}, step=itr)
 
 
 if __name__ == "__main__":

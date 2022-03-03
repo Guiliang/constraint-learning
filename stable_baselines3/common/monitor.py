@@ -69,6 +69,12 @@ class Monitor(gym.Wrapper):
         self.episode_times = []
         self.total_steps = 0
         self.current_reset_info = {}  # extra info about the current episode, that was passed in during reset()
+        self.event_dict = {
+            'is_collision': 0,
+            'is_off_road': 0,
+            'is_goal_reached': 0,
+            'is_time_out': 0,
+        }
 
     def reset(self, **kwargs) -> np.ndarray:
         """
@@ -108,6 +114,14 @@ class Monitor(gym.Wrapper):
             if key not in info:
                 raise ValueError(f"Expected to find {key} in info dict")
             self.track[key].append(info[key])
+        if info['is_collision']:
+            self.event_dict['is_collision'] = 1
+        if info['is_off_road']:
+            self.event_dict['is_off_road'] = 1
+        if info['is_goal_reached']:
+            self.event_dict['is_goal_reached'] = 1
+        if info['is_time_out']:
+            self.event_dict['is_time_out'] = 1
         if done:
             self.needs_reset = True
             ep_rew = sum(self.rewards)
@@ -115,10 +129,10 @@ class Monitor(gym.Wrapper):
             ep_info = {"reward": round(ep_rew, 6),
                        "len": ep_len,
                        "time": round(time.time() - self.t_start, 6),
-                       "is_collision": info['is_collision'],
-                       "is_off_road": info['is_off_road'],
-                       "is_goal_reached": info['is_goal_reached'],
-                       "is_time_out": info['is_time_out']
+                       "is_collision": self.event_dict['is_collision'],
+                       "is_off_road": self.event_dict['is_off_road'],
+                       "is_goal_reached": self.event_dict['is_goal_reached'],
+                       "is_time_out": self.event_dict['is_time_out']
                        }
             for key in self.info_keywords:
                 ep_info[key] = info[key]
@@ -132,6 +146,12 @@ class Monitor(gym.Wrapper):
                 self.logger.writerow(ep_info)
                 self.file_handler.flush()
             info["episode"] = ep_info
+            self.event_dict = {
+                'is_collision': 0,
+                'is_off_road': 0,
+                'is_goal_reached': 0,
+                'is_time_out': 0,
+            }
         self.total_steps += 1
         return observation, reward, done, info
 
