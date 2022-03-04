@@ -1,3 +1,5 @@
+import os
+
 from utils.data_utils import read_running_logs, compute_moving_average
 from utils.plot_utils import plot_curve
 
@@ -15,13 +17,8 @@ def plot_results(results_moving_average, label='Rewards', save_label=''):
 
 
 def generate_plots():
-    mode = 'train'
+    mode = 'test'
     plot_key = ['Rewards', 'collision_rate', 'off_road_rate', 'goal_reach_rate', 'time_out_rate']
-    # log_path = '../save_model/PPO-highD/train_ppo_highD-Feb-01-2022-10:31/'
-    # log_path = '../save_model/PPO-highD/train_ppo_highD_percent_0_5-Feb-01-2022-10:28/'
-    # log_path = '../save_model/PPO-highD/train_ppo_highD-Jan-27-2022-05:04/'
-    # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-Feb-11-2022-08:57/'
-    # log_path = '../save_model/PPO-highD/train_ppo_highD_no_offroad-Feb-11-2022-08:58/'
     # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_offroad_constraint-Feb-25-2022-05:53/'
     # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_collision_constraint-Feb-25-2022-05:47/'
     # log_path = '../save_model/PPO-highD/part-train_ppo_highD_no_collision-Mar-03-2022-11:04/'
@@ -34,12 +31,15 @@ def generate_plots():
     # rewards, is_collision, is_off_road, is_goal_reached, is_time_out = read_running_logs(log_path=log_path)
     results = read_running_logs(log_path=log_path)
 
+    if not os.path.exists('./plot_results/'+log_path.split('/')[3]):
+        os.mkdir('./plot_results/'+log_path.split('/')[3])
+
     for idx in range(len(plot_key)):
         results_moving_average = compute_moving_average(result_all=results[idx],
                                                         average_num=100)
         plot_results(results_moving_average,
                      label=plot_key[idx],
-                     save_label=plot_key[idx] + '_' + log_path.split('/')[3] + '_' + mode)
+                     save_label=log_path.split('/')[3] + '/'+plot_key[idx] + '_' + mode)
 
 
 if __name__ == "__main__":

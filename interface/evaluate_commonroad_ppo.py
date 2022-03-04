@@ -91,7 +91,8 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
     """
     env_kwargs.update({"visualization_path": viz_path,
                        "play": True})
-    # env_kwargs["test_env"] = True
+    if testing_env:
+        env_kwargs["test_env"] = True
     if debug_mode:
         env_kwargs['train_reset_config_path'] += '_debug'
         env_kwargs['test_reset_config_path'] += '_debug'
