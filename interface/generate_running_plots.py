@@ -24,7 +24,8 @@ def generate_plots():
     # log_path = '../save_model/PPO-highD/train_ppo_highD_no_offroad-Feb-11-2022-08:58/'
     # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_offroad_constraint-Feb-25-2022-05:53/'
     # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_collision_constraint-Feb-25-2022-05:47/'
-    log_path = '../save_model/PPO-highD/part-train_ppo_highD_no_collision-Mar-02-2022-00:38/'
+    # log_path = '../save_model/PPO-highD/part-train_ppo_highD_no_collision-Mar-03-2022-11:04/'
+    log_path = '../save_model/PPO-highD/part-train_ppo_highD_no_offroad-Mar-03-2022-11:05/'
     if mode == 'train':
         log_path += 'monitor.csv'
     else:
