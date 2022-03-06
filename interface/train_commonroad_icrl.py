@@ -133,7 +133,7 @@ def train(config):
     eval_env = make_eval_env(env_id=config['env']['eval_env_id'],
                              config_path=config['env']['config_path'],
                              save_dir=save_test_mother_dir,
-                             mode='valid',
+                             mode='test',
                              use_cost=False,
                              normalize_obs=not config['env']['dont_normalize_obs'],
                              part_data=partial_data,

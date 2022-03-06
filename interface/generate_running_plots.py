@@ -17,29 +17,31 @@ def plot_results(results_moving_average, label='Rewards', save_label=''):
 
 
 def generate_plots():
-    mode = 'test'
-    plot_key = ['Rewards', 'collision_rate', 'off_road_rate', 'goal_reach_rate', 'time_out_rate']
-    # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_offroad_constraint-Feb-25-2022-05:53/'
-    # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_collision_constraint-Feb-25-2022-05:47/'
-    # log_path = '../save_model/PPO-highD/part-train_ppo_highD_no_collision-Mar-03-2022-11:04/'
-    log_path = '../save_model/PPO-highD/part-train_ppo_highD_no_offroad-Mar-03-2022-11:05/'
-    if mode == 'train':
-        log_path += 'monitor.csv'
-    else:
-        log_path += 'test/test.monitor.csv'
+    modes = ['train', 'test']
 
-    # rewards, is_collision, is_off_road, is_goal_reached, is_time_out = read_running_logs(log_path=log_path)
-    results = read_running_logs(log_path=log_path)
+    for mode in modes:
+        plot_key = ['Rewards', 'collision_rate', 'off_road_rate', 'goal_reach_rate', 'time_out_rate']
+        log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_collision_constraint-Mar-04-2022-00:07/'
+        # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_collision_constraint-Feb-25-2022-05:47/'
+        # log_path = '../save_model/PPO-highD/part-train_ppo_highD_no_collision-Mar-03-2022-11:04/'
+        # log_path = '../save_model/PPO-highD/part-train_ppo_highD_no_offroad-Mar-03-2022-11:05/'
+        if mode == 'train':
+            log_path += 'monitor.csv'
+        else:
+            log_path += 'test/test.monitor.csv'
 
-    if not os.path.exists('./plot_results/'+log_path.split('/')[3]):
-        os.mkdir('./plot_results/'+log_path.split('/')[3])
+        # rewards, is_collision, is_off_road, is_goal_reached, is_time_out = read_running_logs(log_path=log_path)
+        results = read_running_logs(log_path=log_path)
 
-    for idx in range(len(plot_key)):
-        results_moving_average = compute_moving_average(result_all=results[idx],
-                                                        average_num=100)
-        plot_results(results_moving_average,
-                     label=plot_key[idx],
-                     save_label=log_path.split('/')[3] + '/'+plot_key[idx] + '_' + mode)
+        if not os.path.exists('./plot_results/'+log_path.split('/')[3]):
+            os.mkdir('./plot_results/'+log_path.split('/')[3])
+
+        for idx in range(len(plot_key)):
+            results_moving_average = compute_moving_average(result_all=results[idx],
+                                                            average_num=100)
+            plot_results(results_moving_average,
+                         label=plot_key[idx],
+                         save_label=log_path.split('/')[3] + '/'+plot_key[idx] + '_' + mode)
 
 
 if __name__ == "__main__":
