@@ -43,12 +43,15 @@ def load_expert_data(expert_path, num_rollouts, log_file):
         file_name = sample_names[i]
         with open(os.path.join(expert_path, file_name), "rb") as f:
             data = pickle.load(f)
+
+        data_obs = np.squeeze(data['original_observations'], axis=1)
+        data_acs = np.squeeze(data['actions'], axis=1)
         if i == 0:
-            expert_obs = data['original_observations']
-            expert_acs = data['actions']
+            expert_obs = data_obs
+            expert_acs = data_acs
         else:
-            expert_obs = np.concatenate([expert_obs, data['original_observations']], axis=0)
-            expert_acs = np.concatenate([expert_acs, data['actions']], axis=0)
+            expert_obs = np.concatenate([expert_obs, data_obs], axis=0)
+            expert_acs = np.concatenate([expert_acs, data_acs], axis=0)
         expert_mean_reward.append(data['reward_sum'])
 
     expert_mean_reward = np.mean(expert_mean_reward)
