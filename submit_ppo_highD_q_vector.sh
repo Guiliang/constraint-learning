@@ -4,7 +4,7 @@
 #SBATCH -p gpu
 #SBATCH --cpus-per-task=8
 #SBATCH --time=96:00:00
-#SBATCH --mem=64GB
+#SBATCH --mem=96GB
 #SBATCH --job-name=PPO
 task_name="train-highD-PPO"
 launch_time=$(date +"%H:%M-%m-%d-%y")
