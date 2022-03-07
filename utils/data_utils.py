@@ -17,7 +17,7 @@ def load_config(args=None):
     assert os.path.exists(args.config_file), "Invalid configs file {0}".format(args.config_file)
     with open(args.config_file) as reader:
         config = yaml.safe_load(reader)
-    return config, args.DEBUG_MODE, args.LOG_FILE_PATH, args.PART_DATA
+    return config, args.DEBUG_MODE, args.LOG_FILE_PATH, args.PART_DATA, args.NUM_THREADS
 
 
 def read_args():
@@ -32,6 +32,9 @@ def read_args():
     parser.add_argument("-p", "--part_data", help="whether to use the partial dataset",
                         dest="PART_DATA",
                         default=False, required=False)
+    parser.add_argument("-n", "--num_threads", help="number of threads for loading envs.",
+                        dest="NUM_THREADS",
+                        default=None, required=False)
     parser.add_argument("-l", "--log_file", help="log file", dest="LOG_FILE_PATH", default=None, required=False)
     args = parser.parse_args()
     return args

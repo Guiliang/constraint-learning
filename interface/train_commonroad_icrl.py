@@ -62,7 +62,7 @@ def load_expert_data(expert_path, num_rollouts, log_file):
 
 
 def train(config):
-    config, debug_mode, log_file_path, partial_data = load_config(args)
+    config, debug_mode, log_file_path, partial_data, num_threads = load_config(args)
 
     if log_file_path is not None:
         log_file = open(log_file_path, 'w')
@@ -70,7 +70,7 @@ def train(config):
         log_file = None
     debug_msg = ''
     if debug_mode:
-        config['env']['num_threads'] = 1
+        # config['env']['num_threads'] = 1
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 2000
         config['running']['n_eval_episodes'] = 10
@@ -78,6 +78,9 @@ def train(config):
         debug_msg = 'debug-'
     if partial_data:
         debug_msg += 'part-'
+
+    if num_threads is not None:
+        config['env']['num_threads'] = int(num_threads)
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
 
