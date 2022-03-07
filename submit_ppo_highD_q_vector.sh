@@ -3,7 +3,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH -p gpu
 #SBATCH --cpus-per-task=8
-#SBATCH --time=48:00:00
+#SBATCH --time=96:00:00
 #SBATCH --mem=64GB
 #SBATCH --job-name=PPO
 task_name="train-highD-PPO"

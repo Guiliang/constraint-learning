@@ -44,10 +44,10 @@ def load_expert_data(expert_path, num_rollouts, log_file):
         with open(os.path.join(expert_path, file_name), "rb") as f:
             data = pickle.load(f)
         if i == 0:
-            expert_obs = data['observations']
+            expert_obs = data['original_observations']
             expert_acs = data['actions']
         else:
-            expert_obs = np.concatenate([expert_obs, data['observations']], axis=0)
+            expert_obs = np.concatenate([expert_obs, data['original_observations']], axis=0)
             expert_acs = np.concatenate([expert_acs, data['actions']], axis=0)
         expert_mean_reward.append(data['reward_sum'])
 
@@ -72,10 +72,12 @@ def train(config):
     if debug_mode:
         # config['env']['num_threads'] = 1
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 2000
+        config['PPO']['forward_timesteps'] = 200
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
         debug_msg = 'debug-'
+        partial_data = True
+        # debug_msg += 'part-'
     if partial_data:
         debug_msg += 'part-'
 
