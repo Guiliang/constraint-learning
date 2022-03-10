@@ -14,4 +14,4 @@ conda activate galen-cr37
 cd ./interface/
 #python train_commonroad_ppo.py ../config/train_ppo_highD_no_collision.yaml -p 1 -l "$log_dir"
 #python train_commonroad_ppo.py ../config/train_ppo_highD_no_collision.yaml -n 1 -l "$log_dir"
-python train_commonroad_ppo.py ../config/train_ppo_highD.yaml -n 5 -l "$log_dir"
+python train_commonroad_ppo.py ../config/train_ppo_highD_no_offroad.yaml -n 5 -l "$log_dir"
