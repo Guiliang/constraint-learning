@@ -3,6 +3,7 @@ import os
 import shutil
 from collections import deque
 
+import psutil
 import yaml
 import numpy as np
 
@@ -17,7 +18,7 @@ def load_config(args=None):
     assert os.path.exists(args.config_file), "Invalid configs file {0}".format(args.config_file)
     with open(args.config_file) as reader:
         config = yaml.safe_load(reader)
-    return config, args.DEBUG_MODE, args.LOG_FILE_PATH, args.PART_DATA, args.NUM_THREADS
+    return config, args.DEBUG_MODE, args.LOG_FILE_PATH, args.PART_DATA, int(args.NUM_THREADS)
 
 
 def read_args():
@@ -165,3 +166,9 @@ def save_game_record(info, file):
     is_goal_reached = info["is_goal_reached"]
     current_step = info["current_episode_time_step"]
     file.write("{0}, {1}, {2}, {3}, {4}\n".format(current_step, is_collision, is_time_out, is_off_road, is_goal_reached))
+
+
+def process_memory():
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    return mem_info.rss

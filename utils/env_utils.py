@@ -1,19 +1,28 @@
 import os
+from copy import copy
+
 import numpy as np
 import gym
 import yaml
-
+import environment.commonroad_rl.gym_commonroad
 import stable_baselines3.common.vec_env as vec_env
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.utils import safe_mean, set_random_seed
 from stable_baselines3.common.preprocessing import is_image_space
 
 
-def make_env(env_id, env_configs, rank, log_dir, seed=0):
+def make_env(env_id, env_configs, rank, log_dir, multi_env=False, seed=0):
     def _init():
-        env = gym.make(env_id, **env_configs)
+        if multi_env:
+            env_configs_copy = copy(env_configs)
+            env_configs_copy.update({'train_reset_config_path': env_configs['train_reset_config_path'] + '/{0}'.format(rank)}),
+        else:
+            env_configs_copy = copy(env_configs)
+        env = gym.make(id=env_id,
+                       **env_configs_copy)
         env.seed(seed + rank)
         env = Monitor(env, log_dir)
+        del env_configs_copy
         return env
 
     set_random_seed(seed)
@@ -21,19 +30,26 @@ def make_env(env_id, env_configs, rank, log_dir, seed=0):
 
 
 def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
-                   use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True,
+                   use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True, multi_env=False,
                    log_file=None, part_data=False,
                    **kwargs):
     with open(config_path, "r") as config_file:
         env_configs = yaml.safe_load(config_file)
+    if multi_env:
+        env_configs['train_reset_config_path'] += '_split'
     if part_data:
         env_configs['train_reset_config_path'] += '_debug'
         env_configs['test_reset_config_path'] += '_debug'
         env_configs['meta_scenario_path'] += '_debug'
-    env = [make_env(env_id, env_configs, i, save_dir, base_seed)
+    env = [make_env(env_id=env_id,
+                    env_configs=env_configs,
+                    rank=i,
+                    log_dir=save_dir,
+                    multi_env=multi_env,
+                    seed=base_seed)
            for i in range(num_threads)]
     env = vec_env.DummyVecEnv(env)
-    print("The obs space is {0}".format(len(env.observation_space.high)), file=log_file, flush=True)
+    # print("The obs space is {0}".format(len(env.observation_space.high)), file=log_file, flush=True)
     if use_cost:
         env = vec_env.VecCostWrapper(env)
     if normalize_reward and normalize_cost:

@@ -16,6 +16,9 @@ python -m commonroad_rl.tools.pickle_scenario.xml_to_pickle -i ../data/inD/xmls 
 python -m commonroad_rl.utils_run.split_dataset -i ../data/highD/pickles/problem -otrain ../data/highD/pickles/problem_train -otest ../data/highD/pickles/problem_test -tr_r 0.7
 python -m commonroad_rl.utils_run.split_dataset -i ../data/inD/pickles/problem -otrain ../data/inD/pickles/problem_train -otest ../data/inD/pickles/problem_test -tr_r 0.7
 
+# scatter dataset for multiple processes
+python -m commonroad_rl.tools.pickle_scenario.copy_files -i ../data/highD/pickles/problem_train -o ../data/highD/pickles/problem_train_split -f *.pickle -n 5
+
 # Visualize the dataset
 python -m commonroad_rl.tools.visualize_cr ./environment/commonroad_rl/tutorials/data/highD/xmls/DEU_LocationBLower-3_1_T-1.xml
 

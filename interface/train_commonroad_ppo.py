@@ -17,7 +17,7 @@ from stable_baselines3.common import logger
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 
-from utils.data_utils import colorize, ProgressBarManager, del_and_make, read_args, load_config
+from utils.data_utils import colorize, ProgressBarManager, del_and_make, read_args, load_config, process_memory
 from utils.env_utils import make_train_env, make_eval_env
 from utils.model_utils import get_net_arch
 from config.config_commonroad import cfg
@@ -32,6 +32,13 @@ def null_cost(x, *args):
 
 def train(args):
     config, debug_mode, log_file_path, partial_data, num_threads = load_config(args)
+
+    if num_threads > 1:
+        multi_env = True
+        config.update({'multi_env': True})
+    else:
+        multi_env = False
+        config.update({'multi_env': False})
 
     if log_file_path is not None:
         log_file = open(log_file_path, 'w')
@@ -49,17 +56,18 @@ def train(args):
         debug_msg += 'part-'
 
     if num_threads is not None:
-        config['env']['num_threads'] = int(num_threads)
+        config['env']['num_threads'] = num_threads
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
     # today = datetime.date.today()
     # currentTime = today.strftime("%b-%d-%Y-%h-%m")
 
-    save_model_mother_dir = '{0}/{1}/{4}{2}-{3}/'.format(
+    save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}/'.format(
         config['env']['save_dir'],
         config['task'],
         args.config_file.split('/')[-1].split('.')[0],
+        '-multi_env' if multi_env else False,
         current_time_date,
         debug_msg
     )
@@ -70,6 +78,7 @@ def train(args):
     with open(os.path.join(save_model_mother_dir, "model_hyperparameters.yaml"), "w") as hyperparam_file:
         yaml.dump(config, hyperparam_file)
 
+    mem_prev = process_memory()
     # Create the vectorized environments
     train_env = make_train_env(env_id=config['env']['train_env_id'],
                                config_path=config['env']['config_path'],
@@ -84,7 +93,9 @@ def train(args):
                                reward_gamma=config['env']['reward_gamma'],
                                cost_gamma=config['env']['cost_gamma'],
                                log_file=log_file,
-                               part_data=partial_data)
+                               part_data=partial_data,
+                               multi_env=multi_env,
+                               )
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
@@ -98,9 +109,16 @@ def train(args):
                              log_file=log_file,
                              part_data=partial_data)
 
+    mem_loading_environment = process_memory()
+    print("Loading environment consumed memory: {0}/{1}".format(float(mem_loading_environment - mem_prev) / 1000000,
+                                                                float(mem_loading_environment) / 1000000
+                                                                ),
+          file=log_file, flush=True)
+    mem_prev = mem_loading_environment
+
     # Set specs
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
-    print('is_discrete', is_discrete, file=log_file, flush=True)
+    # print('is_discrete', is_discrete, file=log_file, flush=True)
     obs_dim = train_env.observation_space.shape[0]
     acs_dim = train_env.action_space.n if is_discrete else train_env.action_space.shape[0]
 
@@ -147,8 +165,15 @@ def train(args):
         print("\nWarming up", file=log_file, flush=True)
         with ProgressBarManager(config['PPO']['warmup_timesteps']) as callback:
             ppo_agent.learn(total_timesteps=config['PPO']['warmup_timesteps'],
-                                callback=callback)
+                            callback=callback)
             timesteps += ppo_agent.num_timesteps
+
+    mem_before_training = process_memory()
+    print("Setting model consumed memory: {0}/{1}".format(float(mem_before_training - mem_prev) / 1000000,
+                                                          float(mem_before_training) / 1000000
+                                                          ),
+          file=log_file, flush=True)
+    mem_prev = mem_before_training
 
     # Train
     start_time = time.time()
@@ -215,6 +240,12 @@ def train(args):
         # Log
         if config['verbose'] > 0:
             ppo_logger.write(metrics, {k: None for k in metrics.keys()}, step=itr)
+
+        mem_during_training = process_memory()
+        print("Training consumed memory: {0}/{1}".format(float(mem_during_training - mem_prev) / 1000000,
+                                                         float(mem_during_training) / 1000000
+                                                         ), file=log_file, flush=True)
+        mem_prev = mem_during_training
 
 
 if __name__ == "__main__":
