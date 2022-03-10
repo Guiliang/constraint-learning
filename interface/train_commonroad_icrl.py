@@ -303,7 +303,7 @@ def train(config):
         # reward on true environment
         sync_envs_normalization(train_env, eval_env)
         average_true_reward, std_true_reward = evaluate_policy(nominal_agent, eval_env,
-                                                               n_eval_episodes=10,
+                                                               n_eval_episodes=config['running']['n_eval_episodes'],
                                                                deterministic=False)
 
         # Save
