@@ -38,7 +38,7 @@ class ApproximateNet(nn.Module):
             eps: float = 1e-5,
             device: str = "cpu"
     ):
-        super(ConstraintNet, self).__init__()
+        super(ApproximateNet, self).__init__()
 
         self.obs_dim = obs_dim
         self.acs_dim = acs_dim
@@ -97,33 +97,58 @@ class ApproximateNet(nn.Module):
         self.input_dims = len(self.select_dim)
 
     def _build(self) -> None:
+        """
+        build the network, what we need
+        1) model the parameters of the constraint distribution following the beta distribution.
+        2) model the Q function for representing the constraints.
+        3) model the policy for approximating the policy represented by the Q function.
+        :return:
+        """
 
-        # Create network and add sigmoid at the end
-        self.network = nn.Sequential(
-            *create_mlp(self.input_dims, 1, self.hidden_sizes),
-            nn.Sigmoid()
+        # predict both alpha (>0) and beta (>0) parameters,
+        # The mean is alpha/(alpha+beta) and variance is alpha*beta/(alpha+beta)^2*(alpha+beta+1)
+        self.encoder = nn.Sequential(
+            *create_mlp(self.input_dims, 2, self.hidden_sizes),
+            nn.Softplus()
         )
-        self.network.to(self.device)
+        self.encoder.to(self.device)
+
+        # predict the Q(s,a) values, the action is continuous
+        self.q_network = nn.Sequential(
+            *create_mlp(self.input_dims, 1, self.hidden_sizes)
+        )
+        self.q_network.to(self.device)
+
+        # predict the policy \pi(a|s) values, the action is continuous. Actor-Critic should be employed
+        self.policy_network = nn.Sequential(
+            *create_mlp(self.input_dims, 1, self.hidden_sizes)
+        )
+        self.policy_network.to(self.device)
 
         # Build optimizer
         if self.optimizer_class is not None:
             self.optimizer = self.optimizer_class(self.parameters(), lr=self.lr_schedule(1), **self.optimizer_kwargs)
         else:
             self.optimizer = None
-        if self.train_gail_lambda:
-            self.criterion = nn.BCELoss()
 
     def forward(self, x: torch.tensor) -> torch.tensor:
-        return self.network(x)
+        alpha_beta = self.encoder(x)
+        alpha = alpha_beta[:, 0]
+        beta = alpha_beta[:, 1]
+        QValues = self.q_network(x)
+        policy = self.policy_network(x)
+
+        return alpha, beta, QValues, policy
 
     def cost_function(self, obs: np.ndarray, acs: np.ndarray) -> np.ndarray:
         assert obs.shape[-1] == self.obs_dim, ""
         if not self.is_discrete:
             assert acs.shape[-1] == self.acs_dim, ""
-
         x = self.prepare_data(obs, acs)
         with torch.no_grad():
-            out = self.__call__(x)
+            alpha, beta, _, _ = self.__call__(x)
+        # TODO: Maybe we should not use the expectation of beta distribution
+        out = alpha / (alpha + beta)
         cost = 1 - out.detach().cpu().numpy()
         return cost.squeeze(axis=-1)
 
@@ -131,6 +156,18 @@ class ApproximateNet(nn.Module):
         with torch.no_grad():
             out = self.__call__(torch.tensor(x, dtype=torch.float32).to(self.device))
         return out
+
+    def kl_divergence(self):
+        self.analytical_kld = tf.lgamma(tf.reduce_sum(self.alpha, axis=1)) - tf.lgamma(
+            tf.reduce_sum(self.prior, axis=1))
+        self.analytical_kld -= tf.reduce_sum(tf.lgamma(self.alpha), axis=1)
+        self.analytical_kld += tf.reduce_sum(tf.lgamma(self.prior), axis=1)
+        minus = self.alpha - self.prior
+        test = tf.reduce_sum(tf.multiply(minus,
+                                         tf.digamma(self.alpha) - tf.reshape(tf.digamma(tf.reduce_sum(self.alpha, 1)),
+                                                                             (batch_size, 1))), 1)
+        self.analytical_kld += test
+        self.analytical_kld = self.mask * self.analytical_kld  # mask paddings
 
     def train(
             self,
@@ -151,53 +188,27 @@ class ApproximateNet(nn.Module):
         self.current_obs_var = obs_var
 
         # Prepare data
-        nominal_data = self.prepare_data(nominal_obs, nominal_acs)
+        # TODO: maybe we will need the nominal data
         expert_data = self.prepare_data(self.expert_obs, self.expert_acs)
-
-        # Save current network predictions if using importance sampling
-        if self.importance_sampling:
-            with torch.no_grad():
-                start_preds = self.forward(nominal_data).detach()
-
-        early_stop_itr = iterations
         loss = torch.tensor(np.inf)
         for itr in tqdm(range(iterations)):
-            # Compute IS weights
-            if self.importance_sampling:
-                with torch.no_grad():
-                    current_preds = self.forward(nominal_data).detach()
-                is_weights, kl_old_new, kl_new_old = self.compute_is_weights(start_preds.clone(), current_preds.clone(),
-                                                                             episode_lengths)
-                # Break if kl is very large
-                if ((self.target_kl_old_new != -1 and kl_old_new > self.target_kl_old_new) or
-                        (self.target_kl_new_old != -1 and kl_new_old > self.target_kl_new_old)):
-                    early_stop_itr = itr
-                    break
-            else:
-                is_weights = torch.ones(nominal_data.shape[0])
+            # TODO: maybe we do need the importance sampling
+
+            is_weights = torch.ones(expert_data.shape[0])
 
             # Do a complete pass on data
-            for nom_batch_indices, exp_batch_indices in self.get(nominal_data.shape[0], expert_data.shape[0]):
+            for exp_batch_indices in self.get(expert_data.shape[0], expert_data.shape[0]):
                 # Get batch data
-                nominal_batch = nominal_data[nom_batch_indices]
                 expert_batch = expert_data[exp_batch_indices]
-                is_batch = is_weights[nom_batch_indices][..., None]
 
                 # Make predictions
-                nominal_preds = self.__call__(nominal_batch)
-                expert_preds = self.__call__(expert_batch)
+                expert_alpha, expert_beta, expert_QValues, approximate_policy = self.__call__(expert_batch)
 
                 # Calculate loss
-                if self.train_gail_lambda:
-                    nominal_loss = self.criterion(nominal_preds, torch.zeros(*nominal_preds.size()))
-                    expert_loss = self.criterion(expert_preds, torch.ones(*expert_preds.size()))
-                    regularizer_loss = torch.tensor(0)
-                    loss = nominal_loss + expert_loss
-                else:
-                    expert_loss = torch.mean(torch.log(expert_preds + self.eps))
-                    nominal_loss = torch.mean(is_batch * torch.log(nominal_preds + self.eps))
-                    regularizer_loss = self.regularizer_coeff * (torch.mean(1 - expert_preds) + torch.mean(1 - nominal_preds))
-                    loss = (-expert_loss + nominal_loss) + regularizer_loss
+                # expert_loss = torch.mean(torch.log(expert_preds + self.eps))
+                # nominal_loss = torch.mean(is_batch * torch.log(nominal_preds + self.eps))
+                # regularizer_loss = self.regularizer_coeff * (torch.mean(1 - expert_preds) + torch.mean(1 - nominal_preds))
+                # loss = (-expert_loss + nominal_loss) + regularizer_loss
 
                 # Update
                 self.optimizer.zero_grad()
@@ -218,15 +229,16 @@ class ApproximateNet(nn.Module):
                       "backward/expert_preds_max": torch.max(expert_preds).item(),
                       "backward/expert_preds_min": torch.min(expert_preds).item(),
                       "backward/expert_preds_mean": torch.mean(expert_preds).item(), }
-        if self.importance_sampling:
-            stop_metrics = {"backward/kl_old_new": kl_old_new.item(),
-                            "backward/kl_new_old": kl_new_old.item(),
-                            "backward/early_stop_itr": early_stop_itr}
-            bw_metrics.update(stop_metrics)
+        # if self.importance_sampling:
+        #     stop_metrics = {"backward/kl_old_new": kl_old_new.item(),
+        #                     "backward/kl_new_old": kl_new_old.item(),
+        #                     "backward/early_stop_itr": early_stop_itr}
+        #     bw_metrics.update(stop_metrics)
 
         return bw_metrics
 
-    def compute_is_weights(self, preds_old: torch.Tensor, preds_new: th.Tensor, episode_lengths: np.ndarray) -> th.tensor:
+    def compute_is_weights(self, preds_old: torch.Tensor, preds_new: th.Tensor,
+                           episode_lengths: np.ndarray) -> th.tensor:
         with torch.no_grad():
             n_episodes = len(episode_lengths)
             cumulative = [0] + list(accumulate(episode_lengths))

@@ -22,9 +22,9 @@ def generate_plots():
     for mode in modes:
         plot_key = ['Rewards', 'collision_rate', 'off_road_rate', 'goal_reach_rate', 'time_out_rate']
         # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_collision_constraint-Mar-07-2022-07:03/'
-        log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_offroad_constraint-Mar-07-2022-07:01/'
+        # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_offroad_constraint-Mar-07-2022-07:01/'
 
-        # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-Mar-08-2022-05:08/'
+        log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-Mar-08-2022-05:08/'
         # log_path = '../save_model/PPO-highD/part-train_ppo_highD-Feb-01-2022-10:31/'
         # log_path = '../save_model/PPO-highD/part-train_ppo_highD_no_collision-Mar-03-2022-11:04/'
         # log_path = '../save_model/PPO-highD/part-train_ppo_highD_no_offroad-Mar-03-2022-11:05/'
