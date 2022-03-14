@@ -13,5 +13,5 @@ source /h/galen/miniconda3/bin/activate
 conda activate galen-cr37
 cd ./interface/
 #python train_commonroad_icrl.py ../config/train_ICRL_highD_collision_constraint.yaml -p 1 -l "$log_dir"
-#python train_commonroad_icrl.py ../config/train_ICRL_highD_collision_constraint.yaml  -n 5 -l "$log_dir"
-python train_commonroad_icrl.py ../config/train_ICRL_highD_offroad_constraint.yaml  -n 5 -l "$log_dir"
+python train_commonroad_icrl.py ../config/train_ICRL_highD_collision_constraint.yaml  -n 5 -l "$log_dir"
+#python train_commonroad_icrl.py ../config/train_ICRL_highD_offroad_constraint.yaml  -n 5 -l "$log_dir"
