@@ -35,7 +35,7 @@ def read_args():
                         default=False, required=False)
     parser.add_argument("-n", "--num_threads", help="number of threads for loading envs.",
                         dest="NUM_THREADS",
-                        default=None, required=False)
+                        default=1, required=False)
     parser.add_argument("-l", "--log_file", help="log file", dest="LOG_FILE_PATH", default=None, required=False)
     args = parser.parse_args()
     return args
