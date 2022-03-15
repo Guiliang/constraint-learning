@@ -35,6 +35,12 @@ def null_cost(x, *args):
 
 def train(config):
     config, debug_mode, log_file_path, partial_data, num_threads = load_config(args)
+    if num_threads > 1:
+        multi_env = True
+        config.update({'multi_env': True})
+    else:
+        multi_env = False
+        config.update({'multi_env': False})
 
     if log_file_path is not None:
         log_file = open(log_file_path, 'w')
@@ -89,6 +95,7 @@ def train(config):
                                cost_info_str=config['env']['cost_info_str'],
                                reward_gamma=config['env']['reward_gamma'],
                                cost_gamma=config['env']['cost_gamma'],
+                               multi_env=multi_env,
                                part_data=partial_data, )
 
     # We don't need cost when taking samples
@@ -132,7 +139,11 @@ def train(config):
         log_file=log_file
         )
     # Logger
-    icrl_logger = logger.HumanOutputFormat(sys.stdout)
+    # Logger
+    if log_file is None:
+        icrl_logger = logger.HumanOutputFormat(sys.stdout)
+    else:
+        icrl_logger = logger.HumanOutputFormat(log_file)
 
     # Initialize constraint net, true constraint net
     cn_lr_schedule = lambda x: (config['CN']['anneal_clr_by_factor'] ** (config['running']['n_iters'] * (1 - x))) \

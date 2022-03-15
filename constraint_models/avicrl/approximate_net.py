@@ -1,3 +1,4 @@
+import sys
 from itertools import accumulate
 from typing import Tuple, Callable, Optional, Type, Dict, Any, Union
 import torch
@@ -7,6 +8,7 @@ from tqdm import tqdm
 
 from stable_baselines3.common.torch_layers import create_mlp
 from stable_baselines3.common.utils import update_learning_rate
+from utils.model_utils import handle_model_parameters
 
 
 class ApproximateNet(nn.Module):
@@ -39,10 +41,11 @@ class ApproximateNet(nn.Module):
             eps: float = 1e-5,
             dir_prior: float = 1,
             discount_factor: float = 1,
-            device: str = "cpu"
+            device: str = "cpu",
+            log_file=None
     ):
         super(ApproximateNet, self).__init__()
-
+        self.log_file = log_file
         self.obs_dim = obs_dim
         self.acs_dim = acs_dim
         self.obs_select_dim = obs_select_dim
@@ -89,18 +92,18 @@ class ApproximateNet(nn.Module):
         self._build()
 
     def _define_input_dims(self) -> None:
-        self.select_dim = []
+        self.select_obs_dim = []
+        self.select_acs_dim = []
         if self.obs_select_dim is None:
-            self.select_dim += [i for i in range(self.obs_dim)]
+            self.select_obs_dim += [i for i in range(self.obs_dim)]
         elif self.obs_select_dim[0] != -1:
-            self.select_dim += self.obs_select_dim
+            self.select_obs_dim += self.select_obs_dim
         if self.acs_select_dim is None:
-            self.select_dim += [i for i in range(self.acs_dim)]
+            self.select_acs_dim += [i for i in range(self.acs_dim)]
         elif self.acs_select_dim[0] != -1:
-            self.select_dim += self.acs_select_dim
-        assert len(self.select_dim) > 0, ""
-
-        self.input_dims = len(self.select_dim)
+            self.select_acs_dim += self.acs_select_dim
+        self.input_dims = len(self.select_obs_dim) + len(self.select_acs_dim)
+        assert self.input_dims > 0, ""
 
     def _build(self) -> None:
         """
@@ -131,11 +134,25 @@ class ApproximateNet(nn.Module):
         )
         self.policy_network.to(self.device)
 
-        # Build optimizer
-        if self.optimizer_class is not None:
-            self.optimizer = self.optimizer_class(self.parameters(), lr=self.lr_schedule(1), **self.optimizer_kwargs)
-        else:
-            self.optimizer = None
+        # build different optimizers for different models
+        self.optimizers = {'ICRL': None, 'policy': None}
+        param_active_key_words = {'ICRL': ['encoder', 'q_network'],
+                                  'policy': ['policy_network'], }
+        for key in self.optimizers.keys():
+            param_frozen_list, param_active_list = \
+                handle_model_parameters(model=self,
+                                        fix_keywords=param_active_key_words[key],
+                                        model_name=key,
+                                        log_file=self.log_file,
+                                        set_require_grad=True)
+            if self.optimizer_class is not None:
+                optimizer = self.optimizer_class([{'params': param_frozen_list, 'lr': 0.0},
+                                                       {'params': param_active_list,
+                                                        'lr': self.lr_schedule(1)}],
+                                                      lr=self.lr_schedule(1))
+            else:
+                optimizer = None
+            self.optimizers.update({key: optimizer})
 
     def forward(self, x: torch.tensor) -> torch.tensor:
         alpha_beta = self.encoder(x)
@@ -150,13 +167,15 @@ class ApproximateNet(nn.Module):
         assert obs.shape[-1] == self.obs_dim, ""
         if not self.is_discrete:
             assert acs.shape[-1] == self.acs_dim, ""
-        x = self.prepare_data(obs, acs)
+        obs, acs = self.prepare_data(obs, acs)
+        cost_input = torch.cat([obs, acs], dim=-1)
         with torch.no_grad():
-            alpha, beta, _, _ = self.__call__(x)
+            alpha, beta, _, _ = self.__call__(cost_input)
         # TODO: Maybe we should not use the expectation of beta distribution
         out = alpha / (alpha + beta)
         cost = 1 - out.detach().cpu().numpy()
-        return cost.squeeze(axis=-1)
+        # return cost.squeeze(axis=-1)
+        return cost
 
     def call_forward(self, x: np.ndarray):
         with torch.no_grad():
@@ -203,28 +222,28 @@ class ApproximateNet(nn.Module):
 
         # Prepare data
         # TODO: maybe we will need the nominal data
-        expert_input, expert_rs = self.prepare_data(self.expert_obs, self.expert_acs, self.expert_rs)
-        loss = torch.tensor(np.inf)
+        expert_obs, expert_acs, expert_rs = self.prepare_data(self.expert_obs, self.expert_acs, self.expert_rs)
+        icrl_loss = torch.tensor(np.inf)
         for itr in tqdm(range(iterations)):
             # TODO: maybe we do need the importance sampling
-            is_weights = torch.ones(expert_input.shape[0])
+            # is_weights = torch.ones(expert_input.shape[0])
 
-            # Do a complete pass on data
-            for exp_batch_indices in self.get(expert_input.shape[0], expert_input.shape[0]):
+            # Do a complete pass on data, we don't have to use the get(), but let's leave it here for future usage
+            for exp_batch_indices in self.get(expert_obs.shape[0], expert_obs.shape[0]):
                 # Get batch data
-                expert_batch_input = expert_input[exp_batch_indices]
+                expert_batch_obs = expert_obs[exp_batch_indices]
+                expert_batch_acs = expert_acs[exp_batch_indices]
                 expert_batch_rs = expert_rs[exp_batch_indices]
-                batch_size = expert_batch_input.shape[0]
+                batch_size = expert_batch_obs.shape[0]
 
                 # Make predictions
+                expert_batch_input = torch.cat([expert_batch_obs, expert_batch_acs], dim=-1)
                 expert_q_values_t = self.q_network(expert_batch_input[:, 0, :])
                 expert_q_values_next_t = self.q_network(expert_batch_input[:, 1, :])
 
                 alpha_beta_t = self.encoder(expert_batch_input[:, 0, :])
                 expert_alpha_t = alpha_beta_t[:, 0]
                 expert_beta_t = alpha_beta_t[:, 1]
-                # TODO: check the range
-                td_cost = torch.exp(expert_q_values_t - self.discount_factor*expert_q_values_next_t - expert_batch_rs)
 
                 # Compute KLD
                 prior = torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior
@@ -232,33 +251,48 @@ class ApproximateNet(nn.Module):
                                                               prior=prior)
 
                 # Calculate log-likelihood of exp TD error given constraint parameterisation
-                m = torch.distributions.Beta(expert_alpha_t, expert_beta_t).log_prob(td_cost).mean()
+                td = expert_q_values_t - self.discount_factor * expert_q_values_next_t - expert_batch_rs
+                td_cost = torch.exp(torch.clamp(td, max=0))
+                constraint_loss = - torch.distributions.Beta(expert_alpha_t, expert_beta_t).log_prob(td_cost).mean()
+
+                # Compute reconstruction loss
+                pred_act = self.policy_network(expert_batch_obs[:, 0, :])
+                reconstruct_loss = torch.square(pred_act - expert_batch_acs[: 0, :])
 
                 # Calculate loss
-                # expert_loss = torch.mean(torch.log(expert_preds + self.eps))
-                # nominal_loss = torch.mean(is_batch * torch.log(nominal_preds + self.eps))
-                # regularizer_loss = self.regularizer_coeff * (torch.mean(1 - expert_preds) + torch.mean(1 - nominal_preds))
-                # loss = (-expert_loss + nominal_loss) + regularizer_loss
+                icrl_loss = reconstruct_loss + analytical_kld + constraint_loss
 
                 # Update
                 self.optimizer.zero_grad()
-                loss.backward()
+                icrl_loss.backward()
                 self.optimizer.step()
 
-        bw_metrics = {"backward/cn_loss": loss.item(),
-                      "backward/expert_loss": expert_loss.item(),
-                      "backward/unweighted_nominal_loss": torch.mean(torch.log(nominal_preds + self.eps)).item(),
-                      "backward/nominal_loss": nominal_loss.item(),
-                      "backward/regularizer_loss": regularizer_loss.item(),
-                      "backward/is_mean": torch.mean(is_weights).detach().item(),
-                      "backward/is_max": torch.max(is_weights).detach().item(),
-                      "backward/is_min": torch.min(is_weights).detach().item(),
-                      "backward/nominal_preds_max": torch.max(nominal_preds).item(),
-                      "backward/nominal_preds_min": torch.min(nominal_preds).item(),
-                      "backward/nominal_preds_mean": torch.mean(nominal_preds).item(),
-                      "backward/expert_preds_max": torch.max(expert_preds).item(),
-                      "backward/expert_preds_min": torch.min(expert_preds).item(),
-                      "backward/expert_preds_mean": torch.mean(expert_preds).item(), }
+                # policy network loss
+                pred_act = self.policy_network(expert_batch_obs[:, 0, :])
+                pred_batch_input = torch.cat([expert_batch_obs[:, 0, :], pred_act], dim=-1)
+                pred_q_values = self.q_network(pred_batch_input)
+                policy_loss = torch.square(pred_act - torch.log(pred_q_values))
+
+                # Update
+                self.optimizer.zero_grad()
+                policy_loss.backward()
+                self.optimizer.step()
+
+        bw_metrics = {"backward/icrl_loss": icrl_loss.item(),
+                      # "backward/expert_loss": expert_loss.item(),
+                      # "backward/unweighted_nominal_loss": torch.mean(torch.log(nominal_preds + self.eps)).item(),
+                      # "backward/nominal_loss": nominal_loss.item(),
+                      # "backward/regularizer_loss": regularizer_loss.item(),
+                      # "backward/is_mean": torch.mean(is_weights).detach().item(),
+                      # "backward/is_max": torch.max(is_weights).detach().item(),
+                      # "backward/is_min": torch.min(is_weights).detach().item(),
+                      # "backward/nominal_preds_max": torch.max(nominal_preds).item(),
+                      # "backward/nominal_preds_min": torch.min(nominal_preds).item(),
+                      # "backward/nominal_preds_mean": torch.mean(nominal_preds).item(),
+                      # "backward/expert_preds_max": torch.max(expert_preds).item(),
+                      # "backward/expert_preds_min": torch.min(expert_preds).item(),
+                      # "backward/expert_preds_mean": torch.mean(expert_preds).item(),
+                      }
         # if self.importance_sampling:
         #     stop_metrics = {"backward/kl_old_new": kl_old_new.item(),
         #                     "backward/kl_new_old": kl_new_old.item(),
@@ -267,8 +301,8 @@ class ApproximateNet(nn.Module):
 
         return bw_metrics
 
-    def compute_is_weights(self, preds_old: torch.Tensor, preds_new: th.Tensor,
-                           episode_lengths: np.ndarray) -> th.tensor:
+    def compute_is_weights(self, preds_old: torch.Tensor, preds_new: torch.Tensor,
+                           episode_lengths: np.ndarray) -> torch.tensor:
         with torch.no_grad():
             n_episodes = len(episode_lengths)
             cumulative = [0] + list(accumulate(episode_lengths))
@@ -299,20 +333,26 @@ class ApproximateNet(nn.Module):
             self,
             obs: np.ndarray,
             acs: np.ndarray,
-            rs: np.ndarray,
+            rs: np.ndarray = None,
     ) -> torch.tensor:
 
         obs = self.normalize_obs(obs, self.current_obs_mean, self.current_obs_var, self.clip_obs)
         acs = self.reshape_actions(acs)
         acs = self.clip_actions(acs, self.action_low, self.action_high)
 
-        concat = self.select_appropriate_dims(np.concatenate([obs, acs], axis=-1))
+        obs = self.select_appropriate_dims(select_dim=self.select_obs_dim, x=obs)
+        acs = self.select_appropriate_dims(select_dim=self.select_acs_dim, x=acs)
+        if rs is None:
+            return torch.tensor(obs, dtype=torch.float32).to(self.device), \
+                   torch.tensor(acs, dtype=torch.float32).to(self.device)
+        else:
+            return torch.tensor(obs, dtype=torch.float32).to(self.device), \
+                   torch.tensor(acs, dtype=torch.float32).to(self.device), \
+                   torch.tensor(rs, dtype=torch.float32).to(self.device)
 
-        return torch.tensor(concat, dtype=torch.float32).to(self.device), \
-               torch.tensor(rs, dtype=torch.float32).to(self.device)
-
-    def select_appropriate_dims(self, x: Union[np.ndarray, torch.tensor]) -> Union[np.ndarray, torch.tensor]:
-        return x[..., self.select_dim]
+    def select_appropriate_dims(self, select_dim: list, x: Union[np.ndarray, torch.tensor]) -> Union[
+        np.ndarray, torch.tensor]:
+        return x[..., select_dim]
 
     def normalize_obs(self, obs: np.ndarray, mean: Optional[float] = None, var: Optional[float] = None,
                       clip_obs: Optional[float] = None) -> np.ndarray:

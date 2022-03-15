@@ -128,9 +128,12 @@ def train(config):
         expert_path=config['running']['expert_path'],
         num_rollouts=config['running']['expert_rollouts'],
         log_file=log_file
-        )
+    )
     # Logger
-    icrl_logger = logger.HumanOutputFormat(sys.stdout)
+    if log_file is None:
+        avicrl_logger = logger.HumanOutputFormat(sys.stdout)
+    else:
+        avicrl_logger = logger.HumanOutputFormat(log_file)
 
     # Initialize constraint net, true constraint net
     cn_lr_schedule = lambda x: (config['CN']['anneal_clr_by_factor'] ** (config['running']['n_iters'] * (1 - x))) \
@@ -159,7 +162,8 @@ def train(config):
         target_kl_new_old=config['CN']['cn_target_kl_new_old'],
         train_gail_lambda=config['CN']['train_gail_lambda'],
         eps=config['CN']['cn_eps'],
-        device=config['device']
+        device=config['device'],
+        log_file=log_file,
     )
 
     # Pass constraint net cost function to cost wrapper (train env)
@@ -314,7 +318,7 @@ def train(config):
 
         # Log
         if config['verbose'] > 0:
-            icrl_logger.write(metrics, {k: None for k in metrics.keys()}, step=itr)
+            avicrl_logger.write(metrics, {k: None for k in metrics.keys()}, step=itr)
 
 
 if __name__ == "__main__":
