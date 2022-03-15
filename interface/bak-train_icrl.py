@@ -275,13 +275,13 @@ def train(config):
         if config['CN']['cn_normalize']:
             mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
 
-        backward_metrics = constraint_net.train(iterations=config['CN']['backward_iters'],
-                                                nominal_obs=orig_observations,
-                                                nominal_acs=actions,
-                                                episode_lengths=lengths,
-                                                obs_mean=mean,
-                                                obs_var=var,
-                                                current_progress_remaining=current_progress_remaining)
+        backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
+                                                   nominal_obs=orig_observations,
+                                                   nominal_acs=actions,
+                                                   episode_lengths=lengths,
+                                                   obs_mean=mean,
+                                                   obs_var=var,
+                                                   current_progress_remaining=current_progress_remaining)
 
         # Pass updated cost_function to cost wrapper (train_env)
         train_env.set_cost_function(constraint_net.cost_function)

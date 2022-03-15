@@ -134,7 +134,7 @@ class ConstraintNet(nn.Module):
             out = self.__call__(th.tensor(x, dtype=th.float32).to(self.device))
         return out
 
-    def train(
+    def train_nn(
             self,
             iterations: np.ndarray,
             nominal_obs: np.ndarray,

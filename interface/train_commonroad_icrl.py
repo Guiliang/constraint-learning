@@ -23,7 +23,7 @@ from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormali
 from tqdm import tqdm
 
 import environment.commonroad_rl.gym_commonroad  # this line must be included
-from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make
+from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data
 from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
 from utils.model_utils import get_net_arch
 
@@ -31,37 +31,6 @@ from utils.model_utils import get_net_arch
 def null_cost(x, *args):
     # Zero cost everywhere
     return np.zeros(x.shape[:1])
-
-
-def load_expert_data(expert_path, num_rollouts, log_file):
-    file_names = os.listdir(expert_path)
-    # file_names = [i for i in range(29)]
-    sample_names = random.sample(file_names, num_rollouts)
-    # TODO: this function must be rewritten
-    expert_mean_reward = []
-    for i in range(num_rollouts):
-        file_name = sample_names[i]
-        with open(os.path.join(expert_path, file_name), "rb") as f:
-            data = pickle.load(f)
-
-        data_obs = np.squeeze(data['original_observations'], axis=1)
-        data_acs = np.squeeze(data['actions'], axis=1)
-        if i == 0:
-            expert_obs = data_obs
-            expert_acs = data_acs
-        else:
-            expert_obs = np.concatenate([expert_obs, data_obs], axis=0)
-            expert_acs = np.concatenate([expert_acs, data_acs], axis=0)
-        expert_mean_reward.append(data['reward_sum'])
-
-    expert_mean_reward = np.mean(expert_mean_reward)
-    expert_mean_length = expert_obs.shape[0] / num_rollouts
-
-    print('Expert_mean_reward: {0} and Expert_mean_length: {1}.'.format(expert_mean_reward, expert_mean_length),
-          file=log_file,
-          flush=True)
-
-    return (expert_obs, expert_acs), expert_mean_reward
 
 
 def train(config):
@@ -157,10 +126,11 @@ def train(config):
         action_low, action_high = sampling_env.action_space.low, sampling_env.action_space.high
 
     # Load expert data
-    (expert_obs, expert_acs), expert_mean_reward = load_expert_data(expert_path=config['running']['expert_path'],
-                                                                    num_rollouts=config['running']['expert_rollouts'],
-                                                                    log_file=log_file
-                                                                    )
+    (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
+        expert_path=config['running']['expert_path'],
+        num_rollouts=config['running']['expert_rollouts'],
+        log_file=log_file
+        )
     # Logger
     icrl_logger = logger.HumanOutputFormat(sys.stdout)
 
@@ -173,8 +143,8 @@ def train(config):
         hidden_sizes=config['CN']['cn_layers'],
         batch_size=config['CN']['cn_batch_size'],
         lr_schedule=cn_lr_schedule,
-        expert_obs=expert_obs,
-        expert_acs=expert_acs,
+        expert_obs=expert_obs[:, 0, :],  # select obs at a time step t
+        expert_acs=expert_acs[:, 0, :],  # select acs at a time step t
         is_discrete=is_discrete,
         regularizer_coeff=config['CN']['cn_reg_coeff'],
         obs_select_dim=None if len(config['CN']['cn_obs_select_dim']) == 0 else config['CN']['cn_obs_select_dim'],
@@ -209,7 +179,8 @@ def train(config):
         cost_gamma=config['PPO']['cost_gamma'],
         cost_gae_lambda=config['PPO']['cost_gae_lambda'],
         clip_range=config['PPO']['clip_range'],
-        clip_range_reward_vf=None if not config['PPO']['clip_range_reward_vf'] else config['PPO']['clip_range_reward_vf'],
+        clip_range_reward_vf=None if not config['PPO']['clip_range_reward_vf'] else config['PPO'][
+            'clip_range_reward_vf'],
         clip_range_cost_vf=None if not config['PPO']['clip_range_cost_vf'] else config['PPO']['clip_range_cost_vf'],
         ent_coef=config['PPO']['ent_coef'],
         reward_vf_coef=config['PPO']['reward_vf_coef'],
@@ -288,13 +259,13 @@ def train(config):
         if config['CN']['cn_normalize']:
             mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
 
-        backward_metrics = constraint_net.train(iterations=config['CN']['backward_iters'],
-                                                nominal_obs=orig_observations,
-                                                nominal_acs=actions,
-                                                episode_lengths=lengths,
-                                                obs_mean=mean,
-                                                obs_var=var,
-                                                current_progress_remaining=current_progress_remaining)
+        backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
+                                                   nominal_obs=orig_observations,
+                                                   nominal_acs=actions,
+                                                   episode_lengths=lengths,
+                                                   obs_mean=mean,
+                                                   obs_var=var,
+                                                   current_progress_remaining=current_progress_remaining)
 
         # Pass updated cost_function to cost wrapper (train_env)
         train_env.set_cost_function(constraint_net.cost_function)

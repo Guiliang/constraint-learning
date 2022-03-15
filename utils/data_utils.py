@@ -1,6 +1,8 @@
 import argparse
 import os
+import pickle
 import shutil
+import random
 from collections import deque
 
 import psutil
@@ -172,3 +174,58 @@ def process_memory():
     process = psutil.Process(os.getpid())
     mem_info = process.memory_info()
     return mem_info.rss
+
+
+def load_expert_data(expert_path, num_rollouts, log_file):
+    file_names = os.listdir(expert_path)
+    # file_names = [i for i in range(29)]
+    sample_names = random.sample(file_names, num_rollouts)
+    expert_mean_reward = []
+    expert_obs = []
+    expert_acs = []
+    expert_rs = []
+    for i in range(num_rollouts):
+        file_name = sample_names[i]
+        with open(os.path.join(expert_path, file_name), "rb") as f:
+            data = pickle.load(f)
+
+        data_obs = np.squeeze(data['original_observations'], axis=1)
+        data_acs = np.squeeze(data['actions'], axis=1)
+        if 'rewards' in data.keys():
+            data_rs = np.squeeze(data['rewards'], axis=1)
+        else:
+            data_rs = None
+        total_time_step = data_acs.shape[0]
+        for t in range(total_time_step-1):
+            data_obs_t = data_obs[t]
+            data_obs_next_t = data_obs[t+1]
+            data_ac_t = data_acs[t]
+            data_ac_next_t = data_acs[t+1]
+            if data_rs is not None:
+                data_r_t = data_rs[t]
+                data_r_next_t = data_rs[t+1]
+            else:
+                data_r_t = 0
+                data_r_next_t = 0
+
+            expert_obs.append([data_obs_t, data_obs_next_t])
+            expert_acs.append([data_ac_t, data_ac_next_t])
+            expert_rs.append([data_r_t, data_r_next_t])
+        # if i == 0:
+        #     expert_obs = data_obs
+        #     expert_acs = data_acs
+        # else:
+        #     expert_obs = np.concatenate([expert_obs, data_obs], axis=0)
+        #     expert_acs = np.concatenate([expert_acs, data_acs], axis=0)
+        expert_mean_reward.append(data['reward_sum'])
+    expert_obs = np.asarray(expert_obs)
+    expert_acs = np.asarray(expert_acs)
+    expert_rs = np.asarray(expert_rs)
+    expert_mean_reward = np.mean(expert_mean_reward)
+    expert_mean_length = expert_obs.shape[0] / num_rollouts
+
+    print('Expert_mean_reward: {0} and Expert_mean_length: {1}.'.format(expert_mean_reward, expert_mean_length),
+          file=log_file,
+          flush=True)
+
+    return (expert_obs, expert_acs, expert_rs), expert_mean_reward

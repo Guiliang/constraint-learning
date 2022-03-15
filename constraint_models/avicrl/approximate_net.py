@@ -19,6 +19,7 @@ class ApproximateNet(nn.Module):
             lr_schedule: Callable[[float], float],
             expert_obs: np.ndarray,
             expert_acs: np.ndarray,
+            expert_rs: np.ndarray,
             is_discrete: bool,
             regularizer_coeff: float = 0.,
             obs_select_dim: Optional[Tuple[int, ...]] = None,
@@ -36,6 +37,8 @@ class ApproximateNet(nn.Module):
             target_kl_new_old: float = -1,
             train_gail_lambda: Optional[bool] = False,
             eps: float = 1e-5,
+            dir_prior: float = 1,
+            discount_factor: float = 1,
             device: str = "cpu"
     ):
         super(ApproximateNet, self).__init__()
@@ -48,6 +51,7 @@ class ApproximateNet(nn.Module):
 
         self.expert_obs = expert_obs
         self.expert_acs = expert_acs
+        self.expert_rs = expert_rs
 
         self.hidden_sizes = hidden_sizes
         self.batch_size = batch_size
@@ -58,6 +62,8 @@ class ApproximateNet(nn.Module):
         self.clip_obs = clip_obs
         self.device = device
         self.eps = eps
+        self.dir_prior = dir_prior
+        self.discount_factor = discount_factor
 
         self.train_gail_lambda = train_gail_lambda
 
@@ -157,24 +163,32 @@ class ApproximateNet(nn.Module):
             out = self.__call__(torch.tensor(x, dtype=torch.float32).to(self.device))
         return out
 
-    def kl_divergence(self):
-        self.analytical_kld = tf.lgamma(tf.reduce_sum(self.alpha, axis=1)) - tf.lgamma(
-            tf.reduce_sum(self.prior, axis=1))
-        self.analytical_kld -= tf.reduce_sum(tf.lgamma(self.alpha), axis=1)
-        self.analytical_kld += tf.reduce_sum(tf.lgamma(self.prior), axis=1)
-        minus = self.alpha - self.prior
-        test = tf.reduce_sum(tf.multiply(minus,
-                                         tf.digamma(self.alpha) - tf.reshape(tf.digamma(tf.reduce_sum(self.alpha, 1)),
-                                                                             (batch_size, 1))), 1)
-        self.analytical_kld += test
-        self.analytical_kld = self.mask * self.analytical_kld  # mask paddings
+    def dirichlet_kl_divergence(self, alpha, prior):
+        """
+        KL divergence between two dirichlet distribution
+        There are multiple ways of modelling a dirichlet:
+        1) by Laplace approximation with logistic normal: https://arxiv.org/pdf/1703.01488.pdf
+        2) by directly modelling dirichlet parameters: https://arxiv.org/pdf/1901.02739.pdf
+        code reference：
+        1） https://github.com/sophieburkhardt/dirichlet-vae-topic-models
+        2） https://github.com/is0383kk/Dirichlet-VAE
+        """
+        analytical_kld = torch.lgamma(torch.sum(alpha, dim=1)) - torch.lgamma(torch.sum(prior, dim=1))
+        analytical_kld += torch.sum(torch.lgamma(prior), dim=1)
+        analytical_kld -= torch.sum(torch.lgamma(alpha), dim=1)
+        minus_term = alpha - prior
+        digamma_term = torch.digamma(alpha) - torch.digamma(torch.sum(alpha, dim=1))
+        test = torch.sum(torch.mul(minus_term, digamma_term), dim=1)
+        analytical_kld += test
+        # self.analytical_kld = self.mask * self.analytical_kld  # mask paddings
+        return analytical_kld
 
-    def train(
+    def train_nn(
             self,
             iterations: np.ndarray,
-            nominal_obs: np.ndarray,
-            nominal_acs: np.ndarray,
-            episode_lengths: np.ndarray,
+            # nominal_obs: np.ndarray,
+            # nominal_acs: np.ndarray,
+            # episode_lengths: np.ndarray,
             obs_mean: Optional[np.ndarray] = None,
             obs_var: Optional[np.ndarray] = None,
             current_progress_remaining: float = 1,
@@ -189,20 +203,36 @@ class ApproximateNet(nn.Module):
 
         # Prepare data
         # TODO: maybe we will need the nominal data
-        expert_data = self.prepare_data(self.expert_obs, self.expert_acs)
+        expert_input, expert_rs = self.prepare_data(self.expert_obs, self.expert_acs, self.expert_rs)
         loss = torch.tensor(np.inf)
         for itr in tqdm(range(iterations)):
             # TODO: maybe we do need the importance sampling
-
-            is_weights = torch.ones(expert_data.shape[0])
+            is_weights = torch.ones(expert_input.shape[0])
 
             # Do a complete pass on data
-            for exp_batch_indices in self.get(expert_data.shape[0], expert_data.shape[0]):
+            for exp_batch_indices in self.get(expert_input.shape[0], expert_input.shape[0]):
                 # Get batch data
-                expert_batch = expert_data[exp_batch_indices]
+                expert_batch_input = expert_input[exp_batch_indices]
+                expert_batch_rs = expert_rs[exp_batch_indices]
+                batch_size = expert_batch_input.shape[0]
 
                 # Make predictions
-                expert_alpha, expert_beta, expert_QValues, approximate_policy = self.__call__(expert_batch)
+                expert_q_values_t = self.q_network(expert_batch_input[:, 0, :])
+                expert_q_values_next_t = self.q_network(expert_batch_input[:, 1, :])
+
+                alpha_beta_t = self.encoder(expert_batch_input[:, 0, :])
+                expert_alpha_t = alpha_beta_t[:, 0]
+                expert_beta_t = alpha_beta_t[:, 1]
+                # TODO: check the range
+                td_cost = torch.exp(expert_q_values_t - self.discount_factor*expert_q_values_next_t - expert_batch_rs)
+
+                # Compute KLD
+                prior = torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior
+                analytical_kld = self.dirichlet_kl_divergence(alpha=torch.cat([expert_alpha_t, expert_beta_t]),
+                                                              prior=prior)
+
+                # Calculate log-likelihood of exp TD error given constraint parameterisation
+                m = torch.distributions.Beta(expert_alpha_t, expert_beta_t).log_prob(td_cost).mean()
 
                 # Calculate loss
                 # expert_loss = torch.mean(torch.log(expert_preds + self.eps))
@@ -269,6 +299,7 @@ class ApproximateNet(nn.Module):
             self,
             obs: np.ndarray,
             acs: np.ndarray,
+            rs: np.ndarray,
     ) -> torch.tensor:
 
         obs = self.normalize_obs(obs, self.current_obs_mean, self.current_obs_var, self.clip_obs)
@@ -277,7 +308,8 @@ class ApproximateNet(nn.Module):
 
         concat = self.select_appropriate_dims(np.concatenate([obs, acs], axis=-1))
 
-        return torch.tensor(concat, dtype=torch.float32).to(self.device)
+        return torch.tensor(concat, dtype=torch.float32).to(self.device), \
+               torch.tensor(rs, dtype=torch.float32).to(self.device)
 
     def select_appropriate_dims(self, x: Union[np.ndarray, torch.tensor]) -> Union[np.ndarray, torch.tensor]:
         return x[..., self.select_dim]

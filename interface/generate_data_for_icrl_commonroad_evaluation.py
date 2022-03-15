@@ -239,6 +239,8 @@ def run():
 
         if termination_reason not in data_generate_type:
             print('saving expert data with terminal reason: {0}'.format(termination_reason), file=log_file, flush=True)
+            # TODO: add the reward at each step
+            raise ValueError('pls fix this issue.')
             saving_expert_data = {
                 'observations': np.asarray(obs_all),
                 'actions': np.asarray(action_all),
