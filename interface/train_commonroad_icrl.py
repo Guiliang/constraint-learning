@@ -68,10 +68,11 @@ def train(config):
     # today = datetime.date.today()
     # currentTime = today.strftime("%b-%d-%Y-%h-%m")
 
-    save_model_mother_dir = '{0}/{1}/{4}{2}-{3}/'.format(
+    save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}/'.format(
         config['env']['save_dir'],
         config['task'],
         args.config_file.split('/')[-1].split('.')[0],
+        '-multi_env' if multi_env else False,
         current_time_date,
         debug_msg
     )

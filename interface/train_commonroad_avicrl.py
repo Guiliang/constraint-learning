@@ -35,6 +35,12 @@ def null_cost(x, *args):
 
 def train(config):
     config, debug_mode, log_file_path, partial_data, num_threads = load_config(args)
+    if num_threads > 1:
+        multi_env = True
+        config.update({'multi_env': True})
+    else:
+        multi_env = False
+        config.update({'multi_env': False})
 
     if log_file_path is not None:
         log_file = open(log_file_path, 'w')
@@ -60,10 +66,11 @@ def train(config):
 
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
 
-    save_model_mother_dir = '{0}/{1}/{4}{2}-{3}/'.format(
+    save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}/'.format(
         config['env']['save_dir'],
         config['task'],
         args.config_file.split('/')[-1].split('.')[0],
+        '-multi_env' if multi_env else False,
         current_time_date,
         debug_msg
     )
