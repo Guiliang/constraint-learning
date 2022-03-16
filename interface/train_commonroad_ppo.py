@@ -31,7 +31,7 @@ def null_cost(x, *args):
 
 
 def train(args):
-    config, debug_mode, log_file_path, partial_data, num_threads = load_config(args)
+    config, debug_mode, log_file_path, partial_data, num_threads, seed = load_config(args)
 
     if num_threads > 1:
         multi_env = True
@@ -63,13 +63,14 @@ def train(args):
     # today = datetime.date.today()
     # currentTime = today.strftime("%b-%d-%Y-%h-%m")
 
-    save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}/'.format(
+    save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}-seed_{6}/'.format(
         config['env']['save_dir'],
         config['task'],
         args.config_file.split('/')[-1].split('.')[0],
         '-multi_env' if multi_env else False,
         current_time_date,
-        debug_msg
+        debug_msg,
+        seed
     )
 
     if not os.path.exists(save_model_mother_dir):
@@ -83,7 +84,7 @@ def train(args):
     train_env = make_train_env(env_id=config['env']['train_env_id'],
                                config_path=config['env']['config_path'],
                                save_dir=save_model_mother_dir,
-                               base_seed=config['seed'],
+                               base_seed=seed,
                                num_threads=config['env']['num_threads'],
                                use_cost=config['env']['use_cost'],
                                normalize_obs=not config['env']['dont_normalize_obs'],
@@ -145,7 +146,7 @@ def train(args):
         sde_sample_freq=config['PPO']['sde_sample_freq'],
         target_kl=config['PPO']['target_kl'],
         verbose=config['verbose'],
-        seed=config['seed'],
+        seed=seed,
         device=config['device'],
         policy_kwargs=dict(net_arch=get_net_arch(config)))
 

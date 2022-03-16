@@ -20,7 +20,7 @@ def load_config(args=None):
     assert os.path.exists(args.config_file), "Invalid configs file {0}".format(args.config_file)
     with open(args.config_file) as reader:
         config = yaml.safe_load(reader)
-    return config, args.DEBUG_MODE, args.LOG_FILE_PATH, args.PART_DATA, int(args.NUM_THREADS)
+    return config, args.DEBUG_MODE, args.LOG_FILE_PATH, args.PART_DATA, int(args.NUM_THREADS), int(args.SEED)
 
 
 def read_args():
@@ -38,6 +38,11 @@ def read_args():
     parser.add_argument("-n", "--num_threads", help="number of threads for loading envs.",
                         dest="NUM_THREADS",
                         default=1, required=False)
+    parser.add_argument("-s", "--seed", help="the seed of randomness",
+                        dest="SEED",
+                        default=123,
+                        required=False,
+                        type=int)
     parser.add_argument("-l", "--log_file", help="log file", dest="LOG_FILE_PATH", default=None, required=False)
     args = parser.parse_args()
     return args

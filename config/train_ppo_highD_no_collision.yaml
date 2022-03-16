@@ -2,7 +2,6 @@ task: 'PPO-highD'
 group: 'PPO-highD'
 device: 'cuda'
 verbose: 1
-seed: 3
 env:
   config_path: "../config/highD_environment_configurations_no_collision.yaml"
   train_env_id : 'commonroad-v1'

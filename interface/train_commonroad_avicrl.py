@@ -34,7 +34,7 @@ def null_cost(x, *args):
 
 
 def train(config):
-    config, debug_mode, log_file_path, partial_data, num_threads = load_config(args)
+    config, debug_mode, log_file_path, partial_data, num_threads, seed = load_config(args)
     if num_threads > 1:
         multi_env = True
         config.update({'multi_env': True})
@@ -85,7 +85,7 @@ def train(config):
     train_env = make_train_env(env_id=config['env']['train_env_id'],
                                config_path=config['env']['config_path'],
                                save_dir=save_model_mother_dir,
-                               base_seed=config['seed'],
+                               base_seed=seed,
                                num_threads=config['env']['num_threads'],
                                use_cost=config['env']['use_cost'],
                                normalize_obs=not config['env']['dont_normalize_obs'],
@@ -202,7 +202,7 @@ def train(config):
         penalty_initial_value=config['PPO']['penalty_initial_value'],
         penalty_learning_rate=config['PPO']['penalty_learning_rate'],
         budget=config['PPO']['budget'],
-        seed=config['seed'],
+        seed=seed,
         device=config['device'],
         verbose=config['verbose'],
         pid_kwargs=dict(alpha=config['PPO']['budget'],
