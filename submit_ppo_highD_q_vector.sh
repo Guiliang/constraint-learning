@@ -13,4 +13,4 @@ source /h/galen/miniconda3/bin/activate
 conda activate galen-cr37
 cd ./interface/
 #python train_commonroad_ppo.py ../config/train_ppo_highD_no_collision.yaml -p 1 -s 123 -l "$log_dir"
-python train_commonroad_ppo.py ../config/train_ppo_highD_no_collision.yaml -n 5 -s 123 -l "$log_dir"
+python train_commonroad_ppo.py ../config/train_ppo_highD_no_collision.yaml -n 5 -s 321 -l "$log_dir"
