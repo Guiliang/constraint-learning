@@ -99,6 +99,7 @@ class Monitor(gym.Wrapper):
             self.current_reset_info[key] = value
 
         self.track = {key: [] for key in self.track_keywords}
+        self.t_start = time.time()
         return self.env.reset(**kwargs)
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:

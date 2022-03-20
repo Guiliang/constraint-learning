@@ -130,25 +130,35 @@ def compute_moving_average(result_all, average_num=100):
     return result_moving_average_all
 
 
-def read_running_logs(log_path):
-    rewards = []
-    is_collision = []
-    is_off_road = []
-    is_goal_reached = []
-    is_time_out = []
+def read_running_logs(log_path, read_keys):
+    # rewards = []
+    # is_collision = []
+    # is_off_road = []
+    # is_goal_reached = []
+    # is_time_out = []
+
+    read_running_logs = {}
 
     with open(log_path, 'r') as file:
         running_logs = file.readlines()
     old_results = None
+
+    key_indices = {}
+    record_keys = running_logs[1].replace('\n', '').split(',')
+    for key in read_keys:
+        key_idx = record_keys.index(key)
+        key_indices.update({key: key_idx})
+        read_running_logs.update({key: []})
+
     for running_performance in running_logs[2:]:
         log_items = running_performance.split(',')
-        if len(log_items) != 7:
+        if len(log_items) != len(record_keys):
             # continue
             results = old_results
         else:
             try:
-                results = [float(item.replace("\n", "")) for item in log_items]
-                if results[0] > 50 or results[0] < -50:
+                results = [item.replace("\n", "") for item in log_items]
+                if float(results[key_indices['reward']]) > 50 or float(results[key_indices['reward']]) < -50:
                     # continue
                     results = old_results
             except:
@@ -156,14 +166,17 @@ def read_running_logs(log_path):
                 # continue
         if results is None:
             continue
-        rewards.append(results[0])
-        is_collision.append(results[3])
-        is_off_road.append(results[4])
-        is_goal_reached.append(results[5])
-        is_time_out.append(results[6])
-        old_results = results
+        for key in read_keys:
+            read_running_logs[key].append(float(results[key_indices[key]]))
+    return read_running_logs
+        # rewards.append(results[0])
+        # is_collision.append(results[3])
+        # is_off_road.append(results[4])
+        # is_goal_reached.append(results[5])
+        # is_time_out.append(results[6])
+        # old_results = results
 
-    return rewards, is_collision, is_off_road, is_goal_reached, is_time_out
+    # return rewards, is_collision, is_off_road, is_goal_reached, is_time_out
 
 
 def save_game_record(info, file, cost=None):
