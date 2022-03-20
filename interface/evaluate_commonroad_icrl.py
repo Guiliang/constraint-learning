@@ -8,7 +8,8 @@ import numpy as np
 import yaml
 from gym import Env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
-from stable_baselines3 import PPO
+from stable_baselines3 import PPOLagrangian
+from constraint_models.icrl.constraint_net import ConstraintNet
 from environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
 
@@ -77,6 +78,7 @@ LOGGER = logging.getLogger(__name__)
 
 def create_environments(env_id: str, viz_path: str, test_path: str, model_path: str,
                         normalize=True, env_kwargs=None, testing_env=False, debug_mode=False) -> CommonRoadVecEnv:
+
     """
     Create CommonRoad vectorized environment
 
@@ -88,10 +90,10 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
     # :param hyperparam_filename: The filename of the hyperparameters
     :param env_kwargs: Keyword arguments to be passed to the environment
     """
-    env_kwargs.update({"visualization_path": viz_path})
+    env_kwargs.update({"visualization_path": viz_path,})
+                       # "play": True})
     if testing_env:
-        env_kwargs.update({"play": False})
-    # env_kwargs["test_env"] = True
+        env_kwargs["test_env"] = True
     if debug_mode:
         env_kwargs['train_reset_config_path'] += '_debug'
         env_kwargs['test_reset_config_path'] += '_debug'
@@ -123,13 +125,21 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
     return env
 
 
-def load_model(model_path: str):
-    model_path = os.path.join(model_path, "best_nominal_model")
-    model = PPO.load(model_path)
-    return model
+def load_model(model_path: str, iter_msg: str, log_file):
+    if iter_msg == 'best':
+        ppo_model_path = os.path.join(model_path, "best_nominal_model")
+        cns_model_path = os.path.join(model_path, "best_constraint_net_model")
+    else:
+        ppo_model_path = os.path.join(model_path, 'model_{0}_itrs'.format(iter_msg), 'nominal_agent')
+        cns_model_path = os.path.join(model_path, 'model_{0}_itrs'.format(iter_msg), 'constraint_net')
+    print('Loading ppo model from {0}'.format(ppo_model_path), flush=True, file=log_file)
+    print('Loading cns model from {0}'.format(cns_model_path), flush=True, file=log_file)
+    ppo_model = PPOLagrangian.load(ppo_model_path)
+    cns_model = ConstraintNet.load(cns_model_path)
+    return ppo_model, cns_model
 
 
-def run():
+def evaluate():
     # config, debug_mode, log_file_path = load_config(args)
 
     # if log_file_path is not None:
@@ -137,11 +147,11 @@ def run():
     # else:
     debug_mode = True
     log_file = None
-
-    load_model_name = 'train_ppo_highD-Feb-01-2022-10:31'
-    task_name = 'PPO-highD'
-    data_generate_type = 'no-collision'
     if_testing_env = False
+
+    load_model_name = 'train_ICRL_highD_collision_constraint-multi_env-Mar-15-2022-07:27'
+    task_name = 'ICRL-highD'
+    iteration_msg = 'best'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
     with open(os.path.join(model_loading_path, 'model_hyperparameters.yaml')) as reader:
@@ -149,28 +159,36 @@ def run():
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
 
-    # TODO: remove this line in the future
-    if 'ppo' in config['env']['config_path']:
-        config['env']['config_path'] = config['env']['config_path'].replace('_ppo', '')
+    # if 'ppo' in config['env']['config_path']:
+    #     config['env']['config_path'] = config['env']['config_path'].replace('_ppo', '')
 
     with open(config['env']['config_path'], "r") as config_file:
         env_configs = yaml.safe_load(config_file)
 
-    evaluation_path = os.path.join('../evaluate_model', config['task'], load_model_name)
+    evaluation_path = os.path.join('../evaluate_model',
+                                   config['task'],
+                                   load_model_name,
+                                   iteration_msg+"-{0}".format('test' if if_testing_env else 'train'))
+    if not os.path.exists(os.path.join('../evaluate_model', config['task'], load_model_name)):
+        os.mkdir(os.path.join('../evaluate_model', config['task'], load_model_name))
     if not os.path.exists(evaluation_path):
         os.mkdir(evaluation_path)
-    viz_path = os.path.join(evaluation_path, 'img')
+    # viz_path = os.path.join(evaluation_path, 'img')
+    viz_path = evaluation_path
     if not os.path.exists(viz_path):
         os.mkdir(viz_path)
 
-    save_expert_data_path = os.path.join('../data/expert_data/', '{0}_{1}'.format(data_generate_type, load_model_name))
-    if not os.path.exists(save_expert_data_path):
-        os.mkdir(save_expert_data_path)
-
+    # save_expert_data_path = os.path.join('../data/expert_data/', load_model_name)
+    # if not os.path.exists(save_expert_data_path):
+    #     os.mkdir(save_expert_data_path)
+    if iteration_msg == 'best':
+        env_stats_loading_path = model_loading_path
+    else:
+        env_stats_loading_path = os.path.join(model_loading_path, 'model_{0}_itrs'.format(iteration_msg))
     env = create_environments(env_id="commonroad-v1",
                               viz_path=viz_path,
                               test_path=evaluation_path,
-                              model_path=model_loading_path,
+                              model_path=env_stats_loading_path,
                               normalize=not config['env']['dont_normalize_obs'],
                               env_kwargs=env_configs,
                               testing_env=if_testing_env,
@@ -178,12 +196,13 @@ def run():
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
 
-    model = load_model(model_loading_path)
+    ppo_model, cns_model = load_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios = 0, 0, 0, 0, 0
-    num_scenarios = 50
+    num_scenarios = 200
     # In case there a no scenarios at all
     try:
         obs = env.reset()
+        original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
     except IndexError:
         num_scenarios = 0
 
@@ -192,33 +211,35 @@ def run():
     benchmark_id_all = []
     while count != num_scenarios:
         done, state = False, None
-        env.render()
         benchmark_id = env.venv.envs[0].benchmark_id
         if benchmark_id in benchmark_id_all:
+        # if benchmark_id != 'DEU_LocationBUpper-3_13_T-1':
             print('skip game', benchmark_id, file=log_file, flush=True)
             obs = env.reset()
+            original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
             continue
         else:
             benchmark_id_all.append(benchmark_id)
         print('senario id', benchmark_id, file=log_file, flush=True)
-
+        env.render()
         game_info_file = open(os.path.join(viz_path, benchmark_id, 'info_record.txt'), 'w')
-        game_info_file.write('current_step, is_collision, is_time_out, is_off_road, is_goal_reached\n')
+        game_info_file.write('current_step, velocity, cost, is_collision, is_off_road, is_goal_reached, is_time_out\n')
         obs_all = []
         original_obs_all = []
         action_all = []
         reward_sum = 0
         running_step = 0
         while not done:
-            action, state = model.predict(obs, state=state, deterministic=False)
+            action, state = ppo_model.predict(obs, state=state, deterministic=False)
+            cost = cns_model.cost_function(obs=original_obs, acs=action)
             new_obs, reward, done, info = env.step(action)
             reward_sum += reward
             obs_all.append(obs)
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
             original_obs_all.append(original_obs)
             action_all.append(action)
-            save_game_record(info[0], game_info_file)
-            # env.render()
+            save_game_record(info[0], game_info_file, cost[0])
+            env.render()
             obs = new_obs
             running_step += 1
         game_info_file.close()
@@ -244,32 +265,24 @@ def run():
         elif info.get("is_goal_reached", 0) == 1:
             termination_reason = "goal_reached"
 
-        if termination_reason not in data_generate_type:
-            print('saving expert data with terminal reason: {0}'.format(termination_reason), file=log_file, flush=True)
-            # TODO: add the reward at each step
-            raise ValueError('pls fix this issue.')
-            saving_expert_data = {
-                'observations': np.asarray(obs_all),
-                'actions': np.asarray(action_all),
-                'original_observations': np.asarray(original_obs_all),
-                'reward_sum': reward_sum
-            }
-            with open(os.path.join(save_expert_data_path,
-                                   'scene-{0}_len-{1}.pkl'.format(benchmark_id, running_step)), 'wb') as file:
-                # A new file will be created
-                pickle.dump(saving_expert_data, file)
-            count += 1
-
         if termination_reason == "goal_reached":
             print('goal reached', file=log_file, flush=True)
             success += 1
-
+            # print('saving exper data', file=log_file, flush=True)
+            # saving_expert_data = {
+            #     'observations': np.asarray(obs_all),
+            #     'actions': np.asarray(action_all),
+            #     'original_observations': np.asarray(original_obs_all),
+            #     'reward_sum': reward_sum
+            # }
+        # break
         if out_of_scenarios:
             break
+        count += 1
 
     print('total', count, 'success', success, file=log_file, flush=True)
 
 
 if __name__ == '__main__':
     # args = read_args()
-    run()
+    evaluate()

@@ -72,7 +72,7 @@ def train(config):
         config['env']['save_dir'],
         config['task'],
         args.config_file.split('/')[-1].split('.')[0],
-        '-multi_env' if multi_env else False,
+        '-multi_env' if multi_env else '',
         current_time_date,
         debug_msg
     )

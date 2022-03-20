@@ -89,8 +89,8 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
     # :param hyperparam_filename: The filename of the hyperparameters
     :param env_kwargs: Keyword arguments to be passed to the environment
     """
-    env_kwargs.update({"visualization_path": viz_path,
-                       "play": True})
+    env_kwargs.update({"visualization_path": viz_path,})
+                       # "play": True})
     if testing_env:
         env_kwargs["test_env"] = True
     if debug_mode:
@@ -124,8 +124,12 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
     return env
 
 
-def load_model(model_path: str):
-    model_path = os.path.join(model_path, "best_nominal_model")
+def load_model(model_path: str, iter_msg: str, log_file):
+    if iter_msg == 'best':
+        model_path = os.path.join(model_path, "best_nominal_model")
+    else:
+        model_path = os.path.join(model_path, 'model_{0}_itrs'.format(iter_msg), 'nominal_agent')
+    print('Loading model from {0}'.format(model_path), flush=True, file=log_file)
     model = PPO.load(model_path)
     return model
 
@@ -138,14 +142,12 @@ def evaluate():
     # else:
     debug_mode = True
     log_file = None
-    if_testing_env = True
+    if_testing_env = False
 
-    # load_model_name = 'train_ppo_highD-Feb-01-2022-10:31'
-    # load_model_name = 'train_ppo_highD_no_offroad-Feb-11-2022-08:58'
-    # load_model_name = 'train_ppo_highD_no_collision-Feb-11-2022-08:57'
-    # load_model_name = 'part-train_ppo_highD_no_collision-Mar-02-2022-00:38'
-    load_model_name = 'debug-part-train_ppo_highD_no_offroad-Mar-03-2022-19:41'
+    # load_model_name = 'train_ppo_highD_no_collision-multi_env-Mar-10-2022-00:18'
+    load_model_name = 'train_ppo_highD-multi_env-Mar-10-2022-04:37'
     task_name = 'PPO-highD'
+    iteration_msg = 'best'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
     with open(os.path.join(model_loading_path, 'model_hyperparameters.yaml')) as reader:
@@ -153,28 +155,36 @@ def evaluate():
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
 
-    # TODO: remove this line in the future
-    if 'ppo' in config['env']['config_path']:
-        config['env']['config_path'] = config['env']['config_path'].replace('_ppo', '')
+    # if 'ppo' in config['env']['config_path']:
+    #     config['env']['config_path'] = config['env']['config_path'].replace('_ppo', '')
 
     with open(config['env']['config_path'], "r") as config_file:
         env_configs = yaml.safe_load(config_file)
 
-    evaluation_path = os.path.join('../evaluate_model', config['task'], load_model_name)
+    evaluation_path = os.path.join('../evaluate_model',
+                                   config['task'],
+                                   load_model_name,
+                                   iteration_msg+"-{0}".format('test' if if_testing_env else 'train'))
+    if not os.path.exists(os.path.join('../evaluate_model', config['task'], load_model_name)):
+        os.mkdir(os.path.join('../evaluate_model', config['task'], load_model_name))
     if not os.path.exists(evaluation_path):
         os.mkdir(evaluation_path)
-    viz_path = os.path.join(evaluation_path, 'img')
+    # viz_path = os.path.join(evaluation_path, 'img')
+    viz_path = evaluation_path
     if not os.path.exists(viz_path):
         os.mkdir(viz_path)
 
-    save_expert_data_path = os.path.join('../data/expert_data/', load_model_name)
-    if not os.path.exists(save_expert_data_path):
-        os.mkdir(save_expert_data_path)
-
+    # save_expert_data_path = os.path.join('../data/expert_data/', load_model_name)
+    # if not os.path.exists(save_expert_data_path):
+    #     os.mkdir(save_expert_data_path)
+    if iteration_msg == 'best':
+        env_stats_loading_path = model_loading_path
+    else:
+        env_stats_loading_path = os.path.join(model_loading_path, 'model_{0}_itrs'.format(iteration_msg))
     env = create_environments(env_id="commonroad-v1",
                               viz_path=viz_path,
                               test_path=evaluation_path,
-                              model_path=model_loading_path,
+                              model_path=env_stats_loading_path,
                               normalize=not config['env']['dont_normalize_obs'],
                               env_kwargs=env_configs,
                               testing_env=if_testing_env,
@@ -182,7 +192,7 @@ def evaluate():
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
 
-    model = load_model(model_loading_path)
+    model = load_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios = 0, 0, 0, 0, 0
     num_scenarios = 200
     # In case there a no scenarios at all
@@ -193,14 +203,21 @@ def evaluate():
 
     count = 0
     success = 0
+    benchmark_id_all = []
     while count != num_scenarios:
         done, state = False, None
-        env.render()
         benchmark_id = env.venv.envs[0].benchmark_id
+        if benchmark_id in benchmark_id_all:
+        # if benchmark_id != 'DEU_LocationBUpper-3_13_T-1':
+            print('skip game', benchmark_id, file=log_file, flush=True)
+            obs = env.reset()
+            continue
+        else:
+            benchmark_id_all.append(benchmark_id)
         print('senario id', benchmark_id, file=log_file, flush=True)
-
+        env.render()
         game_info_file = open(os.path.join(viz_path, benchmark_id, 'info_record.txt'), 'w')
-        game_info_file.write('current_step, is_collision, is_time_out, is_off_road, is_goal_reached\n')
+        game_info_file.write('current_step, velocity, is_collision, is_time_out, is_off_road, is_goal_reached\n')
         obs_all = []
         original_obs_all = []
         action_all = []
@@ -244,17 +261,14 @@ def evaluate():
         if termination_reason == "goal_reached":
             print('goal reached', file=log_file, flush=True)
             success += 1
-            print('saving exper data', file=log_file, flush=True)
-            saving_expert_data = {
-                'observations': np.asarray(obs_all),
-                'actions': np.asarray(action_all),
-                'original_observations': np.asarray(original_obs_all),
-                'reward_sum': reward_sum
-            }
-            with open(os.path.join(save_expert_data_path, 'scene-{0}_len-{1}.pkl'.format(count, running_step)), 'wb') as file:
-                # A new file will be created
-                pickle.dump(saving_expert_data, file)
-
+            # print('saving exper data', file=log_file, flush=True)
+            # saving_expert_data = {
+            #     'observations': np.asarray(obs_all),
+            #     'actions': np.asarray(action_all),
+            #     'original_observations': np.asarray(original_obs_all),
+            #     'reward_sum': reward_sum
+            # }
+        # break
         if out_of_scenarios:
             break
         count += 1

@@ -23,8 +23,12 @@ def generate_plots():
         plot_key = ['Rewards', 'collision_rate', 'off_road_rate', 'goal_reach_rate', 'time_out_rate']
         # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_collision_constraint-Mar-07-2022-07:03/'
         # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_offroad_constraint-Mar-07-2022-07:01/'
+        log_path = '../save_model/ICRL-highD/train_ICRL_highD_offroad_constraint-Mar-13-2022-23:37/'
+        # log_path = '../save_model/ICRL-highD/train_ICRL_highD_collision_constraint-multi_env-Mar-15-2022-07:27/'
 
-        log_path = '../save_model/PPO-highD/train_ppo_highD-multi_env-Mar-10-2022-04:37/'
+        # log_path = '../save_model/PPO-highD/train_ppo_highD-multi_env-Mar-10-2022-04:37/'
+        # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-multi_env-Mar-18-2022-02:32-seed_123/'
+        # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-multi_env-Mar-16-2022-00:14-seed_321/'
         # log_path = '../save_model/PPO-highD/train_ppo_highD_no_offroad-multi_env-Mar-10-2022-04:38/'
         # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-multi_env-Mar-10-2022-00:18/'
         # log_path = '../save_model/PPO-highD/part-train_ppo_highD-Feb-01-2022-10:31/'

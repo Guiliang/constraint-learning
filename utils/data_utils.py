@@ -166,13 +166,29 @@ def read_running_logs(log_path):
     return rewards, is_collision, is_off_road, is_goal_reached, is_time_out
 
 
-def save_game_record(info, file):
+def save_game_record(info, file, cost=None):
     is_collision = info["is_collision"]
     is_time_out = info["is_time_out"]
     is_off_road = info["is_off_road"]
+    ego_velocity_x_y = info["ego_velocity"]
+    ego_velocity = np.sqrt(np.sum(np.square(ego_velocity_x_y)))
     is_goal_reached = info["is_goal_reached"]
     current_step = info["current_episode_time_step"]
-    file.write("{0}, {1}, {2}, {3}, {4}\n".format(current_step, is_collision, is_time_out, is_off_road, is_goal_reached))
+    if cost is None:
+        file.write("{0}, {1:.3f}, {2:.0f}, {3:.0f}, {4:.0f}, {5:.0f}\n".format(current_step,
+                                                                               ego_velocity,
+                                                                               is_collision,
+                                                                               is_off_road,
+                                                                               is_goal_reached,
+                                                                               is_time_out))
+    else:
+        file.write("{0}, {1:.3f}, {2:.3f}, {3:.0f}, {4:.0f}, {5:.0f}, {6:.0f}\n".format(current_step,
+                                                                                        ego_velocity,
+                                                                                        cost,
+                                                                                        is_collision,
+                                                                                        is_off_road,
+                                                                                        is_goal_reached,
+                                                                                        is_time_out))
 
 
 def process_memory():
@@ -201,14 +217,14 @@ def load_expert_data(expert_path, num_rollouts, log_file):
         else:
             data_rs = None
         total_time_step = data_acs.shape[0]
-        for t in range(total_time_step-1):
+        for t in range(total_time_step - 1):
             data_obs_t = data_obs[t]
-            data_obs_next_t = data_obs[t+1]
+            data_obs_next_t = data_obs[t + 1]
             data_ac_t = data_acs[t]
-            data_ac_next_t = data_acs[t+1]
+            data_ac_next_t = data_acs[t + 1]
             if data_rs is not None:
                 data_r_t = data_rs[t]
-                data_r_next_t = data_rs[t+1]
+                data_r_next_t = data_rs[t + 1]
             else:
                 data_r_t = 0
                 data_r_next_t = 0
@@ -234,4 +250,3 @@ def load_expert_data(expert_path, num_rollouts, log_file):
           flush=True)
 
     return (expert_obs, expert_acs, expert_rs), expert_mean_reward
-

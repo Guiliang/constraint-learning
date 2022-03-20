@@ -1,5 +1,7 @@
+import logging
 import os
 from copy import copy
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import gym
@@ -18,11 +20,16 @@ def make_env(env_id, env_configs, rank, log_dir, multi_env=False, seed=0):
             env_configs_copy.update({'train_reset_config_path': env_configs['train_reset_config_path'] + '/{0}'.format(rank)}),
         else:
             env_configs_copy = copy(env_configs)
+        if 'external_reward' in env_configs:
+            del env_configs_copy['external_reward']
         env = gym.make(id=env_id,
                        **env_configs_copy)
         env.seed(seed + rank)
-        env = Monitor(env, log_dir)
         del env_configs_copy
+        if 'external_reward' in env_configs:
+            print("Using external reward", flush=True)
+            env = ExternalRewardWrapper(env=env, wrapper_config=env_configs['external_reward'])
+        env = Monitor(env, log_dir)
         return env
 
     set_random_seed(seed)
@@ -148,3 +155,33 @@ def sample_from_agent(agent, env, rollouts):
     lengths = np.array(lengths)
 
     return orig_observations, observations, actions, rewards, lengths
+
+
+class ExternalRewardWrapper(gym.Wrapper):
+    def __init__(self, env: gym.Wrapper, wrapper_config):
+        super(ExternalRewardWrapper, self).__init__(env=env)
+        self.wrapper_config = wrapper_config
+
+    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
+        observation, reward, done, info = self.env.step(action)
+
+        reward_features = self.wrapper_config['reward_features']
+        feature_bounds = self.wrapper_config['feature_bounds']
+        feature_penalties = self.wrapper_config['feature_penalties']
+        terminates = self.wrapper_config['terminate']
+        for idx in range(len(reward_features)):
+            reward_feature = reward_features[idx]
+            if reward_feature == 'velocity':
+                ego_velocity_x_y = info["ego_velocity"]
+                ego_velocity = np.sqrt(np.sum(np.square(ego_velocity_x_y)))
+                if ego_velocity > float(feature_bounds[idx][1]):
+                    reward += float(feature_penalties[idx])
+                    info.update({'is_over_speed': 1})
+                    if terminates[idx]:
+                        done = True
+                else:
+                    info.update({'is_over_speed': 0})
+            else:
+                raise ValueError("Unknown reward features: {0}".format(reward_feature))
+
+        return observation, reward, done, info

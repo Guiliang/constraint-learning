@@ -28,13 +28,13 @@ class Monitor(gym.Wrapper):
     EXT = "monitor.csv"
 
     def __init__(
-        self,
-        env: gym.Env,
-        filename: Optional[str] = None,
-        allow_early_resets: bool = True,
-        reset_keywords: Tuple[str, ...] = (),
-        info_keywords: Tuple[str, ...] = (),
-        track_keywords: Tuple[str, ...] = ()
+            self,
+            env: gym.Env,
+            filename: Optional[str] = None,
+            allow_early_resets: bool = True,
+            reset_keywords: Tuple[str, ...] = (),
+            info_keywords: Tuple[str, ...] = (),
+            track_keywords: Tuple[str, ...] = ()
     ):
         super(Monitor, self).__init__(env=env)
         self.t_start = time.time()
@@ -49,12 +49,12 @@ class Monitor(gym.Wrapper):
                     filename = filename + "." + Monitor.EXT
             self.file_handler = open(filename, "wt")
             self.file_handler.write("#%s\n" % json.dumps({"t_start": self.t_start, "env_id": env.spec and env.spec.id}))
-            self.logger = csv.DictWriter(self.file_handler, fieldnames=("reward", "len", "time",
-                                                                        "is_collision", "is_off_road",
-                                                                        "is_goal_reached", "is_time_out")
-                                                                       + reset_keywords
-                                                                       + info_keywords
-                                                                       + track_keywords)
+            self.logger = csv.DictWriter(self.file_handler,
+                                         fieldnames=("reward", "len", "time", "avg_velocity",
+                                                     "is_collision", "is_off_road",
+                                                     "is_goal_reached", "is_time_out", "is_over_speed", "env")
+                                                    + reset_keywords + info_keywords + track_keywords,
+                                         delimiter=",")
             self.logger.writeheader()
             self.file_handler.flush()
 
@@ -74,6 +74,7 @@ class Monitor(gym.Wrapper):
             'is_off_road': 0,
             'is_goal_reached': 0,
             'is_time_out': 0,
+            'is_over_speed': 0
         }
 
     def reset(self, **kwargs) -> np.ndarray:
@@ -89,6 +90,7 @@ class Monitor(gym.Wrapper):
                 "wrap your env with Monitor(env, path, allow_early_resets=True)"
             )
         self.rewards = []
+        self.ego_velocity = []
         self.needs_reset = False
         for key in self.reset_keywords:
             value = kwargs.get(key)
@@ -110,6 +112,7 @@ class Monitor(gym.Wrapper):
             raise RuntimeError("Tried to step environment that needs reset")
         observation, reward, done, info = self.env.step(action)
         self.rewards.append(reward)
+        self.ego_velocity.append(info["ego_velocity"])
         for key in self.track_keywords:
             if key not in info:
                 raise ValueError(f"Expected to find {key} in info dict")
@@ -122,18 +125,29 @@ class Monitor(gym.Wrapper):
             self.event_dict['is_goal_reached'] = 1
         if info['is_time_out']:
             self.event_dict['is_time_out'] = 1
+        if 'is_over_speed' in info.keys() and info['is_over_speed']:
+            self.event_dict['is_over_speed'] = 1
         if done:
             self.needs_reset = True
             ep_rew = sum(self.rewards)
             ep_len = len(self.rewards)
-            ep_info = {"reward": round(ep_rew, 6),
-                       "len": ep_len,
-                       "time": round(time.time() - self.t_start, 6),
-                       "is_collision": self.event_dict['is_collision'],
-                       "is_off_road": self.event_dict['is_off_road'],
-                       "is_goal_reached": self.event_dict['is_goal_reached'],
-                       "is_time_out": self.event_dict['is_time_out']
-                       }
+            ego_velocity_array = np.asarray(self.ego_velocity)
+            # tmp1 = np.square(ego_velocity_array[:, 0])
+            # tmp2 = np.square(ego_velocity_array[:, 1])
+            ego_velocity = np.sqrt(np.square(ego_velocity_array[:, 0]) + np.square(ego_velocity_array[:, 1]))
+            # ego_velocity_tmp = np.sqrt(np.sum(np.square(ego_velocity_array), axis=1))
+            ep_info = {
+                "reward": round(ep_rew, 2),
+                "len": ep_len,
+                "time": round(time.time() - self.t_start, 2),
+                "avg_velocity": round(float(ego_velocity.mean()), 2),
+                "is_collision": self.event_dict['is_collision'],
+                "is_off_road": self.event_dict['is_off_road'],
+                "is_goal_reached": self.event_dict['is_goal_reached'],
+                "is_time_out": self.event_dict['is_time_out'],
+                'is_over_speed': self.event_dict['is_over_speed'],
+                "env": self.env.env.benchmark_id,
+            }
             for key in self.info_keywords:
                 ep_info[key] = info[key]
             for key in self.track_keywords:
@@ -151,6 +165,7 @@ class Monitor(gym.Wrapper):
                 'is_off_road': 0,
                 'is_goal_reached': 0,
                 'is_time_out': 0,
+                'is_over_speed': 0
             }
         self.total_steps += 1
         return observation, reward, done, info
