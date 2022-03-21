@@ -179,7 +179,11 @@ def run():
     # if not os.path.exists(viz_path):
     #     os.mkdir(viz_path)
 
-    save_expert_data_path = os.path.join('../data/expert_data/', '{0}_{1}'.format(data_generate_type, load_model_name))
+    save_expert_data_path = os.path.join('../data/expert_data/', '{0}{1}_{2}'.format(
+        'debug_' if debug_mode else '',
+        data_generate_type,
+        load_model_name,
+    ))
     if not os.path.exists(save_expert_data_path):
         os.mkdir(save_expert_data_path)
 
