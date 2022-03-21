@@ -199,20 +199,21 @@ def process_memory():
 def load_expert_data(expert_path, num_rollouts, log_file):
     file_names = os.listdir(expert_path)
     # file_names = [i for i in range(29)]
-    sample_names = random.sample(file_names, num_rollouts)
+    # sample_names = random.sample(file_names, num_rollouts)
     expert_mean_reward = []
     expert_obs = []
     expert_acs = []
     expert_rs = []
-    for i in range(num_rollouts):
-        file_name = sample_names[i]
+    for i in range(len(file_names)):
+        # file_name = sample_names[i]
+        file_name = file_names[i]
         with open(os.path.join(expert_path, file_name), "rb") as f:
             data = pickle.load(f)
 
-        data_obs = np.squeeze(data['original_observations'], axis=1)
-        data_acs = np.squeeze(data['actions'], axis=1)
-        if 'rewards' in data.keys():
-            data_rs = np.squeeze(data['rewards'], axis=1)
+        data_obs = data['original_observations']
+        data_acs = data['actions']
+        if 'reward' in data.keys():
+            data_rs = data['reward']
         else:
             data_rs = None
         total_time_step = data_acs.shape[0]

@@ -155,7 +155,7 @@ def run():
     # else:
     log_file = None
     num_scenarios = 3000
-    load_model_name = 'part-train_ppo_highD-Feb-01-2022-10:31'
+    load_model_name = 'train_ppo_highD-multi_env-Mar-10-2022-04:37'  # 'part-train_ppo_highD-Feb-01-2022-10:31'
     task_name = 'PPO-highD'
     data_generate_type = 'no-collision'
     if_testing_env = False
