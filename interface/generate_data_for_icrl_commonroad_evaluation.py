@@ -3,10 +3,13 @@ import json
 import logging
 import os
 import pickle
+import sys
 import time
 from typing import Union, Callable
 import numpy as np
 import yaml
+cwd = os.getcwd()
+sys.path.append(cwd.replace('/interface', ''))
 from gym import Env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3 import PPO
