@@ -3,7 +3,7 @@ group: 'PPO-highD'
 device: 'cuda'
 verbose: 1
 env:
-  config_path: "../config/highD_environment_configurations_no_velocity_penalty.yaml"
+  config_path: "../config/highD_environment_configurations_no_velocity_penalty-50.yaml"
   train_env_id : 'commonroad-v1'
   eval_env_id: 'commonroad-v1'
   save_dir: '../save_model'

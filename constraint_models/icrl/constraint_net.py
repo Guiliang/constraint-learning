@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 import torch as th
 from stable_baselines3.common.torch_layers import create_mlp
 from stable_baselines3.common.utils import update_learning_rate
@@ -90,10 +91,11 @@ class ConstraintNet(nn.Module):
             self.select_dim += [i for i in range(self.obs_dim)]
         elif self.obs_select_dim[0] != -1:
             self.select_dim += self.obs_select_dim
+        obs_len = len(self.select_dim)
         if self.acs_select_dim is None:
-            self.select_dim += [i for i in range(self.acs_dim)]
+            self.select_dim += [i+obs_len for i in range(self.acs_dim)]
         elif self.acs_select_dim[0] != -1:
-            self.select_dim += self.acs_select_dim
+            self.select_dim += [i+obs_len for i in self.acs_select_dim]
         assert len(self.select_dim) > 0, ""
 
         self.input_dims = len(self.select_dim)
@@ -163,6 +165,15 @@ class ConstraintNet(nn.Module):
 
         early_stop_itr = iterations
         loss = th.tensor(np.inf)
+
+        loss_all = []
+        expert_loss_all = []
+        nominal_loss_all = []
+        regularizer_loss_all = []
+        is_weights_all = []
+        nominal_preds_all = []
+        expert_preds_all = []
+
         for itr in tqdm(range(iterations)):
             # Compute IS weights
             if self.importance_sampling:
@@ -201,25 +212,41 @@ class ConstraintNet(nn.Module):
                     regularizer_loss = self.regularizer_coeff * (th.mean(1 - expert_preds) + th.mean(1 - nominal_preds))
                     loss = (-expert_loss + nominal_loss) + regularizer_loss
 
+                loss_all.append(loss)
+                expert_loss_all.append(expert_loss)
+                nominal_loss_all.append(nominal_loss)
+                regularizer_loss_all.append(regularizer_loss)
+                is_weights_all.append(is_weights)
+                expert_preds_all.append(expert_preds)
+                nominal_preds_all.append(nominal_preds)
+
                 # Update
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
 
-        bw_metrics = {"backward/cn_loss": loss.item(),
-                      "backward/expert_loss": expert_loss.item(),
-                      "backward/unweighted_nominal_loss": th.mean(th.log(nominal_preds + self.eps)).item(),
-                      "backward/nominal_loss": nominal_loss.item(),
-                      "backward/regularizer_loss": regularizer_loss.item(),
-                      "backward/is_mean": th.mean(is_weights).detach().item(),
-                      "backward/is_max": th.max(is_weights).detach().item(),
-                      "backward/is_min": th.min(is_weights).detach().item(),
-                      "backward/nominal_preds_max": th.max(nominal_preds).item(),
-                      "backward/nominal_preds_min": th.min(nominal_preds).item(),
-                      "backward/nominal_preds_mean": th.mean(nominal_preds).item(),
-                      "backward/expert_preds_max": th.max(expert_preds).item(),
-                      "backward/expert_preds_min": th.min(expert_preds).item(),
-                      "backward/expert_preds_mean": th.mean(expert_preds).item(), }
+        loss_all = torch.stack(loss_all, dim=0)
+        expert_loss_all = torch.stack(expert_loss_all, dim=0)
+        nominal_loss_all = torch.stack(nominal_loss_all, dim=0)
+        regularizer_loss_all = torch.stack(regularizer_loss_all, dim=0)
+        is_weights_all = torch.cat(is_weights_all, dim=0)
+        nominal_preds_all = torch.cat(nominal_preds_all, dim=0)
+        expert_preds_all = torch.cat(expert_preds_all, dim=0)
+
+        bw_metrics = {"backward/cn_loss": th.mean(loss_all).item(),
+                      "backward/expert_loss":  th.mean(expert_loss_all).item(),
+                      "backward/unweighted_nominal_loss": th.mean(th.log(nominal_preds_all + self.eps)).item(),
+                      "backward/nominal_loss":  th.mean(nominal_loss_all).item(),
+                      "backward/regularizer_loss":  th.mean(regularizer_loss_all).item(),
+                      "backward/is_mean": th.mean(is_weights_all).detach().item(),
+                      "backward/is_max": th.max(is_weights_all).detach().item(),
+                      "backward/is_min": th.min(is_weights_all).detach().item(),
+                      "backward/nominal_preds_max": th.max(nominal_preds_all).item(),
+                      "backward/nominal_preds_min": th.min(nominal_preds_all).item(),
+                      "backward/nominal_preds_mean": th.mean(nominal_preds_all).item(),
+                      "backward/expert_preds_max": th.max(expert_preds_all).item(),
+                      "backward/expert_preds_min": th.min(expert_preds_all).item(),
+                      "backward/expert_preds_mean": th.mean(expert_preds_all).item(), }
         if self.importance_sampling:
             stop_metrics = {"backward/kl_old_new": kl_old_new.item(),
                             "backward/kl_new_old": kl_new_old.item(),
@@ -392,10 +419,23 @@ class ConstraintNet(nn.Module):
         # Create network
         hidden_sizes = state_dict["hidden_sizes"]
         constraint_net = cls(
-            obs_dim, acs_dim, hidden_sizes, None, None, None, None,
-            is_discrete, None, obs_select_dim, acs_select_dim, None,
-            None, None, clip_obs, obs_mean, obs_var, action_low, action_high,
-            None, None, device
+            obs_dim=obs_dim,
+            acs_dim=acs_dim,
+            hidden_sizes=hidden_sizes,
+            batch_size=None,
+            lr_schedule=None,
+            expert_obs=None,
+            expert_acs=None,
+            is_discrete=is_discrete,
+            regularizer_coeff=None,
+            obs_select_dim=obs_select_dim,
+            acs_select_dim=acs_select_dim,
+            clip_obs=clip_obs,
+            initial_obs_mean=obs_mean,
+            initial_obs_var=obs_var,
+            action_low=action_low,
+            action_high=action_high,
+            device=device
         )
         constraint_net.network.load_state_dict(state_dict["cn_network"])
 

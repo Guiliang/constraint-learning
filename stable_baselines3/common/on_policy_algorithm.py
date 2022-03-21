@@ -470,9 +470,12 @@ class OnPolicyWithCostAlgorithm(BaseAlgorithm):
                 keywords = {key for ep_info in self.ep_info_buffer for key in ep_info.keys()}
                 keywords -= {'reward', 'len', 'time'}
                 for keyword in keywords:
-                    logger.record(f"rollout/ep_{keyword}_mean", safe_mean([ep_info[keyword] for ep_info in self.ep_info_buffer]))
-                    logger.record(f"rollout/ep_{keyword}_max", np.max([ep_info[keyword] for ep_info in self.ep_info_buffer]))
-                    logger.record(f"rollout/ep_{keyword}_min", np.min([ep_info[keyword] for ep_info in self.ep_info_buffer]))
+                    if keyword == 'env':
+                        continue  # we can not average the env id.
+                    else:
+                        logger.record(f"rollout/ep_{keyword}_mean", safe_mean([ep_info[keyword] for ep_info in self.ep_info_buffer]))
+                        logger.record(f"rollout/ep_{keyword}_max", np.max([ep_info[keyword] for ep_info in self.ep_info_buffer]))
+                        logger.record(f"rollout/ep_{keyword}_min", np.min([ep_info[keyword] for ep_info in self.ep_info_buffer]))
                 logger.record("rollout/ep_rew_mean", safe_mean([ep_info["reward"] for ep_info in self.ep_info_buffer]))
                 logger.record("rollout/ep_len_mean", safe_mean([ep_info["len"] for ep_info in self.ep_info_buffer]))
 

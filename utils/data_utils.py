@@ -131,12 +131,6 @@ def compute_moving_average(result_all, average_num=100):
 
 
 def read_running_logs(log_path, read_keys):
-    # rewards = []
-    # is_collision = []
-    # is_off_road = []
-    # is_goal_reached = []
-    # is_time_out = []
-
     read_running_logs = {}
 
     with open(log_path, 'r') as file:
@@ -169,14 +163,6 @@ def read_running_logs(log_path, read_keys):
         for key in read_keys:
             read_running_logs[key].append(float(results[key_indices[key]]))
     return read_running_logs
-        # rewards.append(results[0])
-        # is_collision.append(results[3])
-        # is_off_road.append(results[4])
-        # is_goal_reached.append(results[5])
-        # is_time_out.append(results[6])
-        # old_results = results
-
-    # return rewards, is_collision, is_off_road, is_goal_reached, is_time_out
 
 
 def save_game_record(info, file, cost=None):

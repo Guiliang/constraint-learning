@@ -193,9 +193,13 @@ def evaluate():
                               env_kwargs=env_configs,
                               testing_env=if_testing_env,
                               debug_mode=debug_mode)
+
+    # mean, var = None, None
+    # if config['CN']['cn_normalize']:
+    #     mean, var = env.obs_rms.mean, env.obs_rms.var
+
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
-
     ppo_model, cns_model = load_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios = 0, 0, 0, 0, 0
     num_scenarios = 200

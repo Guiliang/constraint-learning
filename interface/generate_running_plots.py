@@ -20,12 +20,16 @@ def generate_plots():
     modes = ['train', 'test']
 
     for mode in modes:
-        plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
+        # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
+
+        plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
         # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_collision_constraint-Mar-07-2022-07:03/'
         # log_path = '../save_model/ICRL-highD/part-train_ICRL_highD_offroad_constraint-Mar-07-2022-07:01/'
-        log_path = '../save_model/ICRL-highD/train_ICRL_highD_offroad_constraint-Mar-13-2022-23:37/'
+        # log_path = '../save_model/ICRL-highD/train_ICRL_highD_offroad_constraint-Mar-13-2022-23:37/'
         # log_path = '../save_model/ICRL-highD/train_ICRL_highD_collision_constraint-multi_env-Mar-15-2022-07:27/'
 
+        # log_path = '../save_model/PPO-highD/train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/'
+        log_path = '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty-multi_env-Mar-20-2022-10:18-seed_123/'
         # log_path = '../save_model/PPO-highD/train_ppo_highD-multi_env-Mar-10-2022-04:37/'
         # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-multi_env-Mar-18-2022-02:32-seed_123/'
         # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-multi_env-Mar-16-2022-00:14-seed_321/'

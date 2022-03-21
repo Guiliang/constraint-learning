@@ -80,6 +80,7 @@ def train(args):
         yaml.dump(config, hyperparam_file)
 
     mem_prev = process_memory()
+    time_prev = time.time()
     # Create the vectorized environments
     train_env = make_train_env(env_id=config['env']['train_env_id'],
                                config_path=config['env']['config_path'],
@@ -111,11 +112,14 @@ def train(args):
                              part_data=partial_data)
 
     mem_loading_environment = process_memory()
-    print("Loading environment consumed memory: {0}/{1}".format(float(mem_loading_environment - mem_prev) / 1000000,
-                                                                float(mem_loading_environment) / 1000000
-                                                                ),
+    time_loading_environment = time.time()
+    print("Loading environment consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}:".format(
+        float(mem_loading_environment - mem_prev) / 1000000,
+        float(mem_loading_environment) / 1000000,
+        time_loading_environment - time_prev),
           file=log_file, flush=True)
     mem_prev = mem_loading_environment
+    time_prev = time_loading_environment
 
     # Set specs
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
@@ -170,11 +174,14 @@ def train(args):
             timesteps += ppo_agent.num_timesteps
 
     mem_before_training = process_memory()
-    print("Setting model consumed memory: {0}/{1}".format(float(mem_before_training - mem_prev) / 1000000,
-                                                          float(mem_before_training) / 1000000
-                                                          ),
+    time_before_training = time.time()
+    print("Setting model consumed memory: {0:.2f}/{1:.2f} and time: {2:.2f}".format(
+        float(mem_before_training - mem_prev) / 1000000,
+        float(mem_before_training) / 1000000,
+        time_before_training - time_prev),
           file=log_file, flush=True)
     mem_prev = mem_before_training
+    time_prev = time_before_training
 
     # Train
     start_time = time.time()
@@ -197,6 +204,15 @@ def train(args):
             )
             forward_metrics = logger.Logger.CURRENT.name_to_value
             timesteps += ppo_agent.num_timesteps
+
+        mem_during_training = process_memory()
+        time_during_training = time.time()
+        print("Training consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
+            float(mem_during_training - mem_prev) / 1000000,
+            float(mem_during_training) / 1000000,
+            time_during_training - time_prev), file=log_file, flush=True)
+        mem_prev = mem_during_training
+        time_prev = time_during_training
 
         # Evaluate:
         # reward on true environment
@@ -242,11 +258,14 @@ def train(args):
         if config['verbose'] > 0:
             ppo_logger.write(metrics, {k: None for k in metrics.keys()}, step=itr)
 
-        mem_during_training = process_memory()
-        print("Training consumed memory: {0}/{1}".format(float(mem_during_training - mem_prev) / 1000000,
-                                                         float(mem_during_training) / 1000000
-                                                         ), file=log_file, flush=True)
-        mem_prev = mem_during_training
+        mem_during_testing = process_memory()
+        time_during_testing = time.time()
+        print("Validating consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
+            float(mem_during_testing - mem_prev) / 1000000,
+            float(mem_during_testing) / 1000000,
+            time_during_testing - time_prev), file=log_file, flush=True)
+        mem_prev = mem_during_testing
+        time_prev = time_during_testing
 
 
 if __name__ == "__main__":
