@@ -21,7 +21,7 @@ running:
   n_eval_episodes: 100
   save_every: 10
   expert_rollouts: 10
-  expert_path: '../data/expert_data/no-collision_train_ppo_highD-Feb-01-2022-10:31/'
+  expert_path: '../data/expert_data/no-collision_part-train_ppo_highD-Feb-01-2022-10:31/'
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'

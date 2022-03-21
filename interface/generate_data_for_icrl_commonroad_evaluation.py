@@ -165,7 +165,6 @@ def run():
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
     with open(os.path.join(model_loading_path, 'model_hyperparameters.yaml')) as reader:
         config = yaml.safe_load(reader)
-
     print(json.dumps(config, indent=4), file=log_file, flush=True)
 
     # TODO: remove this line in the future
@@ -237,7 +236,7 @@ def run():
         reward_sums = [0 for i in range(num_threads)]
         running_steps = [0 for i in range(num_threads)]
         multi_thread_dones = [False for i in range(num_threads)]
-        infos_done = []
+        infos_done = [None for i in range(num_threads)]
         while not done:
             action, state = model.predict(obs, state=state, deterministic=False)
             new_obss, rewards, dones, infos = env.step(action)
@@ -253,9 +252,9 @@ def run():
                     action_all[i].append(action[i])
                     reward_all[i].append(rewards[i])
                     running_steps[i] += 1
-                    reward_sums[i] += rewards
+                    reward_sums[i] += rewards[i]
                     if dones[i]:
-                        infos_done.append(infos[i])
+                        infos_done[i] = infos[i]
                         multi_thread_dones[i] = True
             # save_game_record(info[0], game_info_file)
             done = True
@@ -272,7 +271,7 @@ def run():
         for i in range(num_threads):
             if not save_data_flag[i]:
                 continue
-            assert len(infos_done) == num_threads
+            # assert len(infos_done) == num_threads
             info = infos_done[i]
             total_scenarios += 1
             num_collisions += info["valid_collision"] if "valid_collision" in info else info["is_collision"]

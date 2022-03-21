@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --time=96:00:00
 #SBATCH --mem=120GB
-#SBATCH --job-name=PPO
+#SBATCH --job-name=collect
 task_name="collect_data-highD"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
