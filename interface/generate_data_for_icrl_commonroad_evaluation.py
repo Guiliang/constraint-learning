@@ -15,7 +15,7 @@ from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3 import PPO
 from environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
-from utils.data_utils import load_config, read_args, save_game_record
+from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model
 
 # def make_env(env_id, seed,  , info_keywords=()):
 #     log_dir = 'icrl/test_log'
@@ -132,12 +132,6 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
     return env
 
 
-def load_model(model_path: str):
-    model_path = os.path.join(model_path, "best_nominal_model")
-    model = PPO.load(model_path)
-    return model
-
-
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug_mode", help="whether to use the debug mode",
@@ -158,6 +152,7 @@ def run():
     load_model_name = 'train_ppo_highD-multi_env-Mar-10-2022-04:37'  # 'part-train_ppo_highD-Feb-01-2022-10:31'
     task_name = 'PPO-highD'
     data_generate_type = 'no-collision'
+    iteration_msg = 'best'
     if_testing_env = False
     if debug_mode:
         num_scenarios = 30
@@ -201,7 +196,7 @@ def run():
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
 
-    model = load_model(model_loading_path)
+    model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios = 0, 0, 0, 0, 0
 
     # In case there a no scenarios at all
@@ -314,11 +309,11 @@ def run():
                 success += 1
             if not info["out_of_scenarios"]:
                 out_of_scenarios = False
-        if out_of_scenarios:
-            print('break because "out_of_scenarios"', file=log_file, flush=True)
-            break
-        else:
-            obs = env.reset()
+        # if out_of_scenarios:
+        #     print('break because "out_of_scenarios"', file=log_file, flush=True)
+        #     break
+        # else:
+        obs = env.reset()
 
     print('total', total_scenarios, 'success', success, file=log_file, flush=True)
 

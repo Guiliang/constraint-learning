@@ -12,7 +12,7 @@ from stable_baselines3 import PPO
 from environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
 
-from utils.data_utils import load_config, read_args, save_game_record
+from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model
 
 # def make_env(env_id, seed,  , info_keywords=()):
 #     log_dir = 'icrl/test_log'
@@ -124,16 +124,6 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
     return env
 
 
-def load_model(model_path: str, iter_msg: str, log_file):
-    if iter_msg == 'best':
-        model_path = os.path.join(model_path, "best_nominal_model")
-    else:
-        model_path = os.path.join(model_path, 'model_{0}_itrs'.format(iter_msg), 'nominal_agent')
-    print('Loading model from {0}'.format(model_path), flush=True, file=log_file)
-    model = PPO.load(model_path)
-    return model
-
-
 def evaluate():
     # config, debug_mode, log_file_path = load_config(args)
 
@@ -192,7 +182,7 @@ def evaluate():
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
 
-    model = load_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
+    model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios = 0, 0, 0, 0, 0
     num_scenarios = 200
     # In case there a no scenarios at all

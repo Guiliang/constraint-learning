@@ -13,6 +13,7 @@ from gym.utils.colorize import color2num
 from tqdm import tqdm
 
 import stable_baselines3.common.callbacks as callbacks
+from stable_baselines3 import PPO
 from stable_baselines3.common.utils import safe_mean
 
 
@@ -250,3 +251,13 @@ def load_expert_data(expert_path, num_rollouts, log_file):
           flush=True)
 
     return (expert_obs, expert_acs, expert_rs), expert_mean_reward
+
+
+def load_ppo_model(model_path: str, iter_msg: str, log_file):
+    if iter_msg == 'best':
+        model_path = os.path.join(model_path, "best_nominal_model")
+    else:
+        model_path = os.path.join(model_path, 'model_{0}_itrs'.format(iter_msg), 'nominal_agent')
+    print('Loading model from {0}'.format(model_path), flush=True, file=log_file)
+    model = PPO.load(model_path)
+    return model

@@ -237,6 +237,7 @@ def train(args):
             ppo_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))
+                self.model.get_vec_normalize_env().save(save_path_name)
 
         # Update best metrics
         if average_true_reward > best_true_reward:

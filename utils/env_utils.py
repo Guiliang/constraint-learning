@@ -8,6 +8,7 @@ import gym
 import yaml
 import environment.commonroad_rl.gym_commonroad
 import stable_baselines3.common.vec_env as vec_env
+from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.utils import safe_mean, set_random_seed
 from stable_baselines3.common.preprocessing import is_image_space
@@ -185,3 +186,18 @@ class ExternalRewardWrapper(gym.Wrapper):
                 raise ValueError("Unknown reward features: {0}".format(reward_feature))
 
         return observation, reward, done, info
+
+
+class SaveVecNormalizeCallback(BaseCallback):
+    def __init__(self, save_path: str, verbose=1):
+        super(SaveVecNormalizeCallback, self).__init__(verbose)
+        self.save_path = save_path
+
+    def _init_callback(self) -> None:
+        if self.save_path is not None:
+            os.makedirs(self.save_path, exist_ok=True)
+
+    def _on_step(self) -> bool:
+        save_path_name = os.path.join(self.save_path, "vecnormalize.pkl")
+        self.model.get_vec_normalize_env().save(save_path_name)
+        print("Saved vectorized and normalized environment to {}".format(save_path_name))
