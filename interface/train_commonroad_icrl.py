@@ -23,7 +23,8 @@ from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormali
 from tqdm import tqdm
 
 import environment.commonroad_rl.gym_commonroad  # this line must be included
-from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data
+from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
+    get_obs_feature_names, get_input_features_dim
 from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
 from utils.model_utils import get_net_arch
 
@@ -50,7 +51,9 @@ def train(config):
     if debug_mode:
         # config['env']['num_threads'] = 1
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 200
+        config['PPO']['forward_timesteps'] = 20
+        config['PPO']['n_steps'] = 32
+        config['PPO']['n_epochs'] = 2
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
         debug_msg = 'debug-'
@@ -98,6 +101,8 @@ def train(config):
                                cost_gamma=config['env']['cost_gamma'],
                                multi_env=multi_env,
                                part_data=partial_data, )
+    all_obs_feature_names = get_obs_feature_names(train_env)
+    print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
 
     # We don't need cost when taking samples
     save_valid_mother_dir = os.path.join(save_model_mother_dir, "valid/")
@@ -141,8 +146,13 @@ def train(config):
         expert_path=expert_path,
         num_rollouts=config['running']['expert_rollouts'],
         log_file=log_file
-        )
-    # Logger
+    )
+    expert_obs_mean = np.mean(expert_obs[:, 0, :], axis=0).tolist()
+    expert_obs_mean = ['%.5f' % elem for elem in expert_obs_mean]
+    expert_obs_mean_dict = dict(zip(all_obs_feature_names, expert_obs_mean))
+    print("The expert features means are: {0}".format(expert_obs_mean_dict), file=log_file, flush=True)
+
+
     # Logger
     if log_file is None:
         icrl_logger = logger.HumanOutputFormat(sys.stdout)
@@ -152,6 +162,16 @@ def train(config):
     # Initialize constraint net, true constraint net
     cn_lr_schedule = lambda x: (config['CN']['anneal_clr_by_factor'] ** (config['running']['n_iters'] * (1 - x))) \
                                * config['CN']['cn_learning_rate']
+
+    cn_obs_select_name = config['CN']['cn_obs_select_name']
+    print("Selecting obs features are : {0}".format(cn_obs_select_name), file=log_file, flush=True)
+    cn_obs_select_dim = get_input_features_dim(feature_select_names=cn_obs_select_name,
+                                               all_feature_names=all_obs_feature_names)
+    cn_acs_select_name = config['CN']['cn_acs_select_name']
+    print("Selecting acs features are : {0}".format(cn_acs_select_name), file=log_file, flush=True)
+    cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
+                                               all_feature_names=['a_ego_0', 'a_ego_1'])
+
     constraint_net = ConstraintNet(
         obs_dim=obs_dim,
         acs_dim=acs_dim,
@@ -162,8 +182,8 @@ def train(config):
         expert_acs=expert_acs[:, 0, :],  # select acs at a time step t
         is_discrete=is_discrete,
         regularizer_coeff=config['CN']['cn_reg_coeff'],
-        obs_select_dim=None if len(config['CN']['cn_obs_select_dim']) == 0 else config['CN']['cn_obs_select_dim'],
-        acs_select_dim=None if len(config['CN']['cn_acs_select_dim']) == 0 else config['CN']['cn_acs_select_dim'],
+        obs_select_dim=cn_obs_select_dim,
+        acs_select_dim=cn_acs_select_dim,
         no_importance_sampling=config['CN']['no_importance_sampling'],
         per_step_importance_sampling=config['CN']['per_step_importance_sampling'],
         clip_obs=config['CN']['clip_obs'],

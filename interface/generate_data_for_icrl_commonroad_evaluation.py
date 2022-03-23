@@ -212,7 +212,7 @@ def run():
     benchmark_total_nums = []
     env_ids = []
     for i in range(num_threads):
-        try:
+        try:  # we need to change this setting if you modify the number of env wrappers.
             env_ids.append(list(env.venv.envs[i].env.env.env.all_problem_dict.keys()))
         except:
             env_ids.append(list(env.venv.envs[i].env.env.all_problem_dict.keys()))

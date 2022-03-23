@@ -97,7 +97,7 @@ class ConstraintNet(nn.Module):
         elif self.acs_select_dim[0] != -1:
             self.select_dim += [i+obs_len for i in self.acs_select_dim]
         assert len(self.select_dim) > 0, ""
-
+        acs_len = len(self.select_dim) - obs_len
         self.input_dims = len(self.select_dim)
 
     def _build(self) -> None:

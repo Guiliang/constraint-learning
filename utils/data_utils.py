@@ -271,3 +271,31 @@ def get_benchmark_ids(num_threads, benchmark_idx, benchmark_total_nums, env_ids)
         else:
             benchmark_ids.append(None)
     return benchmark_ids
+
+
+def get_obs_feature_names(env):
+    try:    # we need to change this setting if you modify the number of env wrappers.
+        observation_space_dict = env.venv.envs[0].env.env.env.observation_collector.observation_space_dict
+    except:
+        observation_space_dict = env.venv.envs[0].env.env.observation_collector.observation_space_dict
+    observation_space_names = observation_space_dict.keys()
+    feature_names = []
+    for key in observation_space_names:
+        feature_len = observation_space_dict[key].shape[0]
+        for i in range(feature_len):
+            feature_names.append(key+'_'+str(i))
+    return feature_names
+
+
+def get_input_features_dim(feature_select_names, all_feature_names):
+    if len(feature_select_names) == 0:
+        feature_select_dim = None
+    else:
+        feature_select_dim = []
+        for feature_name in feature_select_names:
+            if feature_name == -1:
+                feature_select_dim.append(-1)  # -1 indicates don't select
+                break
+            else:
+                feature_select_dim.append(all_feature_names.index(feature_name))
+    return feature_select_dim

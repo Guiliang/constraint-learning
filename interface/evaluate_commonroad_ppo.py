@@ -12,7 +12,7 @@ from stable_baselines3 import PPO
 from environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
 
-from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model
+from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model, get_obs_feature_names
 
 # def make_env(env_id, seed,  , info_keywords=()):
 #     log_dir = 'icrl/test_log'
@@ -179,8 +179,12 @@ def evaluate():
                               env_kwargs=env_configs,
                               testing_env=if_testing_env,
                               debug_mode=debug_mode)
+
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
+
+    feature_names = get_obs_feature_names(env)
+    print("The observed features are: {0}".format(feature_names))
 
     model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios = 0, 0, 0, 0, 0
