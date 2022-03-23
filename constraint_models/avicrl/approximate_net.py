@@ -41,6 +41,7 @@ class ApproximateNet(nn.Module):
             eps: float = 1e-5,
             dir_prior: float = 1,
             discount_factor: float = 1,
+            log_std_init: float = 0.0,
             device: str = "cpu",
             log_file=None
     ):
@@ -88,6 +89,7 @@ class ApproximateNet(nn.Module):
         self.target_kl_new_old = target_kl_new_old
 
         self.current_progress_remaining = 1.
+        self.log_std_init = log_std_init
 
         self._build()
 
@@ -123,15 +125,16 @@ class ApproximateNet(nn.Module):
         self.encoder.to(self.device)
 
         # predict the Q(s,a) values, the action is continuous
-        self.q_network = nn.Sequential(
+        self.q_net = nn.Sequential(
             *create_mlp(self.input_dims, 1, self.hidden_sizes)
         )
-        self.q_network.to(self.device)
+        self.q_net.to(self.device)
 
         # predict the policy \pi(a|s) values, the action is continuous. Actor-Critic should be employed
         self.policy_network = nn.Sequential(
-            *create_mlp(self.input_dims, 1, self.hidden_sizes)
+            *create_mlp(self.obs_dim, self.acs_dim, self.hidden_sizes)
         )
+        self.log_std = nn.Parameter(torch.ones(self.acs_dim) * self.log_std_init, requires_grad=True).to(self.device)
         self.policy_network.to(self.device)
 
         # build different optimizers for different models
@@ -147,9 +150,9 @@ class ApproximateNet(nn.Module):
                                         set_require_grad=True)
             if self.optimizer_class is not None:
                 optimizer = self.optimizer_class([{'params': param_frozen_list, 'lr': 0.0},
-                                                       {'params': param_active_list,
-                                                        'lr': self.lr_schedule(1)}],
-                                                      lr=self.lr_schedule(1))
+                                                  {'params': param_active_list,
+                                                   'lr': self.lr_schedule(1)}],
+                                                 lr=self.lr_schedule(1))
             else:
                 optimizer = None
             self.optimizers.update({key: optimizer})
@@ -158,7 +161,7 @@ class ApproximateNet(nn.Module):
         alpha_beta = self.encoder(x)
         alpha = alpha_beta[:, 0]
         beta = alpha_beta[:, 1]
-        QValues = self.q_network(x)
+        QValues = self.q_net(x)
         policy = self.policy_network(x)
 
         return alpha, beta, QValues, policy
@@ -196,11 +199,28 @@ class ApproximateNet(nn.Module):
         analytical_kld += torch.sum(torch.lgamma(prior), dim=1)
         analytical_kld -= torch.sum(torch.lgamma(alpha), dim=1)
         minus_term = alpha - prior
-        digamma_term = torch.digamma(alpha) - torch.digamma(torch.sum(alpha, dim=1))
+        # tmp = torch.reshape(torch.digamma(torch.sum(alpha, dim=1)), shape=[alpha.shape[0], 1])
+        digamma_term = torch.digamma(alpha) - \
+                       torch.reshape(torch.digamma(torch.sum(alpha, dim=1)), shape=[alpha.shape[0], 1])
         test = torch.sum(torch.mul(minus_term, digamma_term), dim=1)
         analytical_kld += test
         # self.analytical_kld = self.mask * self.analytical_kld  # mask paddings
         return analytical_kld
+
+    def predict(self, obs: torch.tensor, deterministic=False):
+        mean_action = self.policy_network(obs)
+        std = torch.exp(self.log_std)
+        eps = torch.randn_like(std)
+        if deterministic:
+            action = mean_action
+        else:
+            action = eps * std + mean_action
+
+        output_action = []
+        for i in range(self.acs_dim):
+            output_action.append(torch.clamp(action[:, i], min=self.action_low[i], max=self.action_high[i]))
+
+        return torch.stack(output_action, dim=1)
 
     def train_nn(
             self,
@@ -231,52 +251,55 @@ class ApproximateNet(nn.Module):
             # Do a complete pass on data, we don't have to use the get(), but let's leave it here for future usage
             for exp_batch_indices in self.get(expert_obs.shape[0], expert_obs.shape[0]):
                 # Get batch data
-                expert_batch_obs = expert_obs[exp_batch_indices]
-                expert_batch_acs = expert_acs[exp_batch_indices]
-                expert_batch_rs = expert_rs[exp_batch_indices]
+                expert_batch_obs = expert_obs[exp_batch_indices[0]]
+                expert_batch_acs = expert_acs[exp_batch_indices[0]]
+                expert_batch_rs = expert_rs[exp_batch_indices[0]]
                 batch_size = expert_batch_obs.shape[0]
 
                 # Make predictions
                 expert_batch_input = torch.cat([expert_batch_obs, expert_batch_acs], dim=-1)
-                expert_q_values_t = self.q_network(expert_batch_input[:, 0, :])
-                expert_q_values_next_t = self.q_network(expert_batch_input[:, 1, :])
+                expert_q_values_t = self.q_net(expert_batch_input[:, 0, :]).squeeze(dim=1)
+                expert_q_values_next_t = self.q_net(expert_batch_input[:, 1, :]).squeeze(dim=1)
 
                 alpha_beta_t = self.encoder(expert_batch_input[:, 0, :])
                 expert_alpha_t = alpha_beta_t[:, 0]
                 expert_beta_t = alpha_beta_t[:, 1]
 
                 # Compute KLD
-                prior = torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior
-                analytical_kld = self.dirichlet_kl_divergence(alpha=torch.cat([expert_alpha_t, expert_beta_t]),
-                                                              prior=prior)
+                prior = (torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior).to(self.device)
+                analytical_kld = self.dirichlet_kl_divergence(alpha=torch.stack([expert_alpha_t, expert_beta_t], dim=1),
+                                                              prior=prior).mean()
 
                 # Calculate log-likelihood of exp TD error given constraint parameterisation
-                td = expert_q_values_t - self.discount_factor * expert_q_values_next_t - expert_batch_rs
-                td_cost = torch.exp(torch.clamp(td, max=0))
+                expert_batch_rs_t = expert_batch_rs[:, 0]
+                td = expert_q_values_t - self.discount_factor * expert_q_values_next_t - expert_batch_rs_t
+                tmp1 = torch.clamp(td, max=-self.eps)  # log prob must be less than zero
+                td_cost = torch.exp(torch.clamp(td, max=-self.eps))
+                tmp2 = torch.distributions.Beta(expert_alpha_t, expert_beta_t).log_prob(td_cost)
                 constraint_loss = - torch.distributions.Beta(expert_alpha_t, expert_beta_t).log_prob(td_cost).mean()
 
                 # Compute reconstruction loss
-                pred_act = self.policy_network(expert_batch_obs[:, 0, :])
-                reconstruct_loss = torch.square(pred_act - expert_batch_acs[: 0, :])
+                pred_act = self.predict(expert_batch_obs[:, 0, :]).detach()
+                reconstruct_loss = torch.square(pred_act - expert_batch_acs[:, 0, :]).mean()
 
                 # Calculate loss
                 icrl_loss = reconstruct_loss + analytical_kld + constraint_loss
 
                 # Update
-                self.optimizer.zero_grad()
+                self.optimizers['ICRL'].zero_grad()
                 icrl_loss.backward()
-                self.optimizer.step()
+                self.optimizers['ICRL'].step()
 
                 # policy network loss
                 pred_act = self.policy_network(expert_batch_obs[:, 0, :])
                 pred_batch_input = torch.cat([expert_batch_obs[:, 0, :], pred_act], dim=-1)
-                pred_q_values = self.q_network(pred_batch_input)
+                pred_q_values = self.q_net(pred_batch_input).detach()
                 policy_loss = torch.square(pred_act - torch.log(pred_q_values))
 
                 # Update
-                self.optimizer.zero_grad()
+                self.optimizers['policy'].zero_grad()
                 policy_loss.backward()
-                self.optimizer.step()
+                self.optimizer['policy'].step()
 
         bw_metrics = {"backward/icrl_loss": icrl_loss.item(),
                       # "backward/expert_loss": expert_loss.item(),
@@ -400,7 +423,8 @@ class ApproximateNet(nn.Module):
 
     def _update_learning_rate(self, current_progress_remaining) -> None:
         self.current_progress_remaining = current_progress_remaining
-        update_learning_rate(self.optimizer, self.lr_schedule(current_progress_remaining))
+        for optimizer_name in self.optimizers.keys():
+            update_learning_rate(self.optimizers[optimizer_name], self.lr_schedule(current_progress_remaining))
 
     def save(self, save_path):
         state_dict = dict(

@@ -63,6 +63,16 @@ class DummyVecEnv(VecEnv):
             self._save_obs(env_idx, obs)
         return self._obs_from_buf()
 
+    def reset_benchmark(self, benchmark_ids):
+        for env_idx in range(self.num_envs):
+            if benchmark_ids[env_idx] is not None:
+                config = {'benchmark_id': benchmark_ids[env_idx]}
+                obs = self.envs[env_idx].reset(**config)  # pick according to id
+            else:
+                obs = self.envs[env_idx].reset()  # random pick
+            self._save_obs(env_idx, obs)
+        return self._obs_from_buf()
+
     def close(self):
         for env in self.envs:
             env.close()

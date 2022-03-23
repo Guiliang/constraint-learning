@@ -250,22 +250,12 @@ def train(config):
             nominal_agent = create_nominal_agent()
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
-        # Update agent
-        with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
-            nominal_agent.learn(
-                total_timesteps=config['PPO']['forward_timesteps'],
-                cost_function="",  # Cost should come from cost wrapper
-                callback=[callback] + all_callbacks
-            )
-            forward_metrics = logger.Logger.CURRENT.name_to_value
-            timesteps += nominal_agent.num_timesteps
-
         # Sample nominal trajectories
-        sync_envs_normalization(train_env, sampling_env)
-        orig_observations, observations, actions, rewards, lengths = sample_from_agent(
-            agent=nominal_agent,
-            env=sampling_env,
-            rollouts=config['running']['expert_rollouts'])
+        # sync_envs_normalization(train_env, sampling_env)
+        # orig_observations, observations, actions, rewards, lengths = sample_from_agent(
+        #     agent=nominal_agent,
+        #     env=sampling_env,
+        #     rollouts=config['running']['expert_rollouts'])
 
         # Update constraint net
         mean, var = None, None
@@ -279,6 +269,16 @@ def train(config):
                                                     obs_mean=mean,
                                                     obs_var=var,
                                                     current_progress_remaining=current_progress_remaining)
+
+        # Update agent
+        with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
+            nominal_agent.learn(
+                total_timesteps=config['PPO']['forward_timesteps'],
+                cost_function="",  # Cost should come from cost wrapper
+                callback=[callback] + all_callbacks
+            )
+            forward_metrics = logger.Logger.CURRENT.name_to_value
+            timesteps += nominal_agent.num_timesteps
 
         # Pass updated cost_function to cost wrapper (train_env)
         train_env.set_cost_function(approximate_net.cost_function)

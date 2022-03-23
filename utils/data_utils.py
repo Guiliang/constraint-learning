@@ -261,3 +261,13 @@ def load_ppo_model(model_path: str, iter_msg: str, log_file):
     print('Loading model from {0}'.format(model_path), flush=True, file=log_file)
     model = PPO.load(model_path)
     return model
+
+
+def get_benchmark_ids(num_threads, benchmark_idx, benchmark_total_nums, env_ids):
+    benchmark_ids = []
+    for i in range(num_threads):
+        if benchmark_total_nums[i] > benchmark_idx:
+            benchmark_ids.append(env_ids[i][benchmark_idx])
+        else:
+            benchmark_ids.append(None)
+    return benchmark_ids

@@ -28,8 +28,10 @@ def generate_plots():
         # log_path = '../save_model/ICRL-highD/train_ICRL_highD_offroad_constraint-Mar-13-2022-23:37/'
         # log_path = '../save_model/ICRL-highD/train_ICRL_highD_collision_constraint-multi_env-Mar-15-2022-07:27/'
 
-        log_path = '../save_model/PPO-highD/train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/'
+        # log_path = '../save_model/PPO-highD/train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/'
+        log_path = '../save_model/PPO-highD/train_ppo_highD_velocity_penalty-multi_env-Mar-21-2022-05:29-seed_123/'
         # log_path = '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty-multi_env-Mar-20-2022-10:18-seed_123/'
+        # log_path = '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty-multi_env-Mar-21-2022-05:30-seed_123/'
         # log_path = '../save_model/PPO-highD/train_ppo_highD-multi_env-Mar-10-2022-04:37/'
         # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-multi_env-Mar-18-2022-02:32-seed_123/'
         # log_path = '../save_model/PPO-highD/train_ppo_highD_no_collision-multi_env-Mar-16-2022-00:14-seed_321/'

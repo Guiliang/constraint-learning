@@ -214,7 +214,7 @@ def evaluate():
         reward_sum = 0
         running_step = 0
         while not done:
-            action, state = model.predict(obs, state=state, deterministic=False)
+            action, state = model.predict(obs, state=state, deterministic=True)
             new_obs, reward, done, info = env.step(action)
             reward_sum += reward
             obs_all.append(obs)

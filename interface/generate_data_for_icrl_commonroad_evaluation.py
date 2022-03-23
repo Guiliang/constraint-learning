@@ -8,6 +8,9 @@ import time
 from typing import Union, Callable
 import numpy as np
 import yaml
+
+from utils.model_utils import get_net_arch
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from gym import Env
@@ -15,7 +18,7 @@ from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3 import PPO
 from environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
-from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model
+from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model, get_benchmark_ids
 
 # def make_env(env_id, seed,  , info_keywords=()):
 #     log_dir = 'icrl/test_log'
@@ -50,6 +53,10 @@ class CommonRoadVecEnv(DummyVecEnv):
     def reset(self):
         self.start_times = np.array([time.time()] * self.num_envs)
         return super().reset()
+
+    def reset_benchmark(self, benchmark_ids):
+        self.start_times = np.array([time.time()] * self.num_envs)
+        return super().reset_benchmark(benchmark_ids)
 
     def step_wait(self):
         out_of_scenarios = False
@@ -117,7 +124,7 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
             LOGGER.info("Goal reached")
         else:
             LOGGER.info("Goal not reached")
-        env.render()
+        # env.render()
 
     env.set_on_reset(on_reset_callback)
     if normalize:
@@ -125,6 +132,7 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
         vec_normalize_path = os.path.join(model_path, "train_env_stats.pkl")
         if os.path.exists(vec_normalize_path):
             env = VecNormalize.load(vec_normalize_path, env)
+            print("Loading vecnormalize.pkl from {0}".format(model_path))
         else:
             raise FileNotFoundError("vecnormalize.pkl not found in {0}".format(model_path))
         # env = VecNormalize(env, norm_obs=True, norm_reward=False)
@@ -148,10 +156,12 @@ def run():
     #     log_file = open(log_file_path, 'w')
     # else:
     log_file = None
-    num_scenarios = 3000
-    load_model_name = 'train_ppo_highD-multi_env-Mar-10-2022-04:37'  # 'part-train_ppo_highD-Feb-01-2022-10:31'
+    # num_scenarios = 2000
+    # load_model_name = 'train_ppo_highD_velocity_penalty-multi_env-Mar-21-2022-05:29-seed_123'
+    load_model_name = 'train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123'
+    # 'train_ppo_highD-multi_env-Mar-10-2022-04:37'  # 'part-train_ppo_highD-Feb-01-2022-10:31'
     task_name = 'PPO-highD'
-    data_generate_type = 'no-collision'
+    data_generate_type = 'no-over_speed'
     iteration_msg = 'best'
     if_testing_env = False
     if debug_mode:
@@ -183,11 +193,14 @@ def run():
     ))
     if not os.path.exists(save_expert_data_path):
         os.mkdir(save_expert_data_path)
-
+    if iteration_msg == 'best':
+        env_stats_loading_path = model_loading_path
+    else:
+        env_stats_loading_path = os.path.join(model_loading_path, 'model_{0}_itrs'.format(iteration_msg))
     env = create_environments(env_id="commonroad-v1",
                               viz_path=None,
                               test_path=evaluation_path,
-                              model_path=model_loading_path,
+                              model_path=env_stats_loading_path,
                               num_threads=num_threads,
                               normalize=not config['env']['dont_normalize_obs'],
                               env_kwargs=env_configs,
@@ -196,18 +209,54 @@ def run():
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
 
-    model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
-    num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios = 0, 0, 0, 0, 0
+    max_benchmark_num = 0
+    benchmark_total_nums = []
+    env_ids = []
+    for i in range(num_threads):
+        try:
+            env_ids.append(list(env.venv.envs[i].env.env.env.all_problem_dict.keys()))
+        except:
+            env_ids.append(list(env.venv.envs[i].env.env.all_problem_dict.keys()))
+        benchmark_total_nums.append(len(env_ids[i]))
+        if len(env_ids[i]) > max_benchmark_num:
+            max_benchmark_num = len(env_ids[i])
 
+    model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
+    # create_ppo_agent = lambda: PPO(
+    #     policy=config['PPO']['policy_name'],
+    #     env=env,
+    #     learning_rate=config['PPO']['learning_rate'],
+    #     n_steps=config['PPO']['n_steps'],
+    #     batch_size=config['PPO']['batch_size'],
+    #     n_epochs=config['PPO']['n_epochs'],
+    #     gamma=config['PPO']['reward_gamma'],
+    #     gae_lambda=config['PPO']['reward_gae_lambda'],
+    #     clip_range=config['PPO']['clip_range'],
+    #     ent_coef=config['PPO']['ent_coef'],
+    #     vf_coef=config['PPO']['reward_vf_coef'],
+    #     max_grad_norm=config['PPO']['max_grad_norm'],
+    #     use_sde=config['PPO']['use_sde'],
+    #     sde_sample_freq=config['PPO']['sde_sample_freq'],
+    #     target_kl=config['PPO']['target_kl'],
+    #     verbose=config['verbose'],
+    #     seed=123,
+    #     device=config['device'],
+    #     policy_kwargs=dict(net_arch=get_net_arch(config)))
+    # model = create_ppo_agent()
+
+    num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios, benchmark_idx = 0, 0, 0, 0, 0, 0
     # In case there a no scenarios at all
     try:
-        obs = env.reset()
+        benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
+                                          benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
+        obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
+        benchmark_idx += 1
     except IndexError:
         num_scenarios = 0
 
     success = 0
     benchmark_id_all = []
-    while total_scenarios < num_scenarios:
+    while benchmark_idx < max_benchmark_num:
         done, state = False, None
         benchmark_ids = [env.venv.envs[i].benchmark_id for i in range(num_threads)]
         save_data_flag = [True for i in range(num_threads)]
@@ -233,8 +282,8 @@ def run():
         multi_thread_dones = [False for i in range(num_threads)]
         infos_done = [None for i in range(num_threads)]
         while not done:
-            action, state = model.predict(obs, state=state, deterministic=False)
-            new_obss, rewards, dones, infos = env.step(action)
+            action, state = model.predict(obs, state=state, deterministic=True)
+            new_obs, rewards, dones, infos = env.step(action)
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
             # benchmark_ids = [env.venv.envs[i].benchmark_id for i in range(num_threads)]
             # print(dones)
@@ -257,7 +306,7 @@ def run():
                 if not multi_thread_done:
                     done = False
                     break
-            obs = new_obss
+            obs = new_obs
         # game_info_file.close()
 
         # pngs2gif(png_dir=os.path.join(viz_path, benchmark_id))
@@ -303,17 +352,28 @@ def run():
                                                                       running_steps[i])), 'wb') as file:
                     # A new file will be created
                     pickle.dump(saving_expert_data, file)
+            else:
+                print('Deleting expert data for game {0} with terminal reason: {1}'.format(benchmark_ids[i],
+                                                                                         termination_reason),
+                      file=log_file, flush=True)
 
             if termination_reason == "goal_reached":
                 print('{0}: goal reached'.format(benchmark_ids[i]), file=log_file, flush=True)
                 success += 1
             if not info["out_of_scenarios"]:
                 out_of_scenarios = False
-        # if out_of_scenarios:
-        #     print('break because "out_of_scenarios"', file=log_file, flush=True)
-        #     break
-        # else:
-        obs = env.reset()
+
+        benchmark_ids = []
+        for i in range(num_threads):
+            if benchmark_total_nums[i] > benchmark_idx:
+                benchmark_ids.append(env_ids[i][benchmark_idx])
+            else:
+                benchmark_ids.append(None)
+
+        benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
+                                          benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
+        obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
+        benchmark_idx += 1
 
     print('total', total_scenarios, 'success', success, file=log_file, flush=True)
 
