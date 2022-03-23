@@ -9,13 +9,12 @@ from typing import Union, Callable
 import numpy as np
 import yaml
 
-from utils.model_utils import get_net_arch
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from gym import Env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
-from stable_baselines3 import PPO
+# from utils.model_utils import get_net_arch
+# from stable_baselines3 import PPO
 from environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
 from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model, get_benchmark_ids
