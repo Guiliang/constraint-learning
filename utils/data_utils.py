@@ -197,7 +197,7 @@ def process_memory():
     return mem_info.rss
 
 
-def load_expert_data(expert_path, num_rollouts, log_file):
+def load_expert_data(expert_path, store_by_game=False, log_file=None):
     file_names = os.listdir(expert_path)
     # file_names = [i for i in range(29)]
     # sample_names = random.sample(file_names, num_rollouts)
@@ -205,6 +205,7 @@ def load_expert_data(expert_path, num_rollouts, log_file):
     expert_obs = []
     expert_acs = []
     expert_rs = []
+    num_samples = 0
     for i in range(len(file_names)):
         # file_name = sample_names[i]
         file_name = file_names[i]
@@ -218,39 +219,50 @@ def load_expert_data(expert_path, num_rollouts, log_file):
         else:
             data_rs = None
         total_time_step = data_acs.shape[0]
+
+        if store_by_game:
+            expert_obs_game = []
+            expert_acs_game = []
+            expert_rs_game = []
+
         for t in range(total_time_step - 1):
             data_obs_t = data_obs[t]
             data_obs_next_t = data_obs[t + 1]
             data_ac_t = data_acs[t]
             data_ac_next_t = data_acs[t + 1]
+            num_samples += 1
             if data_rs is not None:
                 data_r_t = data_rs[t]
                 data_r_next_t = data_rs[t + 1]
             else:
                 data_r_t = 0
                 data_r_next_t = 0
+            if store_by_game:
+                expert_obs_game.append(data_obs_t)
+                expert_acs_game.append(data_ac_t)
+                expert_rs_game.append(data_r_t)
+            else:
+                expert_obs.append([data_obs_t, data_obs_next_t])
+                expert_acs.append([data_ac_t, data_ac_next_t])
+                expert_rs.append([data_r_t, data_r_next_t])
 
-            expert_obs.append([data_obs_t, data_obs_next_t])
-            expert_acs.append([data_ac_t, data_ac_next_t])
-            expert_rs.append([data_r_t, data_r_next_t])
-        # if i == 0:
-        #     expert_obs = data_obs
-        #     expert_acs = data_acs
-        # else:
-        #     expert_obs = np.concatenate([expert_obs, data_obs], axis=0)
-        #     expert_acs = np.concatenate([expert_acs, data_acs], axis=0)
+        if store_by_game:
+            expert_obs.append(np.asarray(expert_obs_game))
+            expert_acs.append(np.asarray(expert_acs_game))
+            expert_rs.append(np.asarray(expert_rs_game))
         expert_mean_reward.append(data['reward_sum'])
-    expert_obs = np.asarray(expert_obs)
-    expert_acs = np.asarray(expert_acs)
-    expert_rs = np.asarray(expert_rs)
     expert_mean_reward = np.mean(expert_mean_reward)
-    expert_mean_length = expert_obs.shape[0] / num_rollouts
-
+    expert_mean_length = num_samples / len(file_names)
     print('Expert_mean_reward: {0} and Expert_mean_length: {1}.'.format(expert_mean_reward, expert_mean_length),
           file=log_file,
           flush=True)
-
-    return (expert_obs, expert_acs, expert_rs), expert_mean_reward
+    if store_by_game:
+        return (expert_obs, expert_acs, expert_rs), expert_mean_reward
+    else:
+        expert_obs = np.asarray(expert_obs)
+        expert_acs = np.asarray(expert_acs)
+        expert_rs = np.asarray(expert_rs)
+        return (expert_obs, expert_acs, expert_rs), expert_mean_reward
 
 
 def load_ppo_model(model_path: str, iter_msg: str, log_file):

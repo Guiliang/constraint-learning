@@ -1,11 +1,8 @@
 import datetime
-import importlib
 import json
 import os
-import pickle
 import sys
 import time
-import random
 
 import gym
 import numpy as np
@@ -14,15 +11,13 @@ import yaml
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 
-from constraint_models.avicrl.approximate_net import ApproximateNet
+from constraint_models.ssicrl.trajectory_net import TrajectoryNet
 from exploration.exploration import ExplorationRewardCallback
 from stable_baselines3 import PPOLagrangian
 from stable_baselines3.common import logger
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
-from tqdm import tqdm
 
-import environment.commonroad_rl.gym_commonroad  # this line must be included
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, get_obs_feature_names
 from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
@@ -54,6 +49,7 @@ def train(config):
         config['PPO']['forward_timesteps'] = 20
         config['PPO']['n_steps'] = 32
         config['PPO']['n_epochs'] = 2
+        config['CN']['cn_batch_size'] = 3
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
         debug_msg = 'debug-'
@@ -89,7 +85,7 @@ def train(config):
                                config_path=config['env']['config_path'],
                                save_dir=save_model_mother_dir,
                                base_seed=seed,
-                               num_threads=config['env']['num_threads'],
+                               num_threads=num_threads,
                                use_cost=config['env']['use_cost'],
                                normalize_obs=not config['env']['dont_normalize_obs'],
                                normalize_reward=not config['env']['dont_normalize_reward'],
@@ -139,12 +135,14 @@ def train(config):
     expert_path = config['running']['expert_path']
     if debug_mode:
         expert_path = expert_path.replace('expert_data/', 'expert_data/debug_')
-    (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
+    (expert_traj_obs, expert_traj_acs, expert_traj_rs), expert_mean_reward = load_expert_data(
         expert_path=expert_path,
+        store_by_game=True,
         # num_rollouts=config['running']['expert_rollouts'],
         log_file=log_file
     )
-    expert_obs_mean = np.mean(expert_obs[:, 0, :], axis=0).tolist()
+    tmp = np.concatenate(expert_traj_obs, axis=0)
+    expert_obs_mean = np.mean(np.concatenate(expert_traj_obs, axis=0), axis=0).tolist()
     expert_obs_mean = ['%.5f' % elem for elem in expert_obs_mean]
     expert_obs_mean_dict = dict(zip(all_obs_feature_names, expert_obs_mean))
     print("The expert features means are: {0}".format(expert_obs_mean_dict), file=log_file, flush=True)
@@ -167,15 +165,15 @@ def train(config):
     # Initialize constraint net, true constraint net
     cn_lr_schedule = lambda x: (config['CN']['anneal_clr_by_factor'] ** (config['running']['n_iters'] * (1 - x))) \
                                * config['CN']['cn_learning_rate']
-    approximate_net = ApproximateNet(
+    trajectory_net = TrajectoryNet(
         obs_dim=obs_dim,
         acs_dim=acs_dim,
         hidden_sizes=config['CN']['cn_layers'],
         batch_size=config['CN']['cn_batch_size'],
         lr_schedule=cn_lr_schedule,
-        expert_obs=expert_obs,
-        expert_acs=expert_acs,
-        expert_rs=expert_rs,
+        expert_traj_obs=expert_traj_obs,
+        expert_traj_acs=expert_traj_acs,
+        expert_traj_rs=expert_traj_rs,
         is_discrete=is_discrete,
         regularizer_coeff=config['CN']['cn_reg_coeff'],
         obs_select_dim=cn_obs_select_dim,
@@ -196,7 +194,7 @@ def train(config):
     )
 
     # Pass constraint net cost function to cost wrapper (train env)
-    train_env.set_cost_function(approximate_net.cost_function)
+    train_env.set_cost_function(trajectory_net.cost_function)
 
     # Initialize agent
     create_nominal_agent = lambda: PPOLagrangian(
@@ -281,7 +279,7 @@ def train(config):
         if config['CN']['cn_normalize']:
             mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
 
-        backward_metrics = approximate_net.train_nn(iterations=config['CN']['backward_iters'],
+        backward_metrics = trajectory_net.train_nn(iterations=config['CN']['backward_iters'],
                                                     # nominal_obs=orig_observations,
                                                     # nominal_acs=actions,
                                                     # episode_lengths=lengths,
@@ -300,7 +298,7 @@ def train(config):
             timesteps += nominal_agent.num_timesteps
 
         # Pass updated cost_function to cost wrapper (train_env)
-        train_env.set_cost_function(approximate_net.cost_function)
+        train_env.set_cost_function(trajectory_net.cost_function)
 
         # Evaluate:
         # reward on true environment
@@ -315,7 +313,7 @@ def train(config):
             path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
             del_and_make(path)
             nominal_agent.save(os.path.join(path, "nominal_agent"))
-            approximate_net.save(os.path.join(path, "approximate_net"))
+            trajectory_net.save(os.path.join(path, "trajectory_net"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(path, "train_env_stats.pkl"))
 
@@ -324,7 +322,7 @@ def train(config):
             # print(utils.colorize("Saving new best model", color="green", bold=True), flush=True)
             print("Saving new best model", file=log_file, flush=True)
             nominal_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
-            approximate_net.save(os.path.join(save_model_mother_dir, "best_constraint_net_model"))
+            trajectory_net.save(os.path.join(save_model_mother_dir, "best_constraint_net_model"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))
 

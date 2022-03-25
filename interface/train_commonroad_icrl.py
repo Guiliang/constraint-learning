@@ -139,12 +139,12 @@ def train(config):
         action_low, action_high = sampling_env.action_space.low, sampling_env.action_space.high
 
     # Load expert data
+    expert_path = config['running']['expert_path']
     if debug_mode:
-        expert_path = config['running']['expert_path']
         expert_path = expert_path.replace('expert_data/', 'expert_data/debug_')
     (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
         expert_path=expert_path,
-        num_rollouts=config['running']['expert_rollouts'],
+        # num_rollouts=config['running']['expert_rollouts'],
         log_file=log_file
     )
     expert_obs_mean = np.mean(expert_obs[:, 0, :], axis=0).tolist()

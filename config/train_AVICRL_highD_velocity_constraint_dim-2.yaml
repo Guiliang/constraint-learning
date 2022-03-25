@@ -3,7 +3,7 @@ group: 'AVICRL-highD'
 device: 'cuda'
 verbose: 1
 env:
-  config_path: "../config/highD_environment_configurations_no_collision.yaml"
+  config_path: "../config/highD_environment_configurations_no_velocity_penalty-50.yaml"
   train_env_id : 'commonroad-v1'
   eval_env_id: 'commonroad-v1'
   save_dir: '../save_model'
@@ -20,7 +20,7 @@ running:
   n_eval_episodes: 100
   save_every: 10
   expert_rollouts: 10
-  expert_path: '../data/expert_data/no-collision_part-train_ppo_highD-Feb-01-2022-10:31/'
+  expert_path: '../data/expert_data/no-over_speed_train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/'
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'
@@ -69,12 +69,12 @@ CN:
   cn_reg_coeff: 0.5
   cn_layers: [20]
   cn_batch_size: 64
-  cn_obs_select_name: []
-  cn_acs_select_name: []
+  cn_obs_select_name: ['v_ego_0', 'v_ego_1']
+  cn_acs_select_name: [-1]
   no_importance_sampling: False
   per_step_importance_sampling: True
   clip_obs: 20
-  cn_normalize: False
+  cn_normalize: True
   cn_target_kl_old_new: 10
   cn_target_kl_new_old: 2.5
   train_gail_lambda: False

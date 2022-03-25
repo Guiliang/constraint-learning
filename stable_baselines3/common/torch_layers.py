@@ -2,9 +2,9 @@ from itertools import zip_longest
 from typing import Dict, List, Tuple, Type, Union
 
 import gym
-import torch as th
+import torch
 from torch import nn
-
+from torch.nn.utils import spectral_norm
 from stable_baselines3.common.preprocessing import (get_flattened_obs_dim,
                                                     is_image_space)
 from stable_baselines3.common.utils import get_device
@@ -28,7 +28,7 @@ class BaseFeaturesExtractor(nn.Module):
     def features_dim(self) -> int:
         return self._features_dim
 
-    def forward(self, observations: th.Tensor) -> th.Tensor:
+    def forward(self, observations: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError()
 
 
@@ -44,7 +44,7 @@ class FlattenExtractor(BaseFeaturesExtractor):
         super(FlattenExtractor, self).__init__(observation_space, get_flattened_obs_dim(observation_space))
         self.flatten = nn.Flatten()
 
-    def forward(self, observations: th.Tensor) -> th.Tensor:
+    def forward(self, observations: torch.Tensor) -> torch.Tensor:
         return self.flatten(observations)
 
 
@@ -81,12 +81,12 @@ class NatureCNN(BaseFeaturesExtractor):
         )
 
         # Compute shape by doing one forward pass
-        with th.no_grad():
-            n_flatten = self.cnn(th.as_tensor(observation_space.sample()[None]).float()).shape[1]
+        with torch.no_grad():
+            n_flatten = self.cnn(torch.as_tensor(observation_space.sample()[None]).float()).shape[1]
 
         self.linear = nn.Sequential(nn.Linear(n_flatten, features_dim), nn.ReLU())
 
-    def forward(self, observations: th.Tensor) -> th.Tensor:
+    def forward(self, observations: torch.Tensor) -> torch.Tensor:
         return self.linear(self.cnn(observations))
 
 
@@ -160,7 +160,7 @@ class MlpExtractor(nn.Module):
         feature_dim: int,
         net_arch: List[Union[int, Dict[str, List[int]]]],
         activation_fn: Type[nn.Module],
-        device: Union[th.device, str] = "auto",
+        device: Union[torch.device, str] = "auto",
         create_cvf: bool = False
     ):
         super(MlpExtractor, self).__init__()
@@ -242,7 +242,7 @@ class MlpExtractor(nn.Module):
         if create_cvf:
             self.cost_value_net = nn.Sequential(*cost_value_net).to(device)
 
-    def forward(self, features: th.Tensor) -> Tuple[th.Tensor, th.Tensor]:
+    def forward(self, features: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         :return: latent_policy, latent_value of the specified network.
             If all layers are shared, then ``latent_policy == latent_value``
@@ -252,3 +252,30 @@ class MlpExtractor(nn.Module):
             return self.policy_net(shared_latent), self.value_net(shared_latent), self.cost_value_net(shared_latent)
         else:
             return self.policy_net(shared_latent), self.value_net(shared_latent)
+
+
+class ResBlock(torch.nn.Module):
+    """It should be a strict resnet"""
+
+    def __init__(self, input_dims):
+        super(ResBlock, self).__init__()
+        self.inputs_dims = input_dims
+
+        dense_layer_1 = torch.nn.Linear(in_features=self.inputs_dims, out_features=self.inputs_dims)
+        dense_layer_2 = torch.nn.Linear(in_features=self.inputs_dims, out_features=self.inputs_dims)
+
+        self.model = torch.nn.Sequential(
+            spectral_norm(dense_layer_1),
+            torch.nn.LeakyReLU(),
+            spectral_norm(dense_layer_2))
+        self.latent_feature = None
+
+    def forward(self, x):
+        """
+        implementing hl(x) = x+gl(x) in the paper:
+        "Simple and Principled Uncertainty Estimation with Deterministic Deep Learning via Distance Awareness"
+        https://arxiv.org/pdf/2006.10108.pdf
+        refer to https://github.com/omegafragger/DDU/blob/f597744c65df4ff51615ace5e86e82ffefe1cd0f/net/resnet.py
+        #
+        """
+        return self.model(x) + x
