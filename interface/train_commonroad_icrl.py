@@ -144,10 +144,11 @@ def train(config):
         expert_path = expert_path.replace('expert_data/', 'expert_data/debug_')
     (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
         expert_path=expert_path,
+        add_next_step=False,
         # num_rollouts=config['running']['expert_rollouts'],
         log_file=log_file
     )
-    expert_obs_mean = np.mean(expert_obs[:, 0, :], axis=0).tolist()
+    expert_obs_mean = np.mean(expert_obs, axis=0).tolist()
     expert_obs_mean = ['%.5f' % elem for elem in expert_obs_mean]
     expert_obs_mean_dict = dict(zip(all_obs_feature_names, expert_obs_mean))
     print("The expert features means are: {0}".format(expert_obs_mean_dict),
@@ -179,8 +180,8 @@ def train(config):
         hidden_sizes=config['CN']['cn_layers'],
         batch_size=config['CN']['cn_batch_size'],
         lr_schedule=cn_lr_schedule,
-        expert_obs=expert_obs[:, 0, :],  # select obs at a time step t
-        expert_acs=expert_acs[:, 0, :],  # select acs at a time step t
+        expert_obs=expert_obs,  # select obs at a time step t
+        expert_acs=expert_acs,  # select acs at a time step t
         is_discrete=is_discrete,
         regularizer_coeff=config['CN']['cn_reg_coeff'],
         obs_select_dim=cn_obs_select_dim,

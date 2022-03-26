@@ -197,7 +197,7 @@ def process_memory():
     return mem_info.rss
 
 
-def load_expert_data(expert_path, store_by_game=False, log_file=None):
+def load_expert_data(expert_path, store_by_game=False, add_next_step=True, log_file=None):
     file_names = os.listdir(expert_path)
     # file_names = [i for i in range(29)]
     # sample_names = random.sample(file_names, num_rollouts)
@@ -218,33 +218,47 @@ def load_expert_data(expert_path, store_by_game=False, log_file=None):
             data_rs = data['reward']
         else:
             data_rs = None
-        total_time_step = data_acs.shape[0]
+        if add_next_step:
+            total_time_step = data_acs.shape[0] - 1
+        else:
+            total_time_step = data_acs.shape[0]
 
         if store_by_game:
             expert_obs_game = []
             expert_acs_game = []
             expert_rs_game = []
 
-        for t in range(total_time_step - 1):
+        for t in range(total_time_step):
             data_obs_t = data_obs[t]
-            data_obs_next_t = data_obs[t + 1]
             data_ac_t = data_acs[t]
-            data_ac_next_t = data_acs[t + 1]
+            if add_next_step:
+                data_obs_next_t = data_obs[t + 1]
+                data_ac_next_t = data_acs[t + 1]
             num_samples += 1
             if data_rs is not None:
                 data_r_t = data_rs[t]
-                data_r_next_t = data_rs[t + 1]
+                if add_next_step:
+                    data_r_next_t = data_rs[t + 1]
             else:
                 data_r_t = 0
-                data_r_next_t = 0
-            if store_by_game:
-                expert_obs_game.append(data_obs_t)
-                expert_acs_game.append(data_ac_t)
-                expert_rs_game.append(data_r_t)
+                if add_next_step:
+                    data_r_next_t = 0
+            if add_next_step:
+                data_obs_t_store = [data_obs_t, data_obs_next_t]
+                data_acs_t_store = [data_ac_t, data_ac_next_t]
+                data_r_t_store = [data_r_t, data_r_next_t]
             else:
-                expert_obs.append([data_obs_t, data_obs_next_t])
-                expert_acs.append([data_ac_t, data_ac_next_t])
-                expert_rs.append([data_r_t, data_r_next_t])
+                data_obs_t_store = data_obs_t
+                data_acs_t_store = data_ac_t
+                data_r_t_store = data_r_t
+            if store_by_game:
+                expert_obs_game.append(data_obs_t_store)
+                expert_acs_game.append(data_acs_t_store)
+                expert_rs_game.append(data_r_t_store)
+            else:
+                expert_obs.append(data_obs_t_store)
+                expert_acs.append(data_acs_t_store)
+                expert_rs.append(data_r_t_store)
 
         if store_by_game:
             expert_obs.append(np.asarray(expert_obs_game))

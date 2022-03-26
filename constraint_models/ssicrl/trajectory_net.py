@@ -133,11 +133,11 @@ class TrajectoryNet(nn.Module):
         self.traj_encoder = ResBlock(input_dims=self.input_dims).to(self.device)
         self.traj_conceptizer = IdentityConceptizer().to(self.device)
         self.traj_parameterizer = LinearParameterizer(num_concepts=self.max_seq_len,
-                                                        num_classes=2,
-                                                        hidden_sizes=[self.input_dims] +
-                                                                     self.hidden_sizes +
-                                                                     [2 * self.input_dims]
-                                                        ).to(self.device)
+                                                      num_classes=2,
+                                                      hidden_sizes=[self.input_dims] +
+                                                                   self.hidden_sizes +
+                                                                   [2 * self.input_dims]
+                                                      ).to(self.device)
         #
         # # predict the Q(s,a) values, the action is continuous
         # self.q_net = nn.Sequential(
@@ -217,9 +217,10 @@ class TrajectoryNet(nn.Module):
 
     def train_nn(
             self,
-            iterations: np.ndarray,
-            # nominal_obs: np.ndarray,
-            # nominal_acs: np.ndarray,
+            iterations: int,
+            nominal_traj_obs: list,
+            nominal_traj_acs: list,
+            nominal_traj_rs: list,
             # episode_lengths: np.ndarray,
             obs_mean: Optional[np.ndarray] = None,
             obs_var: Optional[np.ndarray] = None,
@@ -233,77 +234,107 @@ class TrajectoryNet(nn.Module):
         self.current_obs_mean = obs_mean
         self.current_obs_var = obs_var
 
-        # Prepare data
-        # TODO: maybe we will need the nominal data
-        # expert_obs, expert_acs, expert_rs = self.prepare_data(self.expert_obs, self.expert_acs, self.expert_rs)
-        # expert_obs, expert_acs, expert_rs = self.prepare_data(self.expert_obs, self.expert_acs, self.expert_rs)
-        loss = torch.tensor(np.inf)
+        assert iterations > 0
         for itr in tqdm(range(iterations)):
             # TODO: maybe we do need the importance sampling
             # is_weights = torch.ones(expert_input.shape[0])
 
+            loss_all_step = []
+            expert_stab_loss_all_step = []
+            expert_kld_loss_all_step = []
+            expert_recon_loss_all_step = []
+            expert_preds_all_step = []
+            nominal_stab_loss_all_step = []
+            nominal_kld_loss_all_step = []
+            nominal_recon_loss_all_step = []
+            nominal_preds_all_step = []
+
             # Do a complete pass on data, we don't have to use the get(), but let's leave it here for future usage
-            for batch_indices in self.get(len(self.expert_traj_obs), len(self.expert_traj_obs)):
+            for batch_indices in self.get(len(self.expert_traj_obs), len(nominal_traj_obs)):
+
                 # Get batch data
                 batch_expert_traj_obs = [self.expert_traj_obs[i] for i in batch_indices[0]]
                 batch_expert_traj_acs = [self.expert_traj_acs[i] for i in batch_indices[0]]
                 batch_expert_traj_rs = [self.expert_traj_rs[i] for i in batch_indices[0]]
+                batch_nominal_traj_obs = [nominal_traj_obs[i] for i in batch_indices[1]]
+                batch_nominal_traj_acs = [nominal_traj_acs[i] for i in batch_indices[1]]
+                batch_nominal_traj_rs = [nominal_traj_rs[i] for i in batch_indices[1]]
+                batch_max_seq_len = max([len(item) for item in batch_expert_traj_obs] +
+                                        [len(item) for item in batch_nominal_traj_obs])
+                batch_seq_len = min(batch_max_seq_len, self.max_seq_len)
 
                 batch_expert_traj_obs, batch_expert_traj_acs, batch_expert_traj_rs = self.prepare_data(
                     obs=batch_expert_traj_obs,
                     acs=batch_expert_traj_acs,
-                    rs=batch_expert_traj_rs)
+                    rs=batch_expert_traj_rs,
+                    max_seq_len=batch_seq_len
+                )
+
+                batch_nominal_traj_obs, batch_nominal_traj_acs, batch_nominal_traj_rs = self.prepare_data(
+                    obs=batch_nominal_traj_obs,
+                    acs=batch_nominal_traj_acs,
+                    rs=batch_nominal_traj_rs,
+                    max_seq_len=batch_seq_len
+                )
+
                 batch_size = batch_expert_traj_obs.shape[0]
                 prior = (torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior).to(self.device)
-                loss_k_step = []
-                for i in range(self.max_seq_len):
-                    batch_expert_obs_t = batch_expert_traj_obs[:, i, :]
-                    batch_expert_acs_t = batch_expert_traj_acs[:, i, :]
-                    batch_expert_input_t = torch.cat([batch_expert_obs_t, batch_expert_acs_t], dim=-1)
-                    batch_expert_input_t.requires_grad_()  # track all operations on x for jacobian calculation
-
-                    sample_concepts, _ = self.sample_conceptizer(batch_expert_input_t)
-                    sample_relevance = self.sample_parameterizer(batch_expert_input_t)
-                    # Both the alpha and the beta parameters should be greater than 0,
-                    alpha_beta_t = F.softplus(self.sample_aggregator(sample_concepts, sample_relevance))
-                    expert_alpha_t = alpha_beta_t[:, 0]
-                    expert_beta_t = alpha_beta_t[:, 1]
-                    expert_preds_t = torch.distributions.Beta(expert_alpha_t, expert_beta_t).rsample()
-
-                    # Losses
-                    s_loss = stability_loss(input_data=batch_expert_input_t,
-                                            aggregates=alpha_beta_t,
-                                            concepts=sample_concepts,
-                                            relevances=sample_relevance)
-                    analytical_kld_loss = dirichlet_kl_divergence_loss(
-                        alpha=torch.stack([expert_alpha_t, expert_beta_t], dim=1),
-                        prior=prior).mean()
-                    expert_loss = -torch.mean(torch.log(expert_preds_t + self.eps))
-                    nominal_loss = 0  # torch.mean(is_batch * torch.log(nominal_preds + self.eps))
-                    loss_t = (-expert_loss + nominal_loss) + \
-                             self.regularizer_coeff * analytical_kld_loss + \
-                             self.regularizer_coeff * s_loss
-                    loss_k_step.append(loss_t)
+                traj_loss = []
+                for i in range(batch_seq_len):
+                    expert_stab_loss, expert_kld_loss, expert_recon_loss, expert_preds_t = \
+                        self.compute_losses(batch_obs_t=batch_expert_traj_obs[:, i, :],
+                                            batch_acs_t=batch_expert_traj_acs[:, i, :],
+                                            prior=prior,
+                                            expert_loss=True)
+                    expert_stab_loss_all_step.append(expert_stab_loss)
+                    expert_kld_loss_all_step.append(expert_kld_loss)
+                    expert_recon_loss_all_step.append(expert_recon_loss)
+                    expert_preds_all_step.append(expert_preds_t)
+                    nominal_stab_loss, nominal_kld_loss, nominal_recon_loss, nominal_preds_t = \
+                        self.compute_losses(batch_obs_t=batch_nominal_traj_obs[:, i, :],
+                                            batch_acs_t=batch_nominal_traj_acs[:, i, :],
+                                            prior=prior,
+                                            expert_loss=False)
+                    nominal_stab_loss_all_step.append(nominal_stab_loss)
+                    nominal_kld_loss_all_step.append(nominal_kld_loss)
+                    nominal_recon_loss_all_step.append(nominal_recon_loss)
+                    nominal_preds_all_step.append(nominal_preds_t)
+                    loss_t = (expert_recon_loss + nominal_recon_loss) + \
+                             self.regularizer_coeff * (expert_kld_loss + nominal_kld_loss) + \
+                             self.regularizer_coeff * (expert_stab_loss + nominal_stab_loss)
+                    loss_all_step.append(loss_t)
+                    traj_loss.append(loss_t)
 
                 self.optimizers['ICRL'].zero_grad()
-                ave_loss_k_step = torch.mean(torch.stack(loss_k_step))
-                ave_loss_k_step.backward()
+                ave_traj_loss = torch.mean(torch.stack(traj_loss))
+                ave_traj_loss.backward()
                 self.optimizers['ICRL'].step()
+            ave_loss_all_step = torch.mean(torch.stack(loss_all_step))
+            ave_expert_stab_loss_all_step = torch.mean(torch.stack(expert_stab_loss_all_step))
+            ave_expert_kld_loss_all_step = torch.mean(torch.stack(expert_kld_loss_all_step))
+            ave_expert_recon_loss_all_step = torch.mean(torch.stack(expert_recon_loss_all_step))
+            expert_preds_all_step = torch.cat(expert_preds_all_step, dim=0)
+            ave_nominal_stab_loss_all_step = torch.mean(torch.stack(nominal_stab_loss_all_step))
+            ave_nominal_kld_loss_all_step = torch.mean(torch.stack(nominal_kld_loss_all_step))
+            ave_nominal_recon_loss_all_step = torch.mean(torch.stack(nominal_recon_loss_all_step))
+            nominal_preds_all_step = torch.cat(nominal_preds_all_step, dim=0)
 
-        bw_metrics = {"backward/icrl_loss": loss.item(),
-                      # "backward/expert_loss": expert_loss.item(),
-                      # "backward/unweighted_nominal_loss": torch.mean(torch.log(nominal_preds + self.eps)).item(),
-                      # "backward/nominal_loss": nominal_loss.item(),
-                      # "backward/regularizer_loss": regularizer_loss.item(),
+        bw_metrics = {"backward/loss": ave_loss_all_step.item(),
+                      "backward/expert/stab_loss": ave_expert_stab_loss_all_step.item(),
+                      "backward/expert/kld_loss": ave_expert_kld_loss_all_step.item(),
+                      "backward/expert/recon_loss": ave_expert_recon_loss_all_step.item(),
+                      "backward/nominal/stab_loss": ave_nominal_stab_loss_all_step.item(),
+                      "backward/nominal/kld_loss": ave_nominal_kld_loss_all_step.item(),
+                      "backward/nominal/recon_loss": ave_nominal_recon_loss_all_step.item(),
                       # "backward/is_mean": torch.mean(is_weights).detach().item(),
                       # "backward/is_max": torch.max(is_weights).detach().item(),
                       # "backward/is_min": torch.min(is_weights).detach().item(),
-                      # "backward/nominal_preds_max": torch.max(nominal_preds).item(),
-                      # "backward/nominal_preds_min": torch.min(nominal_preds).item(),
-                      # "backward/nominal_preds_mean": torch.mean(nominal_preds).item(),
-                      # "backward/expert_preds_max": torch.max(expert_preds).item(),
-                      # "backward/expert_preds_min": torch.min(expert_preds).item(),
-                      # "backward/expert_preds_mean": torch.mean(expert_preds).item(),
+                      "backward/nominal/preds_max": torch.max(nominal_preds_all_step).item(),
+                      "backward/nominal/preds_min": torch.min(nominal_preds_all_step).item(),
+                      "backward/nominal/preds_mean": torch.mean(nominal_preds_all_step).item(),
+                      "backward/expert/preds_max": torch.max(expert_preds_all_step).item(),
+                      "backward/expert/preds_min": torch.min(expert_preds_all_step).item(),
+                      "backward/expert/preds_mean": torch.mean(expert_preds_all_step).item(),
                       }
         # if self.importance_sampling:
         #     stop_metrics = {"backward/kl_old_new": kl_old_new.item(),
@@ -312,6 +343,31 @@ class TrajectoryNet(nn.Module):
         #     bw_metrics.update(stop_metrics)
 
         return bw_metrics
+
+    def compute_losses(self, batch_obs_t, batch_acs_t, prior, expert_loss):
+        batch_input_t = torch.cat([batch_obs_t, batch_acs_t], dim=-1)
+        batch_input_t.requires_grad_()  # track all operations on x for jacobian calculation
+        sample_concepts, _ = self.sample_conceptizer(batch_input_t)
+        sample_relevance = self.sample_parameterizer(batch_input_t)
+        # Both the alpha and the beta parameters should be greater than 0,
+        alpha_beta_t = F.softplus(self.sample_aggregator(sample_concepts, sample_relevance))
+        alpha_t = alpha_beta_t[:, 0]
+        beta_t = alpha_beta_t[:, 1]
+        preds_t = torch.distributions.Beta(alpha_t, beta_t).rsample()
+        # Losses
+        stab_loss = stability_loss(input_data=batch_input_t,
+                                   aggregates=alpha_beta_t,
+                                   concepts=sample_concepts,
+                                   relevances=sample_relevance)
+        analytical_kld_loss = dirichlet_kl_divergence_loss(
+            alpha=torch.stack([alpha_t, beta_t], dim=1),
+            prior=prior).mean()
+        if expert_loss:
+            recon_loss = -torch.mean(torch.log(preds_t + self.eps))
+        else:
+            recon_loss = torch.mean(torch.log(preds_t + self.eps))
+
+        return stab_loss, analytical_kld_loss, recon_loss, preds_t
 
     def compute_is_weights(self, preds_old: torch.Tensor, preds_new: torch.Tensor,
                            episode_lengths: np.ndarray) -> torch.tensor:
@@ -355,7 +411,10 @@ class TrajectoryNet(nn.Module):
                     padding_data = np.ones([padding_length]) * padding_symbol
                 input_sample = np.concatenate([input_data[i], padding_data], axis=0)
             else:
-                input_sample = input_data[i][-length:, :]
+                if len(input_data[i].shape) == 2:
+                    input_sample = input_data[i][-length:, :]
+                elif len(input_data[i].shape) == 1:
+                    input_sample = input_data[i][-length:]
             input_data_padding.append(input_sample)
         return np.asarray(input_data_padding)
 
@@ -364,16 +423,18 @@ class TrajectoryNet(nn.Module):
             obs: list,
             acs: list,
             rs: list = None,
+            max_seq_len: int = None,
             select_dim: bool = True,
     ) -> torch.tensor:
         bs = len(obs)
-        obs = [self.normalize_obs(obs[i], self.current_obs_mean, self.current_obs_var, self.clip_obs) for i in
-               range(bs)]
+        max_seq_len = max_seq_len if max_seq_len is not None else self.max_seq_len
+        obs = [self.normalize_obs(obs[i], self.current_obs_mean, self.current_obs_var, self.clip_obs)
+               for i in range(bs)]
         acs = [self.clip_actions(acs[i], self.action_low, self.action_high) for i in range(bs)]
-        obs = self.padding_input(input_data=obs, length=self.max_seq_len, padding_symbol=0)
-        acs = self.padding_input(input_data=acs, length=self.max_seq_len, padding_symbol=0)
+        obs = self.padding_input(input_data=obs, length=max_seq_len, padding_symbol=0)
+        acs = self.padding_input(input_data=acs, length=max_seq_len, padding_symbol=0)
         if rs is not None:
-            rs = self.padding_input(input_data=rs, length=self.max_seq_len, padding_symbol=0)
+            rs = self.padding_input(input_data=rs, length=max_seq_len, padding_symbol=0)
         acs = self.reshape_actions(acs)
         if select_dim:
             obs = self.select_appropriate_dims(select_dim=self.select_obs_dim, x=obs)
@@ -419,22 +480,22 @@ class TrajectoryNet(nn.Module):
 
         return acs
 
-    def get(self, nom_size: int, exp_size: int) -> np.ndarray:
+    def get(self, expert_size: int, nom_size: int) -> np.ndarray:
         if self.batch_size is None:
-            yield np.arange(nom_size), np.arange(exp_size)
+            # Return everything, don't create minibatches
+            yield np.arange(expert_size), np.arange(nom_size)
         else:
-            size = min(nom_size, exp_size)
-            indices = np.random.permutation(size)
+            size = min(nom_size, expert_size)
+            expert_indices = np.random.permutation(expert_size)
+            print(expert_indices)
+            nom_indices = np.random.permutation(nom_size)
 
             batch_size = self.batch_size
-            # Return everything, don't create minibatches
-            if batch_size is None:
-                batch_size = size
-
             start_idx = 0
             while start_idx < size:
-                batch_indices = indices[start_idx:start_idx + batch_size]
-                yield batch_indices, batch_indices
+                batch_expert_indices = expert_indices[start_idx:start_idx + batch_size]
+                batch_nom_indices = nom_indices[start_idx:start_idx + batch_size]
+                yield batch_expert_indices, batch_nom_indices
                 start_idx += batch_size
 
     def _update_learning_rate(self, current_progress_remaining) -> None:

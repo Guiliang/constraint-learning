@@ -119,12 +119,12 @@ def make_eval_env(env_id, config_path, save_dir, mode='test', use_cost=False, no
     return env
 
 
-def sample_from_agent(agent, env, rollouts):
+def sample_from_agent(agent, env, rollouts, store_by_game=False):
     if isinstance(env, vec_env.VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
 
-    orig_observations, observations, actions = [], [], []
-    rewards, lengths = [], []
+    all_orig_obs, all_obs, all_acs, all_rs = [], [], [], []
+    sum_rewards, lengths = [], []
     for i in range(rollouts):
         # Avoid double reset, as VecEnv are reset automatically
         if i == 0:
@@ -133,29 +133,55 @@ def sample_from_agent(agent, env, rollouts):
         # print('senario id', benchmark_id)
 
         done, state = False, None
-        episode_reward = 0.0
+        episode_sum_reward = 0.0
         episode_length = 0
+        if store_by_game:
+            origin_obs_game = []
+            obs_game = []
+            acs_game = []
+            rs_game = []
         while not done:
-            orig_observations.append(env.get_original_obs())
-            observations.append(obs)
-
             action, state = agent.predict(obs, state=state, deterministic=False)
+
+            if store_by_game:
+                origin_obs_game.append(env.get_original_obs())
+                obs_game.append(obs)
+                acs_game.append(action)
+            else:
+                all_orig_obs.append(env.get_original_obs())
+                all_obs.append(obs)
+                all_acs.append(action)
             obs, reward, done, _info = env.step(action)
+            if store_by_game:
+                rs_game.append(reward)
+            else:
+                all_rs.append(reward)
 
-            actions.append(action)
-            episode_reward += reward
+            episode_sum_reward += reward
             episode_length += 1
+        if store_by_game:
+            origin_obs_game = np.squeeze(np.array(origin_obs_game), axis=1)
+            obs_game = np.squeeze(np.array(obs_game), axis=1)
+            acs_game = np.squeeze(np.array(acs_game), axis=1)
+            rs_game = np.squeeze(np.asarray(rs_game))
+            all_orig_obs.append(origin_obs_game)
+            all_obs.append(obs_game)
+            all_acs.append(acs_game)
+            all_rs.append(rs_game)
 
-        rewards.append(episode_reward)
+        sum_rewards.append(episode_sum_reward)
         lengths.append(episode_length)
 
-    orig_observations = np.squeeze(np.array(orig_observations), axis=1)
-    observations = np.squeeze(np.array(observations), axis=1)
-    actions = np.squeeze(np.array(actions), axis=1)
-    rewards = np.squeeze(np.array(rewards), axis=1)
-    lengths = np.array(lengths)
-
-    return orig_observations, observations, actions, rewards, lengths
+    if store_by_game:
+        return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
+    else:
+        all_orig_obs = np.squeeze(np.array(all_orig_obs), axis=1)
+        all_obs = np.squeeze(np.array(all_obs), axis=1)
+        all_acs = np.squeeze(np.array(all_acs), axis=1)
+        all_rs = np.array(all_rs)
+        sum_rewards = np.squeeze(np.array(sum_rewards), axis=1)
+        lengths = np.array(lengths)
+        return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
 
 
 class ExternalRewardWrapper(gym.Wrapper):

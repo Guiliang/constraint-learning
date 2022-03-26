@@ -46,12 +46,17 @@ def train(config):
     if debug_mode:
         # config['env']['num_threads'] = 1
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
+        # set PPO params
         config['PPO']['forward_timesteps'] = 20
         config['PPO']['n_steps'] = 32
         config['PPO']['n_epochs'] = 2
+        # set CN params
         config['CN']['cn_batch_size'] = 3
+        config['CN']['backward_iters'] = 1
+        # set running params
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
+        config['running']['sample_rollouts'] = 10
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
@@ -138,10 +143,10 @@ def train(config):
     (expert_traj_obs, expert_traj_acs, expert_traj_rs), expert_mean_reward = load_expert_data(
         expert_path=expert_path,
         store_by_game=True,
-        # num_rollouts=config['running']['expert_rollouts'],
+        add_next_step=False,
         log_file=log_file
     )
-    tmp = np.concatenate(expert_traj_obs, axis=0)
+
     expert_obs_mean = np.mean(np.concatenate(expert_traj_obs, axis=0), axis=0).tolist()
     expert_obs_mean = ['%.5f' % elem for elem in expert_obs_mean]
     expert_obs_mean_dict = dict(zip(all_obs_feature_names, expert_obs_mean))
@@ -268,11 +273,14 @@ def train(config):
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
         # Sample nominal trajectories
-        # sync_envs_normalization(train_env, sampling_env)
-        # orig_observations, observations, actions, rewards, lengths = sample_from_agent(
-        #     agent=nominal_agent,
-        #     env=sampling_env,
-        #     rollouts=config['running']['expert_rollouts'])
+        sync_envs_normalization(train_env, sampling_env)
+        nominal_traj_orig_obs, nominal_traj_obs, nominal_traj_acs, nominal_traj_rs, sum_rs, lens = \
+            sample_from_agent(
+                agent=nominal_agent,
+                env=sampling_env,
+                rollouts=config['running']['sample_rollouts'],
+                store_by_game=True
+            )
 
         # Update constraint net
         mean, var = None, None
@@ -280,12 +288,13 @@ def train(config):
             mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
 
         backward_metrics = trajectory_net.train_nn(iterations=config['CN']['backward_iters'],
-                                                    # nominal_obs=orig_observations,
-                                                    # nominal_acs=actions,
-                                                    # episode_lengths=lengths,
-                                                    obs_mean=mean,
-                                                    obs_var=var,
-                                                    current_progress_remaining=current_progress_remaining)
+                                                   nominal_traj_obs=nominal_traj_orig_obs,
+                                                   nominal_traj_acs=nominal_traj_acs,
+                                                   nominal_traj_rs=nominal_traj_rs,
+                                                   # episode_lengths=lens,
+                                                   obs_mean=mean,
+                                                   obs_var=var,
+                                                   current_progress_remaining=current_progress_remaining)
 
         # Update agent
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
