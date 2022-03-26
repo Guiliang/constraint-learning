@@ -150,8 +150,9 @@ def train(config):
     expert_obs_mean = np.mean(expert_obs[:, 0, :], axis=0).tolist()
     expert_obs_mean = ['%.5f' % elem for elem in expert_obs_mean]
     expert_obs_mean_dict = dict(zip(all_obs_feature_names, expert_obs_mean))
-    print("The expert features means are: {0}".format(expert_obs_mean_dict), file=log_file, flush=True)
-
+    print("The expert features means are: {0}".format(expert_obs_mean_dict),
+          file=log_file,
+          flush=True)
 
     # Logger
     if log_file is None:
