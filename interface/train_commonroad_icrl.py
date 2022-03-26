@@ -286,7 +286,7 @@ def train(config):
 
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sampling_env)
-        orig_observations, observations, actions, rewards, lengths = sample_from_agent(
+        orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
             agent=nominal_agent,
             env=sampling_env,
             rollouts=config['running']['expert_rollouts'])

@@ -487,7 +487,7 @@ class TrajectoryNet(nn.Module):
         else:
             size = min(nom_size, expert_size)
             expert_indices = np.random.permutation(expert_size)
-            print(expert_indices)
+            # print(expert_indices)
             nom_indices = np.random.permutation(nom_size)
 
             batch_size = self.batch_size
