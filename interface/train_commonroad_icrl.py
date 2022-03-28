@@ -24,7 +24,7 @@ from tqdm import tqdm
 
 import environment.commonroad_rl.gym_commonroad  # this line must be included
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
-    get_obs_feature_names, get_input_features_dim
+    get_obs_feature_names, get_input_features_dim, IRLDataQueue
 from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
 from utils.model_utils import get_net_arch
 
@@ -56,6 +56,9 @@ def train(config):
         config['PPO']['n_epochs'] = 2
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
+        config['running']['sample_rollouts'] = 10
+        config['running']['sample_data_num'] = 500
+        config['running']['store_sample_num'] = 1000
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
@@ -71,6 +74,8 @@ def train(config):
     # today = datetime.date.today()
     # currentTime = today.strftime("%b-%d-%Y-%h-%m")
 
+    sample_data_queue = IRLDataQueue(max_length=config['running']['store_sample_num'],
+                                     seed=seed)
     save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}/'.format(
         config['env']['save_dir'],
         config['task'],
@@ -289,7 +294,13 @@ def train(config):
         orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
             agent=nominal_agent,
             env=sampling_env,
-            rollouts=config['running']['expert_rollouts'])
+            rollouts=config['running']['sample_rollouts'])
+        sample_data_queue.put(obs=orig_observations,
+                              acs=actions,
+                              rs=rewards
+                              )
+        sample_obs, sample_acts, sample_rs = \
+            sample_data_queue.get(sample_num=config['running']['sample_data_num'])
 
         # Update constraint net
         mean, var = None, None
@@ -297,8 +308,8 @@ def train(config):
             mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
 
         backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
-                                                   nominal_obs=orig_observations,
-                                                   nominal_acs=actions,
+                                                   nominal_obs=sample_obs,
+                                                   nominal_acs=sample_acts,
                                                    episode_lengths=lengths,
                                                    obs_mean=mean,
                                                    obs_var=var,

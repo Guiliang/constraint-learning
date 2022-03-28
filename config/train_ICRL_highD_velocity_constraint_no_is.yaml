@@ -20,7 +20,8 @@ running:
   n_iters: 30000
   n_eval_episodes: 100
   save_every: 10
-  expert_rollouts: 10
+  sample_rollouts: 100
+  sample_data_num: 10000
   expert_path: '../data/expert_data/no-collision_train_ppo_highD-Feb-01-2022-10:31/'
 
 PPO:
