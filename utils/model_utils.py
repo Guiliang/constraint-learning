@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 
 def get_net_arch(config):
@@ -112,7 +113,7 @@ def stability_loss(input_data, aggregates, concepts, relevances):
 
     # J_hx = Identity Matrix; h(x) is identity function
     robustness_loss = J_yx - relevances
-    robustness_loss = robustness_loss.norm(p='fro')
+    robustness_loss = robustness_loss.norm(p='fro', dim=1)
     return robustness_loss
 
 
@@ -138,3 +139,14 @@ def dirichlet_kl_divergence_loss(alpha, prior):
     analytical_kld += test
     # self.analytical_kld = self.mask * self.analytical_kld  # mask paddings
     return analytical_kld
+
+
+def torch_kron_prod(a, b):
+    """
+    :param a: matrix1 of size [b, M]
+    :param b: matrix2 of size [b, N]
+    :return: matrix of size [b, M, N]
+    """
+    res = torch.einsum('ij,ik->ijk', [a, b])
+    res = torch.reshape(res, [-1, np.prod(res.shape[1:])])
+    return res

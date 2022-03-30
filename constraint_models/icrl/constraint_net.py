@@ -241,12 +241,13 @@ class ConstraintNet(nn.Module):
                       "backward/is_mean": th.mean(is_weights_all).detach().item(),
                       "backward/is_max": th.max(is_weights_all).detach().item(),
                       "backward/is_min": th.min(is_weights_all).detach().item(),
-                      "backward/nominal_preds_max": th.max(nominal_preds_all).item(),
-                      "backward/nominal_preds_min": th.min(nominal_preds_all).item(),
-                      "backward/nominal_preds_mean": th.mean(nominal_preds_all).item(),
-                      "backward/expert_preds_max": th.max(expert_preds_all).item(),
-                      "backward/expert_preds_min": th.min(expert_preds_all).item(),
-                      "backward/expert_preds_mean": th.mean(expert_preds_all).item(), }
+                      "backward/data_shape": list(nominal_data.shape),
+                      "backward/nominal/preds_max": th.max(nominal_preds_all).item(),
+                      "backward/nominal/preds_min": th.min(nominal_preds_all).item(),
+                      "backward/nominal/preds_mean": th.mean(nominal_preds_all).item(),
+                      "backward/expert/preds_max": th.max(expert_preds_all).item(),
+                      "backward/expert/preds_min": th.min(expert_preds_all).item(),
+                      "backward/expert/preds_mean": th.mean(expert_preds_all).item(), }
         if self.importance_sampling:
             stop_metrics = {"backward/kl_old_new": kl_old_new.item(),
                             "backward/kl_new_old": kl_new_old.item(),
@@ -406,7 +407,7 @@ class ConstraintNet(nn.Module):
             obs_var: Optional[np.ndarray] = None,
             action_low: Optional[float] = None,
             action_high: Optional[float] = None,
-            device: str = "auto"
+            device: str = None
     ):
 
         state_dict = th.load(load_path)
@@ -453,6 +454,7 @@ class ConstraintNet(nn.Module):
             initial_obs_var=obs_var,
             action_low=action_low,
             action_high=action_high,
+            optimizer_class=None,
             device=device
         )
         constraint_net.network.load_state_dict(state_dict["cn_network"])

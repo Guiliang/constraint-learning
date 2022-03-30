@@ -327,6 +327,7 @@ def train(config):
         # Save
         # (1) periodically
         if itr % config['running']['save_every'] == 0:
+            # TODO: I think we need to record the training dataset
             path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
             del_and_make(path)
             nominal_agent.save(os.path.join(path, "nominal_agent"))

@@ -193,6 +193,9 @@ def train(config):
         target_kl_old_new=config['CN']['cn_target_kl_old_new'],
         target_kl_new_old=config['CN']['cn_target_kl_new_old'],
         train_gail_lambda=config['CN']['train_gail_lambda'],
+        num_cut=config['CN']['num_cut'],
+        temperature=config['CN']['temperature'],
+        explain_model_name=config['CN']['explain_model_name'],
         eps=config['CN']['cn_eps'],
         device=config['device'],
         log_file=log_file,
@@ -272,6 +275,7 @@ def train(config):
             nominal_agent = create_nominal_agent()
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
+        # TODO: we should train the model first
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sampling_env)
         nominal_traj_orig_obs, nominal_traj_obs, nominal_traj_acs, nominal_traj_rs, sum_rs, lens = \

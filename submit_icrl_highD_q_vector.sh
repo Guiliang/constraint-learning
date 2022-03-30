@@ -14,4 +14,5 @@ conda activate galen-cr37
 cd ./interface/
 #python train_commonroad_icrl.py ../config/train_ICRL_highD_collision_constraint.yaml -p 1 -l "$log_dir"
 #python train_commonroad_icrl.py ../config/train_ICRL_highD_collision_constraint.yaml  -n 5 -l "$log_dir"
-python train_commonroad_icrl.py ../config/train_ICRL_highD_velocity_constraint_no_is_dim-2.yaml  -n 5 -l "$log_dir"
+#python train_commonroad_icrl.py ../config/train_ICRL_highD_velocity_constraint_no_is_dim-2.yaml -n 5 -l "$log_dir"
+python train_commonroad_icrl.py ../config/train_ICRL_highD_velocity_constraint_no_is_dim-3.yaml -n 5 -l "$log_dir"

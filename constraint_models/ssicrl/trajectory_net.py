@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 from constraint_models.ssicrl.aggregators import SumAggregator
 from constraint_models.ssicrl.conceptizers import IdentityConceptizer
+from constraint_models.ssicrl.neural_decision_tree import NeuralDecisionTree
 from constraint_models.ssicrl.parameterizers import LinearParameterizer
 from stable_baselines3.common.torch_layers import create_mlp, ResBlock
 from stable_baselines3.common.utils import update_learning_rate
@@ -47,6 +48,9 @@ class TrajectoryNet(nn.Module):
             discount_factor: float = 1,
             log_std_init: float = 0.0,
             max_seq_len: int = 300,
+            explain_model_name: str = 'senn',
+            num_cut: list = [],
+            temperature: float = 0.1,
             device: str = "cpu",
             log_file=None
     ):
@@ -75,6 +79,9 @@ class TrajectoryNet(nn.Module):
         self.discount_factor = discount_factor
 
         self.train_gail_lambda = train_gail_lambda
+        self.explain_model_name = explain_model_name
+        self.temperature = temperature
+        self.num_cut = num_cut
 
         if optimizer_kwargs is None:
             optimizer_kwargs = {}
@@ -121,23 +128,47 @@ class TrajectoryNet(nn.Module):
         3) model the policy for approximating the policy represented by the Q function.
         :return:
         """
-        self.sample_conceptizer = IdentityConceptizer().to(self.device)
-        self.sample_parameterizer = LinearParameterizer(num_concepts=self.input_dims,
-                                                        num_classes=2,
-                                                        hidden_sizes=[self.input_dims] +
-                                                                     self.hidden_sizes +
-                                                                     [2 * self.input_dims]
-                                                        ).to(self.device)
-        self.sample_aggregator = SumAggregator(num_classes=1).to(self.device)
+        if self.explain_model_name == "senn":
+            self.sample_conceptizer = IdentityConceptizer().to(self.device)
+            self.sample_parameterizer = LinearParameterizer(num_concepts=self.input_dims,
+                                                            num_classes=1,
+                                                            hidden_sizes=[self.input_dims] +
+                                                                         self.hidden_sizes +
+                                                                         [self.input_dims]
+                                                            ).to(self.device)
+        elif self.explain_model_name == 'ndt':
+            self.ndt = NeuralDecisionTree(num_class=2,
+                                          num_cut=self.num_cut,
+                                          temperature=self.temperature,
+                                          device=self.device
+                                          )
+            self.sample_conceptizers = []
+            self.sample_parameterizers = []
+            for i in range(self.ndt.num_leaf):
+                self.sample_conceptizers.append(IdentityConceptizer().to(self.device))
+                self.sample_parameterizers.append(
+                    LinearParameterizer(num_concepts=self.input_dims,
+                                        num_classes=1,
+                                        hidden_sizes=[self.input_dims] +
+                                                     self.hidden_sizes +
+                                                     [self.input_dims]
+                                        ).to(self.device))
+            self.sample_conceptizers = nn.ModuleList(self.sample_conceptizers)
+            self.sample_parameterizers = nn.ModuleList(self.sample_parameterizers)
 
-        self.traj_encoder = ResBlock(input_dims=self.input_dims).to(self.device)
-        self.traj_conceptizer = IdentityConceptizer().to(self.device)
-        self.traj_parameterizer = LinearParameterizer(num_concepts=self.max_seq_len,
-                                                      num_classes=2,
-                                                      hidden_sizes=[self.input_dims] +
-                                                                   self.hidden_sizes +
-                                                                   [2 * self.input_dims]
-                                                      ).to(self.device)
+        self.sample_aggregator = SumAggregator(num_classes=1).to(self.device)
+        self.encoder = nn.Sequential(
+            *create_mlp(self.input_dims, 1, self.hidden_sizes)
+        )
+
+        # self.traj_encoder = ResBlock(input_dims=self.input_dims).to(self.device)
+        # self.traj_conceptizer = IdentityConceptizer().to(self.device)
+        # self.traj_parameterizer = LinearParameterizer(num_concepts=self.max_seq_len,
+        #                                               num_classes=2,
+        #                                               hidden_sizes=[self.input_dims] +
+        #                                                            self.hidden_sizes +
+        #                                                            [2 * self.input_dims]
+        #                                               ).to(self.device)
         #
         # # predict the Q(s,a) values, the action is continuous
         # self.q_net = nn.Sequential(
@@ -154,7 +185,7 @@ class TrajectoryNet(nn.Module):
         #
         # build different optimizers for different models
         self.optimizers = {'ICRL': None, 'policy': None}
-        param_active_key_words = {'ICRL': ['sample'],
+        param_active_key_words = {'ICRL': ['sample', 'ndt', 'encoder'],
                                   'policy': ['policy_network'], }
         for key in self.optimizers.keys():
             param_frozen_list, param_active_list = \
@@ -281,7 +312,7 @@ class TrajectoryNet(nn.Module):
                 prior = (torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior).to(self.device)
                 traj_loss = []
                 for i in range(batch_seq_len):
-                    expert_stab_loss, expert_kld_loss, expert_recon_loss, expert_preds_t = \
+                    expert_stab_loss, expert_kld_loss, expert_recon_loss, expert_constraint_loss, expert_preds_t = \
                         self.compute_losses(batch_obs_t=batch_expert_traj_obs[:, i, :],
                                             batch_acs_t=batch_expert_traj_acs[:, i, :],
                                             prior=prior,
@@ -290,7 +321,7 @@ class TrajectoryNet(nn.Module):
                     expert_kld_loss_all_step.append(expert_kld_loss)
                     expert_recon_loss_all_step.append(expert_recon_loss)
                     expert_preds_all_step.append(expert_preds_t)
-                    nominal_stab_loss, nominal_kld_loss, nominal_recon_loss, nominal_preds_t = \
+                    nominal_stab_loss, nominal_kld_loss, nominal_recon_loss, nominal_constraint_loss, nominal_preds_t = \
                         self.compute_losses(batch_obs_t=batch_nominal_traj_obs[:, i, :],
                                             batch_acs_t=batch_nominal_traj_acs[:, i, :],
                                             prior=prior,
@@ -301,7 +332,8 @@ class TrajectoryNet(nn.Module):
                     nominal_preds_all_step.append(nominal_preds_t)
                     loss_t = (expert_recon_loss + nominal_recon_loss) + \
                              self.regularizer_coeff * (expert_kld_loss + nominal_kld_loss) + \
-                             self.regularizer_coeff * (expert_stab_loss + nominal_stab_loss)
+                             self.regularizer_coeff * (expert_stab_loss + nominal_stab_loss) + \
+                             self.regularizer_coeff * (expert_constraint_loss + nominal_constraint_loss)
                     loss_all_step.append(loss_t)
                     traj_loss.append(loss_t)
 
@@ -344,21 +376,51 @@ class TrajectoryNet(nn.Module):
 
         return bw_metrics
 
+    def self_explainable_model(self, batch_input_t):
+        if self.explain_model_name == "senn":
+            batch_input_t.requires_grad_()  # track all operations on x for jacobian calculation
+            sample_concepts, _ = self.sample_conceptizer(batch_input_t)
+            sample_relevance = self.sample_parameterizer(batch_input_t)
+            # Both the alpha and the beta parameters should be greater than 0,
+            preds_t = F.softplus(self.sample_aggregator(sample_concepts, sample_relevance))
+            stab_loss = stability_loss(input_data=batch_input_t,
+                                       aggregates=preds_t,
+                                       concepts=sample_concepts,
+                                       relevances=sample_relevance)
+            return preds_t, stab_loss
+        elif self.explain_model_name == 'ndt':
+            dt_preds_t, leaves_probs = self.ndt(x=batch_input_t)
+            leaves_preds_t = []
+            leaves_stab_loss = []
+            for i in range(self.ndt.num_leaf):
+                batch_input_t.requires_grad_()  # track all operations on x for jacobian calculation
+                sample_concepts, _ = self.sample_conceptizers[i](batch_input_t)
+                sample_relevance = self.sample_parameterizers[i](batch_input_t)
+                # Both the alpha and the beta parameters should be greater than 0,
+                leaf_preds_t = F.softplus(self.sample_aggregator(sample_concepts, sample_relevance))
+                leaf_stab_loss = stability_loss(input_data=batch_input_t,
+                                                aggregates=leaf_preds_t,
+                                                concepts=sample_concepts,
+                                                relevances=sample_relevance)
+                leaves_preds_t.append(leaf_preds_t)
+                leaves_stab_loss.append(leaf_stab_loss)
+            # leaves_probs = torch.reshape(leaves_probs, shape=[-1])
+            leaves_probs = leaves_probs
+            leaves_preds_t = torch.stack(leaves_preds_t, dim=1)
+            preds_t = torch.bmm(leaves_probs.unsqueeze(1), leaves_preds_t).squeeze(1)
+            leaves_stab_loss = torch.stack(leaves_stab_loss, dim=1)
+            stab_loss = torch.bmm(leaves_probs.unsqueeze(1), leaves_stab_loss).squeeze(1)
+            return preds_t, stab_loss
+
     def compute_losses(self, batch_obs_t, batch_acs_t, prior, expert_loss):
         batch_input_t = torch.cat([batch_obs_t, batch_acs_t], dim=-1)
-        batch_input_t.requires_grad_()  # track all operations on x for jacobian calculation
-        sample_concepts, _ = self.sample_conceptizer(batch_input_t)
-        sample_relevance = self.sample_parameterizer(batch_input_t)
-        # Both the alpha and the beta parameters should be greater than 0,
-        alpha_beta_t = F.softplus(self.sample_aggregator(sample_concepts, sample_relevance))
+        preds_t, stab_loss = self.self_explainable_model(batch_input_t=batch_input_t)
+        # preds_t = torch.distributions.Beta(alpha_t, beta_t).rsample()
+        # Losses
+        alpha_beta_t = self.encoder(batch_input_t)
         alpha_t = alpha_beta_t[:, 0]
         beta_t = alpha_beta_t[:, 1]
-        preds_t = torch.distributions.Beta(alpha_t, beta_t).rsample()
-        # Losses
-        stab_loss = stability_loss(input_data=batch_input_t,
-                                   aggregates=alpha_beta_t,
-                                   concepts=sample_concepts,
-                                   relevances=sample_relevance)
+        constraint_loss = - torch.distributions.Beta(alpha_t, beta_t).log_prob(preds_t).mean()
         analytical_kld_loss = dirichlet_kl_divergence_loss(
             alpha=torch.stack([alpha_t, beta_t], dim=1),
             prior=prior).mean()
@@ -367,7 +429,7 @@ class TrajectoryNet(nn.Module):
         else:
             recon_loss = torch.mean(torch.log(preds_t + self.eps))
 
-        return stab_loss, analytical_kld_loss, recon_loss, preds_t
+        return stab_loss, analytical_kld_loss, recon_loss, constraint_loss, preds_t
 
     def compute_is_weights(self, preds_old: torch.Tensor, preds_new: torch.Tensor,
                            episode_lengths: np.ndarray) -> torch.tensor:

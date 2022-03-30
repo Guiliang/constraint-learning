@@ -149,7 +149,10 @@ def evaluate():
     log_file = None
     if_testing_env = False
 
-    load_model_name = 'train_ICRL_highD_collision_constraint-multi_env-Mar-15-2022-07:27'
+    # load_model_name = 'train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-00:37'
+    # load_model_name = 'train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-08:02'
+    # load_model_name = 'train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-08:02'
+    load_model_name = 'train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-28-2022-09:44'
     task_name = 'ICRL-highD'
     iteration_msg = 'best'
 

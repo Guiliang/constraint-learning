@@ -172,24 +172,28 @@ def save_game_record(info, file, cost=None):
     is_time_out = info["is_time_out"]
     is_off_road = info["is_off_road"]
     ego_velocity_x_y = info["ego_velocity"]
-    ego_velocity = np.sqrt(np.sum(np.square(ego_velocity_x_y)))
+    # ego_velocity = np.sqrt(np.sum(np.square(ego_velocity_x_y)))
+    ego_velocity_x = ego_velocity_x_y[0]
+    ego_velocity_y = ego_velocity_x_y[1]
     is_goal_reached = info["is_goal_reached"]
     current_step = info["current_episode_time_step"]
     if cost is None:
-        file.write("{0}, {1:.3f}, {2:.0f}, {3:.0f}, {4:.0f}, {5:.0f}\n".format(current_step,
-                                                                               ego_velocity,
-                                                                               is_collision,
-                                                                               is_off_road,
-                                                                               is_goal_reached,
-                                                                               is_time_out))
-    else:
         file.write("{0}, {1:.3f}, {2:.3f}, {3:.0f}, {4:.0f}, {5:.0f}, {6:.0f}\n".format(current_step,
-                                                                                        ego_velocity,
-                                                                                        cost,
+                                                                                        ego_velocity_x,
+                                                                                        ego_velocity_y,
                                                                                         is_collision,
                                                                                         is_off_road,
                                                                                         is_goal_reached,
                                                                                         is_time_out))
+    else:
+        file.write("{0}, {1:.3f}, {2:.3f}, {3:.3f}, {4:.0f}, {5:.0f}, {6:.0f}, {7:.0f}\n".format(current_step,
+                                                                                                 ego_velocity_x,
+                                                                                                 ego_velocity_y,
+                                                                                                 cost,
+                                                                                                 is_collision,
+                                                                                                 is_off_road,
+                                                                                                 is_goal_reached,
+                                                                                                 is_time_out))
 
 
 def process_memory():
@@ -301,7 +305,7 @@ def get_benchmark_ids(num_threads, benchmark_idx, benchmark_total_nums, env_ids)
 
 
 def get_obs_feature_names(env):
-    try:    # we need to change this setting if you modify the number of env wrappers.
+    try:  # we need to change this setting if you modify the number of env wrappers.
         observation_space_dict = env.venv.envs[0].env.env.env.observation_collector.observation_space_dict
     except:
         observation_space_dict = env.venv.envs[0].env.env.observation_collector.observation_space_dict
@@ -310,7 +314,7 @@ def get_obs_feature_names(env):
     for key in observation_space_names:
         feature_len = observation_space_dict[key].shape[0]
         for i in range(feature_len):
-            feature_names.append(key+'_'+str(i))
+            feature_names.append(key + '_' + str(i))
     return feature_names
 
 
@@ -344,7 +348,7 @@ class IRLDataQueue:
     def put(self, obs, acs, rs):
         for data_idx in range(len(obs)):
             if len(self.store_obs) >= self.max_length:
-                rand_idx = random.randint(0, self.max_length-1)
+                rand_idx = random.randint(0, self.max_length - 1)
                 self.pop(rand_idx)
             self.store_obs.append(obs[data_idx])
             self.store_acts.append(acs[data_idx])
@@ -355,7 +359,7 @@ class IRLDataQueue:
         sample_acs = []
         sample_rs = []
         for i in range(sample_num):
-            rand_idx = random.randint(0, len(self.store_obs)-1)
+            rand_idx = random.randint(0, len(self.store_obs) - 1)
             sample_obs.append(self.store_obs[rand_idx])
             sample_acs.append(self.store_acts[rand_idx])
             sample_rs.append(self.store_rs[rand_idx])
