@@ -22,7 +22,8 @@ running:
   save_every: 10
   sample_rollouts: 100
   sample_data_num: 10000
-  expert_path: '../data/expert_data/no-collision_train_ppo_highD-Feb-01-2022-10:31/'
+  store_sample_num: 500000
+  expert_path: '../data/expert_data/no-over_speed_train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/'
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'

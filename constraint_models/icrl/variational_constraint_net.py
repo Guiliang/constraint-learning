@@ -44,8 +44,10 @@ class VariationalConstraintNet(ConstraintNet):
             target_kl_new_old: float = -1,
             train_gail_lambda: Optional[bool] = False,
             eps: float = 1e-5,
-            device: str = "cpu"
+            device: str = "cpu",
+            di_prior: list = [1, 1],
     ):
+        assert 'VICRL' in task
         super().__init__(obs_dim=obs_dim,
                          acs_dim=acs_dim,
                          hidden_sizes=hidden_sizes,
@@ -72,8 +74,9 @@ class VariationalConstraintNet(ConstraintNet):
                          train_gail_lambda=train_gail_lambda,
                          eps=eps,
                          device=device)
-        assert self.task == 'VICRL'
-        self._build()
+        self.dir_prior = di_prior
+        assert 'VICRL' in self.task
+        # self._build()
 
     def _build(self) -> None:
         self.network = nn.Sequential(
@@ -81,6 +84,13 @@ class VariationalConstraintNet(ConstraintNet):
             nn.Softplus()
         )
         self.network.to(self.device)
+        # Build optimizer
+        if self.optimizer_class is not None:
+            self.optimizer = self.optimizer_class(self.parameters(), lr=self.lr_schedule(1), **self.optimizer_kwargs)
+        else:
+            self.optimizer = None
+        if self.train_gail_lambda:
+            self.criterion = nn.BCELoss()
 
     def forward(self, x: th.tensor) -> th.tensor:
         alpha_beta = self.network(x)
@@ -98,7 +108,8 @@ class VariationalConstraintNet(ConstraintNet):
         with th.no_grad():
             out, _, _ = self.__call__(x)
         cost = 1 - out.detach().cpu().numpy()
-        return cost.squeeze(axis=-1)
+        # return cost.squeeze(axis=-1)
+        return cost
 
     def call_forward(self, x: np.ndarray):
         with th.no_grad():
@@ -106,7 +117,8 @@ class VariationalConstraintNet(ConstraintNet):
         return out
 
     def kl_regularizer_loss(self, batch_size, alpha, beta):
-        prior = (torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior).to(self.device)
+        # prior = (torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior).to(self.device)
+        prior = torch.tensor(np.asarray(batch_size * [self.dir_prior]), dtype=torch.float32).to(self.device)
         analytical_kld_loss = dirichlet_kl_divergence_loss(
             alpha=torch.stack([alpha, beta], dim=1),
             prior=prior).mean()
@@ -185,12 +197,13 @@ class VariationalConstraintNet(ConstraintNet):
                 else:
                     expert_loss = th.mean(th.log(expert_preds + self.eps))
                     nominal_loss = th.mean(is_batch * th.log(nominal_preds + self.eps))
-                    batch_size = expert_preds.shape[0]
-                    regularizer_loss = self.kl_regularizer_loss(batch_size=batch_size,
+                    nominal_batch_size = nominal_preds.shape[0]
+                    expert_batch_size = expert_preds.shape[0]
+                    regularizer_loss = self.kl_regularizer_loss(batch_size=nominal_batch_size,
                                                                 alpha=nominal_alpha,
                                                                 beta=nominal_beta,
                                                                 ) + \
-                                       self.kl_regularizer_loss(batch_size=batch_size,
+                                       self.kl_regularizer_loss(batch_size=expert_batch_size,
                                                                 alpha=expert_alpha,
                                                                 beta=expert_beta,
                                                                 )

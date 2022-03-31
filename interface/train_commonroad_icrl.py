@@ -11,6 +11,8 @@ import gym
 import numpy as np
 import yaml
 
+from constraint_models.icrl.variational_constraint_net import VariationalConstraintNet
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 
@@ -70,11 +72,8 @@ def train(config):
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
-    # today = datetime.date.today()
-    # currentTime = today.strftime("%b-%d-%Y-%h-%m")
 
-    sample_data_queue = IRLDataQueue(max_length=config['running']['store_sample_num'],
-                                     seed=seed)
+    sample_data_queue = IRLDataQueue(max_length=config['running']['store_sample_num'], seed=seed)
     save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}-seed_{6}/'.format(
         config['env']['save_dir'],
         config['task'],
@@ -142,7 +141,7 @@ def train(config):
         float(mem_loading_environment - mem_prev) / 1000000,
         float(mem_loading_environment) / 1000000,
         time_loading_environment - time_prev),
-          file=log_file, flush=True)
+        file=log_file, flush=True)
     mem_prev = mem_loading_environment
     time_prev = time_loading_environment
 
@@ -191,31 +190,40 @@ def train(config):
     cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
                                                all_feature_names=['a_ego_0', 'a_ego_1'])
 
-    constraint_net = ConstraintNet(
-        obs_dim=obs_dim,
-        acs_dim=acs_dim,
-        hidden_sizes=config['CN']['cn_layers'],
-        batch_size=config['CN']['cn_batch_size'],
-        lr_schedule=cn_lr_schedule,
-        expert_obs=expert_obs,  # select obs at a time step t
-        expert_acs=expert_acs,  # select acs at a time step t
-        is_discrete=is_discrete,
-        regularizer_coeff=config['CN']['cn_reg_coeff'],
-        obs_select_dim=cn_obs_select_dim,
-        acs_select_dim=cn_acs_select_dim,
-        no_importance_sampling=config['CN']['no_importance_sampling'],
-        per_step_importance_sampling=config['CN']['per_step_importance_sampling'],
-        clip_obs=config['CN']['clip_obs'],
-        initial_obs_mean=None if not config['CN']['cn_normalize'] else np.zeros(obs_dim),
-        initial_obs_var=None if not config['CN']['cn_normalize'] else np.ones(obs_dim),
-        action_low=action_low,
-        action_high=action_high,
-        target_kl_old_new=config['CN']['cn_target_kl_old_new'],
-        target_kl_new_old=config['CN']['cn_target_kl_new_old'],
-        train_gail_lambda=config['CN']['train_gail_lambda'],
-        eps=config['CN']['cn_eps'],
-        device=config['device']
-    )
+    cn_parameters = {
+        'obs_dim': obs_dim,
+        'acs_dim': acs_dim,
+        'hidden_sizes': config['CN']['cn_layers'],
+        'batch_size': config['CN']['cn_batch_size'],
+        'lr_schedule': cn_lr_schedule,
+        'expert_obs': expert_obs,  # select obs at a time step t
+        'expert_acs': expert_acs,  # select acs at a time step t
+        'is_discrete': is_discrete,
+        'regularizer_coeff': config['CN']['cn_reg_coeff'],
+        'obs_select_dim': cn_obs_select_dim,
+        'acs_select_dim': cn_acs_select_dim,
+        'no_importance_sampling': config['CN']['no_importance_sampling'],
+        'per_step_importance_sampling': config['CN']['per_step_importance_sampling'],
+        'clip_obs': config['CN']['clip_obs'],
+        'initial_obs_mean': None if not config['CN']['cn_normalize'] else np.zeros(obs_dim),
+        'initial_obs_var': None if not config['CN']['cn_normalize'] else np.ones(obs_dim),
+        'action_low': action_low,
+        'action_high': action_high,
+        'target_kl_old_new': config['CN']['cn_target_kl_old_new'],
+        'target_kl_new_old': config['CN']['cn_target_kl_new_old'],
+        'train_gail_lambda': config['CN']['train_gail_lambda'],
+        'eps': config['CN']['cn_eps'],
+        'device': config['device'],
+        'task': config['task'],
+        'di_prior': config['CN']['di_prior'],
+    }
+
+    if config['task'] == 'ICRL-highD':
+        constraint_net = ConstraintNet(**cn_parameters)
+    elif config['task'] == 'VICRL-highD':
+        constraint_net = VariationalConstraintNet(**cn_parameters)
+    else:
+        raise ValueError("Unknown constraint model {0}".format(config['task']))
 
     # Pass constraint net cost function to cost wrapper (train env)
     train_env.set_cost_function(constraint_net.cost_function)
@@ -285,7 +293,7 @@ def train(config):
         float(mem_before_training - mem_prev) / 1000000,
         float(mem_before_training) / 1000000,
         time_before_training - time_prev),
-          file=log_file, flush=True)
+        file=log_file, flush=True)
     mem_prev = mem_before_training
     time_prev = time_before_training
 
