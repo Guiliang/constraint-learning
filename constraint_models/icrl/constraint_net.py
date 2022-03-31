@@ -11,6 +11,8 @@ from stable_baselines3.common.utils import update_learning_rate
 from torch import nn
 from tqdm import tqdm
 
+from utils.model_utils import dirichlet_kl_divergence_loss
+
 
 class ConstraintNet(nn.Module):
     def __init__(
@@ -23,6 +25,7 @@ class ConstraintNet(nn.Module):
             expert_obs: np.ndarray,
             expert_acs: np.ndarray,
             is_discrete: bool,
+            task: str = 'ICRL',
             regularizer_coeff: float = 0.,
             obs_select_dim: Optional[Tuple[int, ...]] = None,
             acs_select_dim: Optional[Tuple[int, ...]] = None,
@@ -42,7 +45,7 @@ class ConstraintNet(nn.Module):
             device: str = "cpu"
     ):
         super(ConstraintNet, self).__init__()
-
+        self.task = task
         self.obs_dim = obs_dim
         self.acs_dim = acs_dim
         self.obs_select_dim = obs_select_dim
@@ -93,9 +96,9 @@ class ConstraintNet(nn.Module):
             self.select_dim += self.obs_select_dim
         obs_len = len(self.select_dim)
         if self.acs_select_dim is None:
-            self.select_dim += [i+obs_len for i in range(self.acs_dim)]
+            self.select_dim += [i + obs_len for i in range(self.acs_dim)]
         elif self.acs_select_dim[0] != -1:
-            self.select_dim += [i+obs_len for i in self.acs_select_dim]
+            self.select_dim += [i + obs_len for i in self.acs_select_dim]
         assert len(self.select_dim) > 0, ""
         acs_len = len(self.select_dim) - obs_len
         self.input_dims = len(self.select_dim)
@@ -118,7 +121,8 @@ class ConstraintNet(nn.Module):
             self.criterion = nn.BCELoss()
 
     def forward(self, x: th.tensor) -> th.tensor:
-        return self.network(x)
+        pred = self.network(x)
+        return pred
 
     def cost_function(self, obs: np.ndarray, acs: np.ndarray) -> np.ndarray:
         assert obs.shape[-1] == self.obs_dim, ""
@@ -128,6 +132,7 @@ class ConstraintNet(nn.Module):
         x = self.prepare_data(obs, acs)
         with th.no_grad():
             out = self.__call__(x)
+
         cost = 1 - out.detach().cpu().numpy()
         return cost.squeeze(axis=-1)
 
@@ -179,7 +184,8 @@ class ConstraintNet(nn.Module):
             if self.importance_sampling:
                 with th.no_grad():
                     current_preds = self.forward(nominal_data).detach()
-                is_weights, kl_old_new, kl_new_old = self.compute_is_weights(start_preds.clone(), current_preds.clone(),
+                is_weights, kl_old_new, kl_new_old = self.compute_is_weights(start_preds.clone(),
+                                                                             current_preds.clone(),
                                                                              episode_lengths)
                 # Break if kl is very large
                 if ((self.target_kl_old_new != -1 and kl_old_new > self.target_kl_old_new) or
@@ -200,6 +206,7 @@ class ConstraintNet(nn.Module):
                 nominal_preds = self.__call__(nominal_batch)
                 expert_preds = self.__call__(expert_batch)
 
+
                 # Calculate loss
                 if self.train_gail_lambda:
                     nominal_loss = self.criterion(nominal_preds, th.zeros(*nominal_preds.size()))
@@ -209,8 +216,8 @@ class ConstraintNet(nn.Module):
                 else:
                     expert_loss = th.mean(th.log(expert_preds + self.eps))
                     nominal_loss = th.mean(is_batch * th.log(nominal_preds + self.eps))
-                    regularizer_loss = self.regularizer_coeff * (th.mean(1 - expert_preds) + th.mean(1 - nominal_preds))
-                    loss = (-expert_loss + nominal_loss) + regularizer_loss
+                    regularizer_loss = th.mean(1 - expert_preds) + th.mean(1 - nominal_preds)
+                    loss = (-expert_loss + nominal_loss) + self.regularizer_coeff * regularizer_loss
 
                 loss_all.append(loss)
                 expert_loss_all.append(expert_loss)
@@ -234,10 +241,10 @@ class ConstraintNet(nn.Module):
         expert_preds_all = torch.cat(expert_preds_all, dim=0)
 
         bw_metrics = {"backward/cn_loss": th.mean(loss_all).item(),
-                      "backward/expert_loss":  th.mean(expert_loss_all).item(),
+                      "backward/expert_loss": th.mean(expert_loss_all).item(),
                       "backward/unweighted_nominal_loss": th.mean(th.log(nominal_preds_all + self.eps)).item(),
-                      "backward/nominal_loss":  th.mean(nominal_loss_all).item(),
-                      "backward/regularizer_loss":  th.mean(regularizer_loss_all).item(),
+                      "backward/nominal_loss": th.mean(nominal_loss_all).item(),
+                      "backward/regularizer_loss": th.mean(regularizer_loss_all).item(),
                       "backward/is_mean": th.mean(is_weights_all).detach().item(),
                       "backward/is_max": th.max(is_weights_all).detach().item(),
                       "backward/is_min": th.min(is_weights_all).detach().item(),

@@ -24,7 +24,7 @@ from tqdm import tqdm
 
 import environment.commonroad_rl.gym_commonroad  # this line must be included
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
-    get_obs_feature_names, get_input_features_dim, IRLDataQueue
+    get_obs_feature_names, get_input_features_dim, IRLDataQueue, process_memory
 from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
 from utils.model_utils import get_net_arch
 
@@ -69,20 +69,20 @@ def train(config):
         config['env']['num_threads'] = int(num_threads)
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
-
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
     # today = datetime.date.today()
     # currentTime = today.strftime("%b-%d-%Y-%h-%m")
 
     sample_data_queue = IRLDataQueue(max_length=config['running']['store_sample_num'],
                                      seed=seed)
-    save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}/'.format(
+    save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}-seed_{6}/'.format(
         config['env']['save_dir'],
         config['task'],
         args.config_file.split('/')[-1].split('.')[0],
         '-multi_env' if multi_env else '',
         current_time_date,
-        debug_msg
+        debug_msg,
+        seed
     )
 
     if not os.path.exists(save_model_mother_dir):
@@ -91,6 +91,8 @@ def train(config):
     with open(os.path.join(save_model_mother_dir, "model_hyperparameters.yaml"), "w") as hyperparam_file:
         yaml.dump(config, hyperparam_file)
 
+    mem_prev = process_memory()
+    time_prev = time.time()
     # Create the vectorized environments
     train_env = make_train_env(env_id=config['env']['train_env_id'],
                                config_path=config['env']['config_path'],
@@ -133,6 +135,16 @@ def train(config):
                              normalize_obs=not config['env']['dont_normalize_obs'],
                              part_data=partial_data,
                              log_file=log_file)
+
+    mem_loading_environment = process_memory()
+    time_loading_environment = time.time()
+    print("Loading environment consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}:".format(
+        float(mem_loading_environment - mem_prev) / 1000000,
+        float(mem_loading_environment) / 1000000,
+        time_loading_environment - time_prev),
+          file=log_file, flush=True)
+    mem_prev = mem_loading_environment
+    time_prev = time_loading_environment
 
     # Set specs
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
@@ -267,6 +279,16 @@ def train(config):
                                 callback=callback)
             timesteps += nominal_agent.num_timesteps
 
+    mem_before_training = process_memory()
+    time_before_training = time.time()
+    print("Setting model consumed memory: {0:.2f}/{1:.2f} and time: {2:.2f}".format(
+        float(mem_before_training - mem_prev) / 1000000,
+        float(mem_before_training) / 1000000,
+        time_before_training - time_prev),
+          file=log_file, flush=True)
+    mem_prev = mem_before_training
+    time_prev = time_before_training
+
     # Train
     start_time = time.time()
     # print(utils.colorize("\nBeginning training", color="green", bold=True), flush=True)
@@ -289,6 +311,15 @@ def train(config):
             forward_metrics = logger.Logger.CURRENT.name_to_value
             timesteps += nominal_agent.num_timesteps
 
+        mem_during_ppo_training = process_memory()
+        time_during_ppo_training = time.time()
+        print("Training PPO model consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
+            float(mem_during_ppo_training - mem_prev) / 1000000,
+            float(mem_during_ppo_training) / 1000000,
+            time_during_ppo_training - time_prev), file=log_file, flush=True)
+        mem_prev = mem_during_ppo_training
+        time_prev = time_during_ppo_training
+
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sampling_env)
         orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
@@ -301,6 +332,15 @@ def train(config):
                               )
         sample_obs, sample_acts, sample_rs = \
             sample_data_queue.get(sample_num=config['running']['sample_data_num'])
+
+        mem_during_sampling = process_memory()
+        time_during_sampling = time.time()
+        print("Sampling consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
+            float(mem_during_sampling - mem_prev) / 1000000,
+            float(mem_during_sampling) / 1000000,
+            time_during_sampling - time_prev), file=log_file, flush=True)
+        mem_prev = mem_during_sampling
+        time_prev = time_during_sampling
 
         # Update constraint net
         mean, var = None, None
@@ -315,6 +355,15 @@ def train(config):
                                                    obs_var=var,
                                                    current_progress_remaining=current_progress_remaining)
 
+        mem_during_cn_training = process_memory()
+        time_during_cn_training = time.time()
+        print("Training CN model consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
+            float(mem_during_cn_training - mem_prev) / 1000000,
+            float(mem_during_cn_training) / 1000000,
+            time_during_cn_training - time_prev), file=log_file, flush=True)
+        mem_prev = mem_during_cn_training
+        time_prev = time_during_cn_training
+
         # Pass updated cost_function to cost wrapper (train_env)
         train_env.set_cost_function(constraint_net.cost_function)
 
@@ -324,6 +373,16 @@ def train(config):
         average_true_reward, std_true_reward = evaluate_policy(nominal_agent, eval_env,
                                                                n_eval_episodes=config['running']['n_eval_episodes'],
                                                                deterministic=False)
+
+        mem_during_evaluation = process_memory()
+        time_during_evaluation = time.time()
+        print("Evaluation consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
+            float(mem_during_evaluation - mem_prev) / 1000000,
+            float(mem_during_evaluation) / 1000000,
+            time_during_evaluation - time_prev), file=log_file, flush=True)
+        mem_prev = mem_during_evaluation
+        time_prev = time_during_evaluation
+
         # Save
         # (1) periodically
         if itr % config['running']['save_every'] == 0:
