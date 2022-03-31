@@ -10,12 +10,10 @@ import random
 import gym
 import numpy as np
 import yaml
-
-from constraint_models.icrl.variational_constraint_net import VariationalConstraintNet
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 
+from constraint_models.icrl.variational_constraint_net import VariationalConstraintNet
 from constraint_models.icrl.constraint_net import ConstraintNet
 from exploration.exploration import ExplorationRewardCallback
 from stable_baselines3 import PPOLagrangian
