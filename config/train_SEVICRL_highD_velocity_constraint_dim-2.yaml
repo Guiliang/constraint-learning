@@ -1,5 +1,5 @@
-task: 'SSICRL-highD'
-group: 'SSICRL-highD'
+task: 'SEVICRL-highD'
+group: 'SEVICRL-highD'
 device: 'cuda'
 verbose: 1
 env:
@@ -21,6 +21,7 @@ running:
   save_every: 10
   expert_rollouts: 'all'
   sample_rollouts: 100
+  sample_data_num: 500000
   expert_path: '../data/expert_data/no-over_speed_train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/'
 
 PPO:
@@ -85,4 +86,5 @@ CN:
   cn_eps: 0.00001
   backward_iters: 10
   anneal_clr_by_factor: 0.9
+  di_prior: [1, 1]
 

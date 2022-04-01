@@ -6,8 +6,8 @@ import numpy as np
 
 
 def plot_curve(draw_keys, x_dict, y_dict, plot_name,
-               linewidth=3, xlabel=None, ylabel=None,
-               title=None,
+               ylim=(0, 1),
+               linewidth=3, xlabel=None, ylabel=None, title=None,
                apply_rainbow=False,
                img_size=(8, 5), axis_size=15, legend_size=15):
     import matplotlib as mpl
@@ -24,6 +24,7 @@ def plot_curve(draw_keys, x_dict, y_dict, plot_name,
         for key in draw_keys:
             plt.plot(x_dict[key], y_dict[key], label=key, linewidth=linewidth)
     ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%01.2lf'))
+    plt.ylim(ylim[0], ylim[1])
     if legend_size is not None:
         plt.legend(fontsize=legend_size, loc='upper right')
     if xlabel is not None:

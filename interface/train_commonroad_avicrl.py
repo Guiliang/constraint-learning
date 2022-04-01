@@ -1,11 +1,8 @@
 import datetime
-import importlib
 import json
 import os
-import pickle
 import sys
 import time
-import random
 
 import gym
 import numpy as np
@@ -14,18 +11,16 @@ import yaml
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 
-from constraint_models.avicrl.approximate_net import ApproximateNet
+from constraint_models.constraint_net.approximate_net import ApproximateNet
 from exploration.exploration import ExplorationRewardCallback
 from stable_baselines3 import PPOLagrangian
 from stable_baselines3.common import logger
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
-from tqdm import tqdm
 
-import environment.commonroad_rl.gym_commonroad  # this line must be included
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, get_obs_feature_names
-from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
+from utils.env_utils import make_train_env, make_eval_env
 from utils.model_utils import get_net_arch
 
 

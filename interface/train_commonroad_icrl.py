@@ -6,25 +6,22 @@ import pickle
 import sys
 import time
 import random
-
 import gym
 import numpy as np
 import yaml
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
-
-from constraint_models.icrl.variational_constraint_net import VariationalConstraintNet
-from constraint_models.icrl.constraint_net import ConstraintNet
+from constraint_models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
+from constraint_models.constraint_net.variational_constraint_net import VariationalConstraintNet
+from constraint_models.constraint_net.constraint_net import ConstraintNet
 from exploration.exploration import ExplorationRewardCallback
 from stable_baselines3 import PPOLagrangian
 from stable_baselines3.common import logger
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
-from tqdm import tqdm
-
-import environment.commonroad_rl.gym_commonroad  # this line must be included
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
-    get_obs_feature_names, get_input_features_dim, IRLDataQueue, process_memory
+    get_obs_feature_names, get_input_features_dim, IRLDataQueue, process_memory, print_resource
 from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
 from utils.model_utils import get_net_arch
 
@@ -59,6 +56,8 @@ def train(config):
         config['running']['sample_rollouts'] = 10
         config['running']['sample_data_num'] = 500
         config['running']['store_sample_num'] = 1000
+        config['CN']['cn_batch_size'] = 3
+        config['CN']['backward_iters'] = 1
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
@@ -81,6 +80,15 @@ def train(config):
         debug_msg,
         seed
     )
+
+    if config['task'] == 'ICRL-highD':
+        store_by_game = False
+    elif config['task'] == 'VICRL-highD':
+        store_by_game = False
+    elif config['task'] == 'SEVICRL-highD':
+        store_by_game = True
+    else:
+        raise ValueError("Unknown constraint model {0}".format(config['task']))
 
     if not os.path.exists(save_model_mother_dir):
         os.mkdir(save_model_mother_dir)
@@ -133,15 +141,8 @@ def train(config):
                              part_data=partial_data,
                              log_file=log_file)
 
-    mem_loading_environment = process_memory()
-    time_loading_environment = time.time()
-    print("Loading environment consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}:".format(
-        float(mem_loading_environment - mem_prev) / 1000000,
-        float(mem_loading_environment) / 1000000,
-        time_loading_environment - time_prev),
-        file=log_file, flush=True)
-    mem_prev = mem_loading_environment
-    time_prev = time_loading_environment
+    mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                         process_name='Loading environment', log_file=log_file)
 
     # Set specs
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
@@ -158,11 +159,14 @@ def train(config):
         expert_path = expert_path.replace('expert_data/', 'expert_data/debug_')
     (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
         expert_path=expert_path,
+        store_by_game=store_by_game,
         add_next_step=False,
-        # num_rollouts=config['running']['expert_rollouts'],
         log_file=log_file
     )
-    expert_obs_mean = np.mean(expert_obs, axis=0).tolist()
+    if store_by_game:
+        expert_obs_mean = np.mean(np.concatenate(expert_obs, axis=0), axis=0).tolist()
+    else:
+        expert_obs_mean = np.mean(expert_obs, axis=0).tolist()
     expert_obs_mean = ['%.5f' % elem for elem in expert_obs_mean]
     expert_obs_mean_dict = dict(zip(all_obs_feature_names, expert_obs_mean))
     print("The expert features means are: {0}".format(expert_obs_mean_dict),
@@ -220,8 +224,11 @@ def train(config):
     if config['task'] == 'ICRL-highD':
         constraint_net = ConstraintNet(**cn_parameters)
     elif config['task'] == 'VICRL-highD':
-        cn_parameters.update({'di_prior': config['CN']['di_prior'],})
+        cn_parameters.update({'di_prior': config['CN']['di_prior'], })
         constraint_net = VariationalConstraintNet(**cn_parameters)
+    elif config['task'] == 'SEVICRL-highD':
+        cn_parameters.update({'di_prior': config['CN']['di_prior'], })
+        constraint_net = SelfExplainableVariationalConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown constraint model {0}".format(config['task']))
 
@@ -287,15 +294,8 @@ def train(config):
                                 callback=callback)
             timesteps += nominal_agent.num_timesteps
 
-    mem_before_training = process_memory()
-    time_before_training = time.time()
-    print("Setting model consumed memory: {0:.2f}/{1:.2f} and time: {2:.2f}".format(
-        float(mem_before_training - mem_prev) / 1000000,
-        float(mem_before_training) / 1000000,
-        time_before_training - time_prev),
-        file=log_file, flush=True)
-    mem_prev = mem_before_training
-    time_prev = time_before_training
+    mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                         process_name='Setting model', log_file=log_file)
 
     # Train
     start_time = time.time()
@@ -319,37 +319,26 @@ def train(config):
             forward_metrics = logger.Logger.CURRENT.name_to_value
             timesteps += nominal_agent.num_timesteps
 
-        mem_during_ppo_training = process_memory()
-        time_during_ppo_training = time.time()
-        print("Training PPO model consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
-            float(mem_during_ppo_training - mem_prev) / 1000000,
-            float(mem_during_ppo_training) / 1000000,
-            time_during_ppo_training - time_prev), file=log_file, flush=True)
-        mem_prev = mem_during_ppo_training
-        time_prev = time_during_ppo_training
-
+        mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                             process_name='Training PPO model', log_file=log_file)
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sampling_env)
         orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
             agent=nominal_agent,
             env=sampling_env,
-            rollouts=config['running']['sample_rollouts'])
+            rollouts=config['running']['sample_rollouts'],
+            store_by_game=store_by_game,
+        )
         sample_data_queue.put(obs=orig_observations,
                               acs=actions,
                               rs=rewards
                               )
         sample_obs, sample_acts, sample_rs = \
-            sample_data_queue.get(sample_num=config['running']['sample_data_num'])
+            sample_data_queue.get(sample_num=config['running']['sample_data_num'],
+                                  store_by_game=store_by_game,)
 
-        mem_during_sampling = process_memory()
-        time_during_sampling = time.time()
-        print("Sampling consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
-            float(mem_during_sampling - mem_prev) / 1000000,
-            float(mem_during_sampling) / 1000000,
-            time_during_sampling - time_prev), file=log_file, flush=True)
-        mem_prev = mem_during_sampling
-        time_prev = time_during_sampling
-
+        mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                             process_name='Sampling', log_file=log_file)
         # Update constraint net
         mean, var = None, None
         if config['CN']['cn_normalize']:
@@ -363,14 +352,8 @@ def train(config):
                                                    obs_var=var,
                                                    current_progress_remaining=current_progress_remaining)
 
-        mem_during_cn_training = process_memory()
-        time_during_cn_training = time.time()
-        print("Training CN model consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
-            float(mem_during_cn_training - mem_prev) / 1000000,
-            float(mem_during_cn_training) / 1000000,
-            time_during_cn_training - time_prev), file=log_file, flush=True)
-        mem_prev = mem_during_cn_training
-        time_prev = time_during_cn_training
+        mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                             process_name='Training CN model', log_file=log_file)
 
         # Pass updated cost_function to cost wrapper (train_env)
         train_env.set_cost_function(constraint_net.cost_function)
@@ -381,15 +364,8 @@ def train(config):
         average_true_reward, std_true_reward = evaluate_policy(nominal_agent, eval_env,
                                                                n_eval_episodes=config['running']['n_eval_episodes'],
                                                                deterministic=False)
-
-        mem_during_evaluation = process_memory()
-        time_during_evaluation = time.time()
-        print("Evaluation consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
-            float(mem_during_evaluation - mem_prev) / 1000000,
-            float(mem_during_evaluation) / 1000000,
-            time_during_evaluation - time_prev), file=log_file, flush=True)
-        mem_prev = mem_during_evaluation
-        time_prev = time_during_evaluation
+        mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                             process_name='Evaluation', log_file=log_file)
 
         # Save
         # (1) periodically

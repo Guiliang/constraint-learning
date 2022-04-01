@@ -9,7 +9,7 @@ import yaml
 from gym import Env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3 import PPOLagrangian
-from constraint_models.icrl.constraint_net import ConstraintNet
+from constraint_models.constraint_net.constraint_net import ConstraintNet
 from environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
 

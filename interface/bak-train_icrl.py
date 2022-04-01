@@ -11,7 +11,7 @@ import gym
 import numpy as np
 import yaml
 
-from constraint_models.icrl.constraint_net import ConstraintNet
+from constraint_models.constraint_net.constraint_net import ConstraintNet
 from exploration.exploration import ExplorationRewardCallback
 from stable_baselines3 import PPOLagrangian
 from stable_baselines3.common import logger

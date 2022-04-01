@@ -4,6 +4,7 @@ import pickle
 import shutil
 import random
 from collections import deque
+import time
 from queue import Queue
 
 import psutil
@@ -141,6 +142,10 @@ def read_running_logs(log_path, read_keys):
 
     key_indices = {}
     record_keys = running_logs[1].replace('\n', '').split(',')
+
+    if len(record_keys) > 10:
+        raise ValueError("Something wrong with the file {0}".format(log_path))
+
     for key in read_keys:
         key_idx = record_keys.index(key)
         key_indices.update({key: key_idx})
@@ -332,6 +337,28 @@ def get_input_features_dim(feature_select_names, all_feature_names):
     return feature_select_dim
 
 
+def average_plot_results(all_results):
+    results_avg = {}
+    for key in all_results[0]:
+        all_plot_values = []
+        max_len = 0
+        for results in all_results:
+            plot_values = results[key]
+            if len(plot_values) > max_len:
+                max_len = len(plot_values)
+            all_plot_values.append(plot_values)
+        avg_plot_values = []
+        for i in range(max_len):
+            plot_value_t = []
+            for plot_values in all_plot_values:
+                if len(plot_values) > i:
+                    plot_value_t.append(plot_values[i])
+            avg_plot_values.append(np.mean(plot_value_t))
+        results_avg.update({key: avg_plot_values})
+
+    return results_avg
+
+
 class IRLDataQueue:
     def __init__(self, max_length=100000, seed=123):
         self.store_obs = []
@@ -354,13 +381,35 @@ class IRLDataQueue:
             self.store_acts.append(acs[data_idx])
             self.store_rs.append(rs[data_idx])
 
-    def get(self, sample_num):
+    def get(self, sample_num, store_by_game=False,):
         sample_obs = []
         sample_acs = []
         sample_rs = []
-        for i in range(sample_num):
+        data_len = 0
+        while True:
             rand_idx = random.randint(0, len(self.store_obs) - 1)
             sample_obs.append(self.store_obs[rand_idx])
             sample_acs.append(self.store_acts[rand_idx])
             sample_rs.append(self.store_rs[rand_idx])
-        return np.asarray(sample_obs), np.asarray(sample_acs), np.asarray(sample_rs)
+            if store_by_game:  # sample the trajectory of a game
+                data_len += len(self.store_obs[rand_idx])
+            else:  # sample a data point
+                data_len += 1
+            if data_len >= sample_num:
+                break
+
+        if store_by_game:
+            return sample_obs, sample_acs, sample_rs
+        else:
+            return np.asarray(sample_obs), np.asarray(sample_acs), np.asarray(sample_rs)
+
+
+def print_resource(mem_prev, time_prev, process_name, log_file):
+    mem_current = process_memory()
+    time_current = time.time()
+    print("{0} consumed memory: {1:.2f}/{2:.2f} and time {3:.2f}".format(
+        process_name,
+        float(mem_current - mem_prev) / 1000000,
+        float(mem_current) / 1000000,
+        time_current - time_prev), file=log_file, flush=True)
+    return mem_current, time_current

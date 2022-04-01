@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch as th
 
-from constraint_models.icrl.constraint_net import ConstraintNet
+from constraint_models.constraint_net.constraint_net import ConstraintNet
 from stable_baselines3.common.torch_layers import create_mlp
 from stable_baselines3.common.utils import update_learning_rate
 from torch import nn
@@ -27,7 +27,7 @@ class VariationalConstraintNet(ConstraintNet):
             expert_obs: np.ndarray,
             expert_acs: np.ndarray,
             is_discrete: bool,
-            task: str = 'ICRL',
+            task: str = 'VICRL',
             regularizer_coeff: float = 0.,
             obs_select_dim: Optional[Tuple[int, ...]] = None,
             acs_select_dim: Optional[Tuple[int, ...]] = None,
@@ -46,6 +46,7 @@ class VariationalConstraintNet(ConstraintNet):
             eps: float = 1e-5,
             device: str = "cpu",
             di_prior: list = [1, 1],
+            log_file=None,
     ):
         assert 'VICRL' in task
         super().__init__(obs_dim=obs_dim,
@@ -73,7 +74,9 @@ class VariationalConstraintNet(ConstraintNet):
                          target_kl_new_old=target_kl_new_old,
                          train_gail_lambda=train_gail_lambda,
                          eps=eps,
-                         device=device)
+                         device=device,
+                         log_file=log_file,
+                         )
         self.dir_prior = di_prior
         assert 'VICRL' in self.task
         # self._build()
@@ -97,24 +100,7 @@ class VariationalConstraintNet(ConstraintNet):
         alpha = alpha_beta[:, 0]
         beta = alpha_beta[:, 1]
         pred = torch.distributions.Beta(alpha, beta).rsample()
-        return alpha, beta, pred
-
-    def cost_function(self, obs: np.ndarray, acs: np.ndarray) -> np.ndarray:
-        assert obs.shape[-1] == self.obs_dim, ""
-        if not self.is_discrete:
-            assert acs.shape[-1] == self.acs_dim, ""
-
-        x = self.prepare_data(obs, acs)
-        with th.no_grad():
-            out, _, _ = self.__call__(x)
-        cost = 1 - out.detach().cpu().numpy()
-        # return cost.squeeze(axis=-1)
-        return cost
-
-    def call_forward(self, x: np.ndarray):
-        with th.no_grad():
-            out, _, _ = self.__call__(x)
-        return out
+        return pred
 
     def kl_regularizer_loss(self, batch_size, alpha, beta):
         # prior = (torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior).to(self.device)
@@ -186,8 +172,17 @@ class VariationalConstraintNet(ConstraintNet):
                 is_batch = is_weights[nom_batch_indices][..., None]
 
                 # Make predictions
-                nominal_alpha, nominal_beta, nominal_preds = self.__call__(nominal_batch)
-                expert_alpha, expert_beta, expert_preds = self.__call__(expert_batch)
+
+                nominal_alpha_beta = self.network(nominal_batch)
+                nominal_alpha = nominal_alpha_beta[:, 0]
+                nominal_beta = nominal_alpha_beta[:, 1]
+                nominal_preds = torch.distributions.Beta(nominal_alpha, nominal_beta).rsample()
+
+                expert_alpha_beta = self.network(expert_batch)
+                expert_alpha = expert_alpha_beta[:, 0]
+                expert_beta = expert_alpha_beta[:, 1]
+                expert_preds = torch.distributions.Beta(expert_alpha, expert_beta).rsample()
+
                 # Calculate loss
                 if self.train_gail_lambda:
                     nominal_loss = self.criterion(nominal_preds, th.zeros(*nominal_preds.size()))

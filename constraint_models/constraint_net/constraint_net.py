@@ -42,7 +42,8 @@ class ConstraintNet(nn.Module):
             target_kl_new_old: float = -1,
             train_gail_lambda: Optional[bool] = False,
             eps: float = 1e-5,
-            device: str = "cpu"
+            device: str = "cpu",
+            log_file=None
     ):
         super(ConstraintNet, self).__init__()
         self.task = task
@@ -85,23 +86,25 @@ class ConstraintNet(nn.Module):
         self.target_kl_new_old = target_kl_new_old
 
         self.current_progress_remaining = 1.
+        self.log_file = log_file
 
         self._build()
 
     def _define_input_dims(self) -> None:
-        self.select_dim = []
+        self.select_obs_dim = []
+        self.select_acs_dim = []
         if self.obs_select_dim is None:
-            self.select_dim += [i for i in range(self.obs_dim)]
+            self.select_obs_dim += [i for i in range(self.obs_dim)]
         elif self.obs_select_dim[0] != -1:
-            self.select_dim += self.obs_select_dim
-        obs_len = len(self.select_dim)
+            self.select_obs_dim += self.obs_select_dim
+        obs_len = len(self.select_obs_dim)
         if self.acs_select_dim is None:
-            self.select_dim += [i + obs_len for i in range(self.acs_dim)]
+            self.select_acs_dim += [i for i in range(self.acs_dim)]
         elif self.acs_select_dim[0] != -1:
-            self.select_dim += [i + obs_len for i in self.acs_select_dim]
-        assert len(self.select_dim) > 0, ""
-        acs_len = len(self.select_dim) - obs_len
+            self.select_acs_dim += self.acs_select_dim
+        self.select_dim = self.select_obs_dim + [i+obs_len for i in self.select_acs_dim]
         self.input_dims = len(self.select_dim)
+        assert self.input_dims > 0, ""
 
     def _build(self) -> None:
 
@@ -300,12 +303,14 @@ class ConstraintNet(nn.Module):
         acs = self.reshape_actions(acs)
         acs = self.clip_actions(acs, self.action_low, self.action_high)
 
-        concat = self.select_appropriate_dims(np.concatenate([obs, acs], axis=-1))
+        concat = self.select_appropriate_dims(select_dim=self.select_dim, x=np.concatenate([obs, acs], axis=-1))
 
         return th.tensor(concat, dtype=th.float32).to(self.device)
 
-    def select_appropriate_dims(self, x: Union[np.ndarray, th.tensor]) -> Union[np.ndarray, th.tensor]:
-        return x[..., self.select_dim]
+    def select_appropriate_dims(self, select_dim: list, x: Union[np.ndarray, torch.tensor]) -> Union[
+        np.ndarray, torch.tensor]:
+        return x[..., select_dim]
+
 
     def normalize_obs(self, obs: np.ndarray, mean: Optional[float] = None, var: Optional[float] = None,
                       clip_obs: Optional[float] = None) -> np.ndarray:
