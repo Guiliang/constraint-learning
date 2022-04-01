@@ -180,11 +180,13 @@ def train(config):
                                * config['CN']['cn_learning_rate']
 
     cn_obs_select_name = config['CN']['cn_obs_select_name']
-    print("Selecting obs features are : {0}".format(cn_obs_select_name), file=log_file, flush=True)
+    print("Selecting obs features are : {0}".format(cn_obs_select_name if len(cn_obs_select_name) > 0 else 'all'),
+          file=log_file, flush=True)
     cn_obs_select_dim = get_input_features_dim(feature_select_names=cn_obs_select_name,
                                                all_feature_names=all_obs_feature_names)
     cn_acs_select_name = config['CN']['cn_acs_select_name']
-    print("Selecting acs features are : {0}".format(cn_acs_select_name), file=log_file, flush=True)
+    print("Selecting acs features are : {0}".format(cn_acs_select_name if len(cn_acs_select_name) > 0 else 'all'),
+          file=log_file, flush=True)
     cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
                                                all_feature_names=['a_ego_0', 'a_ego_1'])
 
@@ -213,12 +215,12 @@ def train(config):
         'eps': config['CN']['cn_eps'],
         'device': config['device'],
         'task': config['task'],
-        'di_prior': config['CN']['di_prior'],
     }
 
     if config['task'] == 'ICRL-highD':
         constraint_net = ConstraintNet(**cn_parameters)
     elif config['task'] == 'VICRL-highD':
+        cn_parameters.update({'di_prior': config['CN']['di_prior'],})
         constraint_net = VariationalConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown constraint model {0}".format(config['task']))
