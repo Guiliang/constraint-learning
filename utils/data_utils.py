@@ -347,6 +347,7 @@ def average_plot_results(all_results):
             if len(plot_values) > max_len:
                 max_len = len(plot_values)
             all_plot_values.append(plot_values)
+        # max_len = 1000
         avg_plot_values = []
         for i in range(max_len):
             plot_value_t = []

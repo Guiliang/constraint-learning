@@ -33,7 +33,7 @@ def generate_plots():
                            'avg_velocity': (20, 50),
                            'is_over_speed': (0, 1)}
 
-        file_type = "VICRL_highD_velocity-dim2-buff"
+        file_type = "PPO_highD_velocity"
 
         log_path_dict = {
             "PPO_highD_velocity": [

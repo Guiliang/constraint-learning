@@ -133,12 +133,17 @@ def train(args):
     else:
         ppo_logger = logger.HumanOutputFormat(log_file)
 
+    if config['PPO']['batch_size'] == -1:
+        batch_size = config['PPO']['n_steps'] * num_threads
+    else:
+        batch_size = config['PPO']['batch_size']
+
     create_ppo_agent = lambda: PPO(
         policy=config['PPO']['policy_name'],
         env=train_env,
         learning_rate=config['PPO']['learning_rate'],
         n_steps=config['PPO']['n_steps'],
-        batch_size=config['PPO']['batch_size'],
+        batch_size=batch_size,
         n_epochs=config['PPO']['n_epochs'],
         gamma=config['PPO']['reward_gamma'],
         gae_lambda=config['PPO']['reward_gae_lambda'],
