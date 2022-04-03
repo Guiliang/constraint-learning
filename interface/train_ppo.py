@@ -10,7 +10,7 @@ import yaml
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 
-import environment.commonroad_rl.gym_commonroad  # this line must be included
+import commonroad_environment.commonroad_rl.gym_commonroad  # this line must be included
 from exploration.exploration import ExplorationRewardCallback
 from stable_baselines3 import PPO
 from stable_baselines3.common import logger

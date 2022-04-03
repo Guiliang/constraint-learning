@@ -81,11 +81,11 @@ def train(config):
         seed
     )
 
-    if config['task'] == 'ICRL-highD':
+    if 'ICRL' in config['task']:
         store_by_game = False
-    elif config['task'] == 'VICRL-highD':
+    elif 'VICRL' in config['task']:
         store_by_game = False
-    elif config['task'] == 'SEVICRL-highD':
+    elif 'SEVICRL' in config['task']:
         store_by_game = True
     else:
         raise ValueError("Unknown constraint model {0}".format(config['task']))
@@ -221,12 +221,12 @@ def train(config):
         'task': config['task'],
     }
 
-    if config['task'] == 'ICRL-highD':
+    if 'ICRL' in config['task']:
         constraint_net = ConstraintNet(**cn_parameters)
-    elif config['task'] == 'VICRL-highD':
+    elif 'VICRL' in config['task']:
         cn_parameters.update({'di_prior': config['CN']['di_prior'], })
         constraint_net = VariationalConstraintNet(**cn_parameters)
-    elif config['task'] == 'SEVICRL-highD':
+    elif 'SEVICRL' in config['task']:
         cn_parameters.update({'di_prior': config['CN']['di_prior'], })
         constraint_net = SelfExplainableVariationalConstraintNet(**cn_parameters)
     else:

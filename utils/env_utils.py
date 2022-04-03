@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import gym
 import yaml
-import environment.commonroad_rl.gym_commonroad
+import commonroad_environment.commonroad_rl.gym_commonroad
 import stable_baselines3.common.vec_env as vec_env
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import Monitor
@@ -63,22 +63,30 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
     if normalize_reward and normalize_cost:
         assert (all(key in kwargs for key in ['cost_info_str', 'reward_gamma', 'cost_gamma']))
         env = vec_env.VecNormalizeWithCost(
-            env, training=True, norm_obs=normalize_obs, norm_reward=normalize_reward,
-            norm_cost=normalize_cost, cost_info_str=kwargs['cost_info_str'],
-            reward_gamma=kwargs['reward_gamma'], cost_gamma=kwargs['cost_gamma'])
+            env, training=True,
+            norm_obs=normalize_obs,
+            norm_reward=normalize_reward,
+            norm_cost=normalize_cost,
+            cost_info_str=kwargs['cost_info_str'],
+            reward_gamma=kwargs['reward_gamma'],
+            cost_gamma=kwargs['cost_gamma'])
     else:
         if use_cost:
             assert (all(key in kwargs for key in ['reward_gamma', 'cost_gamma']))
             env = vec_env.VecNormalizeWithCost(
-                env, training=True, norm_obs=normalize_obs,
-                norm_reward=normalize_reward, norm_cost=normalize_cost,
+                env, training=True,
+                norm_obs=normalize_obs,
+                norm_reward=normalize_reward,
+                norm_cost=normalize_cost,
                 reward_gamma=kwargs['reward_gamma'],
                 cost_gamma=kwargs['cost_gamma'])
         else:
             assert (all(key in kwargs for key in ['reward_gamma']))
             env = vec_env.VecNormalize(
-                env, training=True,
-                norm_obs=normalize_obs, norm_reward=normalize_reward,
+                env,
+                training=True,
+                norm_obs=normalize_obs,
+                norm_reward=normalize_reward,
                 gamma=kwargs['reward_gamma'])
     # else:
     #     if use_cost:

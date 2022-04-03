@@ -12,8 +12,8 @@ log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
 conda activate galen-cr37
 cd ./interface/
-#python train_commonroad_icrl.py ../config/train_ICRL_highD_collision_constraint.yaml -s 123  -p 1 -l "$log_dir"
-#python train_commonroad_icrl.py ../config/train_ICRL_highD_collision_constraint.yaml -s 123   -n 5 -l "$log_dir"
-python train_commonroad_icrl.py ../config/train_ICRL_highD_velocity_constraint_no_is.yaml -s 321 -n 5 -l "$log_dir"
-#python train_commonroad_icrl.py ../config/train_ICRL_highD_velocity_constraint_no_is_dim-2.yaml -s 123  -n 5 -l "$log_dir"
-#python train_commonroad_icrl.py ../config/train_ICRL_highD_velocity_constraint_no_is_dim-3.yaml -s 321 -n 5 -l "$log_dir"
+#python train_icrl.py ../config/train_ICRL_highD_collision_constraint.yaml -s 123  -p 1 -l "$log_dir"
+#python train_icrl.py ../config/train_ICRL_highD_collision_constraint.yaml -s 123   -n 5 -l "$log_dir"
+python train_icrl.py ../config/train_ICRL_highD_velocity_constraint_no_is.yaml -s 321 -n 5 -l "$log_dir"
+#python train_icrl.py ../config/train_ICRL_highD_velocity_constraint_no_is_dim-2.yaml -s 123  -n 5 -l "$log_dir"
+#python train_icrl.py ../config/train_ICRL_highD_velocity_constraint_no_is_dim-3.yaml -s 321 -n 5 -l "$log_dir"

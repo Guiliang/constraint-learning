@@ -12,4 +12,4 @@ log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
 conda activate galen-cr37
 cd ./interface/
-python train_commonroad_ppo.py ../config/train_ppo_inD.yaml -l "$log_dir"
+python train_ppo.py ../config/train_ppo_inD.yaml -l "$log_dir"

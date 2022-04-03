@@ -9,7 +9,7 @@ import yaml
 from gym import Env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3 import PPO
-from environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
+from commonroad_environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
 
 from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model, get_obs_feature_names

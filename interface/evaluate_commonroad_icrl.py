@@ -10,7 +10,7 @@ from gym import Env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3 import PPOLagrangian
 from constraint_models.constraint_net.constraint_net import ConstraintNet
-from environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
+from commonroad_environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 
 
 from utils.data_utils import load_config, read_args, save_game_record

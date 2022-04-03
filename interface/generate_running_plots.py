@@ -25,7 +25,7 @@ def generate_plots():
 
         plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out', 'avg_velocity',
                     'is_over_speed']
-        plot_y_lim_dict = {'reward': (-40, 40),
+        plot_y_lim_dict = {'reward': (-50, 50),
                            'is_collision': (0, 1),
                            'is_off_road': (0, 1),
                            'is_goal_reached': (0, 1),
@@ -33,7 +33,7 @@ def generate_plots():
                            'avg_velocity': (20, 50),
                            'is_over_speed': (0, 1)}
 
-        file_type = "PPO_highD_no-velocitybs--1_fs-5k_nee-10"
+        file_type = "VICRL_highD_velocity-dim2-buff"
 
         log_path_dict = {
             "PPO_highD_velocity": [

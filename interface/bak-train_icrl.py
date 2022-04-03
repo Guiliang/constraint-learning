@@ -19,7 +19,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from tqdm import tqdm
 
-import environment.commonroad_rl.gym_commonroad  # this line must be included
+import commonroad_environment.commonroad_rl.gym_commonroad  # this line must be included
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make
 from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
 from utils.model_utils import get_net_arch
