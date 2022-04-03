@@ -81,9 +81,9 @@ reward_configs_sparse:
   reward_friction_violation: 0.
 external_reward:
   reward_features: ['velocity']
-  feature_bounds: [['-inf', 40]]
-  feature_penalties: [-50]
-  terminate: [True]
+  feature_bounds: [['-inf', 45]]
+  feature_penalties: [0]
+  terminate: [False]
 surrounding_configs:
   dummy_dist: 100.0
   dummy_dist_rate: 0.0

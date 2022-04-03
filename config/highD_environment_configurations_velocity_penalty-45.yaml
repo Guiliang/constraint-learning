@@ -81,7 +81,7 @@ reward_configs_sparse:
   reward_friction_violation: 0.
 external_reward:
   reward_features: ['velocity']
-  feature_bounds: [['-inf', 40]]
+  feature_bounds: [['-inf', 45]]
   feature_penalties: [-50]
   terminate: [True]
 surrounding_configs:

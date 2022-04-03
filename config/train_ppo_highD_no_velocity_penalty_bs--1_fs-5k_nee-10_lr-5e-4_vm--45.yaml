@@ -3,7 +3,7 @@ group: 'PPO-highD'
 device: 'cuda'
 verbose: 1
 env:
-  config_path: "../config/highD_environment_configurations_no_velocity_penalty-50.yaml"
+  config_path: "../config/highD_environment_configurations_no_velocity_penalty-45.yaml"
   train_env_id : 'commonroad-v1'
   eval_env_id: 'commonroad-v1'
   save_dir: '../save_model'
@@ -25,7 +25,7 @@ running:
 
 PPO:
   policy_name: 'MlpPolicy'
-  learning_rate: 0.00005 # 0.0003
+  learning_rate: 0.0005 # 0.0003
   n_steps: 1024 #2048
   n_epochs: 10
   clip_obs: 20

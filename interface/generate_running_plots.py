@@ -33,7 +33,7 @@ def generate_plots():
                            'avg_velocity': (20, 50),
                            'is_over_speed': (0, 1)}
 
-        file_type = "PPO_highD_velocity"
+        file_type = "PPO_highD_no-velocitybs--1_fs-5k_nee-10"
 
         log_path_dict = {
             "PPO_highD_velocity": [
@@ -43,6 +43,9 @@ def generate_plots():
             "PPO_highD_no-velocity": [
                 '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty-multi_env-Mar-20-2022-10:18-seed_123/',
                 '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty-multi_env-Mar-21-2022-05:30-seed_123/'
+            ],
+            "PPO_highD_no-velocitybs--1_fs-5k_nee-10": [
+                '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10-multi_env-Apr-02-2022-01:16-seed_123/'
             ],
             "ICRL_highD_velocity-dim2": [
                 '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-00:37/',
