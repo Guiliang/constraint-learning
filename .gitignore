@@ -156,7 +156,7 @@ venv.bak/
 # for this project
 save_model/*
 evaluate_model/*
-environment/*
+commonroad_environment/*
 bak-environment/*
 data/highD/*
 data/inD/*
