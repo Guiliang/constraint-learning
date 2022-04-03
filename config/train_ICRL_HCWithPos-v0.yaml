@@ -3,7 +3,7 @@ group: 'ICRL-HC'
 device: 'cuda'
 verbose: 2
 env:
-  config_path: "../config/highD_environment_configurations_no_offroad.yaml"
+  config_path: -1
   train_env_id : 'HCWithPos-v0'
   eval_env_id: 'HCWithPosTest-v0'
   save_dir: '../save_model'

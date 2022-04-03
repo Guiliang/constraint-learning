@@ -113,7 +113,7 @@ def train(config):
                                cost_gamma=config['env']['cost_gamma'],
                                multi_env=multi_env,
                                part_data=partial_data, )
-    all_obs_feature_names = get_obs_feature_names(train_env)
+    all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
     print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
 
     # We don't need cost when taking samples

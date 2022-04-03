@@ -309,17 +309,20 @@ def get_benchmark_ids(num_threads, benchmark_idx, benchmark_total_nums, env_ids)
     return benchmark_ids
 
 
-def get_obs_feature_names(env):
-    try:  # we need to change this setting if you modify the number of env wrappers.
-        observation_space_dict = env.venv.envs[0].env.env.env.observation_collector.observation_space_dict
-    except:
-        observation_space_dict = env.venv.envs[0].env.env.observation_collector.observation_space_dict
-    observation_space_names = observation_space_dict.keys()
+def get_obs_feature_names(env, env_id):
     feature_names = []
-    for key in observation_space_names:
-        feature_len = observation_space_dict[key].shape[0]
-        for i in range(feature_len):
-            feature_names.append(key + '_' + str(i))
+    if 'commonroad' in env_id:
+        try:  # we need to change this setting if you modify the number of env wrappers.
+            observation_space_dict = env.venv.envs[0].env.env.env.observation_collector.observation_space_dict
+        except:
+            observation_space_dict = env.venv.envs[0].env.env.observation_collector.observation_space_dict
+        observation_space_names = observation_space_dict.keys()
+        for key in observation_space_names:
+            feature_len = observation_space_dict[key].shape[0]
+            for i in range(feature_len):
+                feature_names.append(key + '_' + str(i))
+    if 'HC' in env_id:
+        feature_names.append('(pls visit: {0})'.format('https://github.com/openai/gym/blob/master/gym/envs/mujoco/assets/half_cheetah.xml'))
     return feature_names
 
 

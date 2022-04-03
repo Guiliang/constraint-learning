@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import gym
 import yaml
-import commonroad_environment.commonroad_rl.gym_commonroad
 import stable_baselines3.common.vec_env as vec_env
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import Monitor
@@ -16,6 +15,12 @@ from stable_baselines3.common.preprocessing import is_image_space
 
 def make_env(env_id, env_configs, rank, log_dir, multi_env=False, seed=0):
     def _init():
+        if 'commonroad' in env_id:
+            # import commonroad_environment.commonroad_rl.gym_commonroad
+            from commonroad_environment.commonroad_rl import gym_commonroad
+        elif 'HC' in env_id:
+            from mujuco_environment.custom_envs.envs import half_cheetah
+
         if multi_env:
             env_configs_copy = copy(env_configs)
             env_configs_copy.update({'train_reset_config_path': env_configs['train_reset_config_path'] + '/{0}'.format(rank)}),
@@ -41,14 +46,17 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
                    use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True, multi_env=False,
                    log_file=None, part_data=False,
                    **kwargs):
-    with open(config_path, "r") as config_file:
-        env_configs = yaml.safe_load(config_file)
-    if multi_env:
-        env_configs['train_reset_config_path'] += '_split'
-    if part_data:
-        env_configs['train_reset_config_path'] += '_debug'
-        env_configs['test_reset_config_path'] += '_debug'
-        env_configs['meta_scenario_path'] += '_debug'
+    if config_path != -1:
+        with open(config_path, "r") as config_file:
+            env_configs = yaml.safe_load(config_file)
+            if multi_env:
+                env_configs['train_reset_config_path'] += '_split'
+            if part_data:
+                env_configs['train_reset_config_path'] += '_debug'
+                env_configs['test_reset_config_path'] += '_debug'
+                env_configs['meta_scenario_path'] += '_debug'
+    else:
+        env_configs = {}
     env = [make_env(env_id=env_id,
                     env_configs=env_configs,
                     rank=i,
@@ -101,13 +109,17 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
 
 def make_eval_env(env_id, config_path, save_dir, mode='test', use_cost=False, normalize_obs=True,
                   part_data=False, log_file=None):
-    with open(config_path, "r") as config_file:
-        env_configs = yaml.safe_load(config_file)
-    if part_data:
-        env_configs['train_reset_config_path'] += '_debug'
-        env_configs['test_reset_config_path'] += '_debug'
-        env_configs['meta_scenario_path'] += '_debug'
-    env_configs["test_env"] = True
+
+    if config_path != -1:
+        with open(config_path, "r") as config_file:
+            env_configs = yaml.safe_load(config_file)
+            if part_data:
+                env_configs['train_reset_config_path'] += '_debug'
+                env_configs['test_reset_config_path'] += '_debug'
+                env_configs['meta_scenario_path'] += '_debug'
+        env_configs["test_env"] = True
+    else:
+        env_configs = {}
     # env = [lambda: gym.make(env_id, **env_configs)]
     env = [make_env(env_id, env_configs, 0, os.path.join(save_dir, mode))]
     env = vec_env.DummyVecEnv(env)
