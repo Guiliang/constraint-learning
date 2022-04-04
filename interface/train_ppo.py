@@ -72,6 +72,8 @@ def train(args):
         seed
     )
 
+    if not os.path.exists('{0}/{1}/'.format(config['env']['save_dir'], config['task'])):
+        os.mkdir('{0}/{1}/'.format(config['env']['save_dir'], config['task']))
     if not os.path.exists(save_model_mother_dir):
         os.mkdir(save_model_mother_dir)
 

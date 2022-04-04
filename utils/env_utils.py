@@ -49,7 +49,7 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
                    use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True, multi_env=False,
                    log_file=None, part_data=False,
                    **kwargs):
-    if config_path != -1:
+    if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
             if multi_env:
@@ -113,7 +113,7 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
 def make_eval_env(env_id, config_path, save_dir, mode='test', use_cost=False, normalize_obs=True,
                   part_data=False, log_file=None):
 
-    if config_path != -1:
+    if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
             if part_data:

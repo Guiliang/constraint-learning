@@ -1,19 +1,17 @@
-task: 'ICRL-HC'
-group: 'ICRL-HC'
+task: 'VICRL-HC'
+group: 'VICRL-HC'
 device: 'cuda'
-verbose: 2
+verbose: 1
 env:
   config_path: null
   train_env_id : 'HCWithPos-v0'
-  eval_env_id: 'HCWithPosTest-v0'
+  eval_env_id: 'HCWithPos-v0'
   save_dir: '../save_model'
-#  expert_path: 'expert_data'
-#  expert_rollouts: 10
   cost_info_str: 'cost'
   num_threads: 5
   use_cost: True
   reward_gamma: 0.99
-  cost_gamma: 0.99  # no cost
+  cost_gamma: 0.99
   dont_normalize_obs: False
   dont_normalize_reward: False
   dont_normalize_cost: False  # no cost
@@ -87,3 +85,5 @@ CN:
   cn_eps: 0.00001
   backward_iters: 10
   anneal_clr_by_factor: 0.9
+  di_prior: [1, 1]
+

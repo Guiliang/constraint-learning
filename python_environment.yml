@@ -32,3 +32,4 @@ dependencies:
       - mpl-scatter-density
       - imageio
       - pickle5
+      - patchelf

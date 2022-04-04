@@ -14,17 +14,30 @@ This project utilizes some implementation in stable_baseline3, but no worry, I h
 ## Running
 To run the code, 
 
+### create env
 ```
-# create your model saving dir
-
+mkdir ./save_model
+mkdir ./evaluate_model
 source /pkgs/anaconda3/bin/activate
 conda env create -n cn-py37 -f python_environment.yml
+conda activate cn-py37
+```
+###  Setup [mujoco](https://github.com/openai/mujoco-py)
+```
+pip install -U 'mujoco-py<2.2,>=2.1'
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/h/galen/.mujoco/mujoco210/bin
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
+```
+###  Setup [commonroad-rl](https://gitlab.lrz.de/tum-cps/commonroad-rl)
+```
+mkdir ./commonroad_environment
+```
+###  prepare the data
+```
+```
 
-mkdir ./save_model
-mkdir ./save_model/PPO-highD/
-mkdir ./evaluate_model
-
-# start the training
+### start the training
+```
 source your-conda-activate
 conda activate your-env
 cd ./interface
