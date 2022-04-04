@@ -2,10 +2,10 @@ name: cr37
 
 dependencies:
   - python=3.7
-  - tensorflow=1.15.0
-  - scipy==1.7.3
+  - tensorflow
+  - scipy
   - numpy
-  - pip=20.2.4
+  - pip
   - pip:
       # environment dependencies
       - aenum==3.1.5
