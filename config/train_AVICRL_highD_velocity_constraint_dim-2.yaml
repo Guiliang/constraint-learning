@@ -40,7 +40,7 @@ PPO:
   use_sde: False
   sde_sample_freq: -1
   target_kl: 0.01
-  shared_layers: None
+  shared_layers: null
   policy_layers: [64, 64]
   reward_vf_layers: [64, 64]
   cost_vf_layers: False

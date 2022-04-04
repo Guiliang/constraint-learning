@@ -2,18 +2,14 @@ import argparse
 import os
 import pickle
 import shutil
-import random
 from collections import deque
 import time
-from queue import Queue
-
+import pickle5
 import psutil
 import yaml
 import numpy as np
-
 from gym.utils.colorize import color2num
 from tqdm import tqdm
-
 import stable_baselines3.common.callbacks as callbacks
 from stable_baselines3 import PPO
 from stable_baselines3.common.utils import safe_mean
@@ -228,7 +224,12 @@ def bak_load_expert_data(expert_path, num_rollouts):
     return (expert_obs, expert_acs), expert_mean_reward
 
 
-def load_expert_data(expert_path, store_by_game=False, add_next_step=True, log_file=None):
+def load_expert_data(expert_path,
+                     num_rollouts=None,
+                     use_pickle5=False,
+                     store_by_game=False,
+                     add_next_step=True,
+                     log_file=None):
     file_names = os.listdir(expert_path)
     # file_names = [i for i in range(29)]
     # sample_names = random.sample(file_names, num_rollouts)
@@ -237,13 +238,20 @@ def load_expert_data(expert_path, store_by_game=False, add_next_step=True, log_f
     expert_acs = []
     expert_rs = []
     num_samples = 0
-    for i in range(len(file_names)):
+    if num_rollouts is None:
+        num_rollouts = len(file_names)
+    for i in range(num_rollouts):
         # file_name = sample_names[i]
         file_name = file_names[i]
         with open(os.path.join(expert_path, file_name), "rb") as f:
-            data = pickle.load(f)
-
-        data_obs = data['original_observations']
+            if use_pickle5:  # the data is stored by pickle5
+                data = pickle5.load(f)
+            else:
+                data = pickle.load(f)
+        if use_pickle5:  # for the mujoco data, observations are the original_observations
+            data_obs = data['observations']
+        else:
+            data_obs = data['original_observations']
         data_acs = data['actions']
         if 'reward' in data.keys():
             data_rs = data['reward']
@@ -295,7 +303,10 @@ def load_expert_data(expert_path, store_by_game=False, add_next_step=True, log_f
             expert_obs.append(np.asarray(expert_obs_game))
             expert_acs.append(np.asarray(expert_acs_game))
             expert_rs.append(np.asarray(expert_rs_game))
-        expert_mean_reward.append(data['reward_sum'])
+        if use_pickle5:  # for the mujoco data, rewards are the reward_sums
+            expert_mean_reward.append(data['rewards'])
+        else:
+            expert_mean_reward.append(data['reward_sum'])
     expert_mean_reward = np.mean(expert_mean_reward)
     expert_mean_length = num_samples / len(file_names)
     print('Expert_mean_reward: {0} and Expert_mean_length: {1}.'.format(expert_mean_reward, expert_mean_length),
@@ -382,51 +393,6 @@ def average_plot_results(all_results):
         results_avg.update({key: avg_plot_values})
 
     return results_avg
-
-
-class IRLDataQueue:
-    def __init__(self, max_length=100000, seed=123):
-        self.store_obs = []
-        self.store_acts = []
-        self.store_rs = []
-        self.max_length = max_length
-        random.seed(seed)
-
-    def pop(self, pop_idx):
-        del self.store_obs[pop_idx]
-        del self.store_acts[pop_idx]
-        del self.store_rs[pop_idx]
-
-    def put(self, obs, acs, rs):
-        for data_idx in range(len(obs)):
-            if len(self.store_obs) >= self.max_length:
-                rand_idx = random.randint(0, self.max_length - 1)
-                self.pop(rand_idx)
-            self.store_obs.append(obs[data_idx])
-            self.store_acts.append(acs[data_idx])
-            self.store_rs.append(rs[data_idx])
-
-    def get(self, sample_num, store_by_game=False,):
-        sample_obs = []
-        sample_acs = []
-        sample_rs = []
-        data_len = 0
-        while True:
-            rand_idx = random.randint(0, len(self.store_obs) - 1)
-            sample_obs.append(self.store_obs[rand_idx])
-            sample_acs.append(self.store_acts[rand_idx])
-            sample_rs.append(self.store_rs[rand_idx])
-            if store_by_game:  # sample the trajectory of a game
-                data_len += len(self.store_obs[rand_idx])
-            else:  # sample a data point
-                data_len += 1
-            if data_len >= sample_num:
-                break
-
-        if store_by_game:
-            return sample_obs, sample_acs, sample_rs
-        else:
-            return np.asarray(sample_obs), np.asarray(sample_acs), np.asarray(sample_rs)
 
 
 def print_resource(mem_prev, time_prev, process_name, log_file):

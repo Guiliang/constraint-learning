@@ -43,7 +43,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             self.file_handler = open(filename, "wt")
             self.file_handler.write("#%s\n" % json.dumps({"t_start": self.t_start, "env_id": env.spec and env.spec.id}))
 
-            if 'HC' in env.spec.id:
+            if 'HC' in self.env.spec.id:
                 self.logger = csv.DictWriter(self.file_handler,
                                              fieldnames=("reward", "len",
                                                          "time", "constraint")
@@ -52,7 +52,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 self.event_dict = {
                     'is_constraint_break': 0
                 }
-            elif 'commonroad' in env.spec.id:
+            elif 'commonroad' in self.env.spec.id:
                 self.logger = csv.DictWriter(self.file_handler,
                                              fieldnames=("reward", "len", "time", "avg_velocity",
                                                          "is_collision", "is_off_road",
@@ -67,7 +67,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                     'is_over_speed': 0
                 }
             else:
-                raise EnvironmentError("Unknown env_id {0}".format(env.spec.id))
+                raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
             self.logger.writeheader()
             self.file_handler.flush()
 
@@ -78,7 +78,8 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 "wrap your env with Monitor(env, path, allow_early_resets=True)"
             )
         self.rewards = []
-        self.ego_velocity = []
+        if 'commonroad' in self.env.spec.id:
+            self.ego_velocity = []
         self.needs_reset = False
         for key in self.reset_keywords:
             value = kwargs.get(key)
@@ -95,7 +96,8 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             raise RuntimeError("Tried to step environment that needs reset")
         observation, reward, done, info = self.env.step(action)
         self.rewards.append(reward)
-        self.ego_velocity.append(info["ego_velocity"])
+        if 'commonroad' in self.env.spec.id:
+            self.ego_velocity.append(info["ego_velocity"])
         for key in self.track_keywords:
             if key not in info:
                 raise ValueError(f"Expected to find {key} in info dict")
@@ -118,16 +120,15 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             self.needs_reset = True
             ep_rew = sum(self.rewards)
             ep_len = len(self.rewards)
-
-            ego_velocity_array = np.asarray(self.ego_velocity)
-            ego_velocity = np.sqrt(np.square(ego_velocity_array[:, 0]) + np.square(ego_velocity_array[:, 1]))
-            # ego_velocity_tmp = np.sqrt(np.sum(np.square(ego_velocity_array), axis=1))
             if 'HC' in self.env.spec.id:
                 ep_info = {"reward": round(ep_rew, 2),
                            "len": ep_len,
                            "time": round(time.time() - self.t_start, 2),
                            'constraint': self.event_dict['is_constraint_break']}
-            if 'commonroad' in self.env.spec.id:
+            elif 'commonroad' in self.env.spec.id:
+                ego_velocity_array = np.asarray(self.ego_velocity)
+                ego_velocity = np.sqrt(np.square(ego_velocity_array[:, 0]) + np.square(ego_velocity_array[:, 1]))
+                # ego_velocity_tmp = np.sqrt(np.sum(np.square(ego_velocity_array), axis=1))
                 ep_info = {
                     "reward": round(ep_rew, 2),
                     "len": ep_len,
@@ -140,6 +141,8 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                     'is_over_speed': self.event_dict['is_over_speed'],
                     "env": self.env.env.benchmark_id,
                 }
+            else:
+                raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
             for key in self.info_keywords:
                 ep_info[key] = info[key]
             for key in self.track_keywords:

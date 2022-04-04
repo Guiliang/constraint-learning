@@ -9,9 +9,10 @@ import random
 import gym
 import numpy as np
 import yaml
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+
+from common.memory_buffer import IRLDataQueue
 from constraint_models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
 from constraint_models.constraint_net.variational_constraint_net import VariationalConstraintNet
 from constraint_models.constraint_net.constraint_net import ConstraintNet
@@ -21,7 +22,7 @@ from stable_baselines3.common import logger
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
-    get_obs_feature_names, get_input_features_dim, IRLDataQueue, process_memory, print_resource
+    get_obs_feature_names, get_input_features_dim, process_memory, print_resource
 from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
 from utils.model_utils import get_net_arch
 
@@ -56,7 +57,7 @@ def train(config):
         config['running']['sample_rollouts'] = 10
         config['running']['sample_data_num'] = 500
         config['running']['store_sample_num'] = 1000
-        config['CN']['cn_batch_size'] = 3
+        # config['CN']['cn_batch_size'] = 3
         config['CN']['backward_iters'] = 1
         debug_msg = 'debug-'
         partial_data = True
@@ -157,8 +158,14 @@ def train(config):
     expert_path = config['running']['expert_path']
     if debug_mode:
         expert_path = expert_path.replace('expert_data/', 'expert_data/debug_')
+    if 'expert_rollouts' in config['running'].keys():
+        expert_rollouts = config['running']['expert_rollouts']
+    else:
+        expert_rollouts = None
     (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
         expert_path=expert_path,
+        use_pickle5=True if 'HC' in config['env']['train_env_id'] else False,  # True for the Mujoco envs
+        num_rollouts=expert_rollouts,
         store_by_game=store_by_game,
         add_next_step=False,
         log_file=log_file
@@ -168,8 +175,11 @@ def train(config):
     else:
         expert_obs_mean = np.mean(expert_obs, axis=0).tolist()
     expert_obs_mean = ['%.5f' % elem for elem in expert_obs_mean]
-    expert_obs_mean_dict = dict(zip(all_obs_feature_names, expert_obs_mean))
-    print("The expert features means are: {0}".format(expert_obs_mean_dict),
+    if len(all_obs_feature_names) == len(expert_obs_mean):
+        expert_obs_name_mean = dict(zip(all_obs_feature_names, expert_obs_mean))
+    else:
+        expert_obs_name_mean = expert_obs_mean
+    print("The expert features means are: {0}".format(expert_obs_name_mean),
           file=log_file,
           flush=True)
 
