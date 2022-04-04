@@ -25,6 +25,7 @@ conda activate cn-py37
 ###  Setup [mujoco](https://github.com/openai/mujoco-py)
 ```
 pip install -U 'mujoco-py<2.2,>=2.1'
+pip install -e ./mujuco_environment
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/h/galen/.mujoco/mujoco210/bin
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 ```
