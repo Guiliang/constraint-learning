@@ -18,7 +18,7 @@ To run the code,
 # create your model saving dir
 
 source /pkgs/anaconda3/bin/activate
-conda env create -n cn-py37 -f environment.yml
+conda env create -n cn-py37 -f python_environment.yml
 
 mkdir ./save_model
 mkdir ./save_model/PPO-highD/
