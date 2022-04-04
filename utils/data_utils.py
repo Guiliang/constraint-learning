@@ -207,6 +207,27 @@ def process_memory():
     return mem_info.rss
 
 
+def bak_load_expert_data(expert_path, num_rollouts):
+    expert_mean_reward = []
+    for i in range(num_rollouts):
+        with open(os.path.join(expert_path, "files/EXPERT/rollouts", "%s.pkl" % str(i)), "rb") as f:
+            data = pickle.load(f)
+
+        if i == 0:
+            expert_obs = data['observations']
+            expert_acs = data['actions']
+        else:
+            expert_obs = np.concatenate([expert_obs, data['observations']], axis=0)
+            expert_acs = np.concatenate([expert_acs, data['actions']], axis=0)
+
+        expert_mean_reward.append(data['rewards'])
+
+    expert_mean_reward = np.mean(expert_mean_reward)
+    expert_mean_length = expert_obs.shape[0] / num_rollouts
+
+    return (expert_obs, expert_acs), expert_mean_reward
+
+
 def load_expert_data(expert_path, store_by_game=False, add_next_step=True, log_file=None):
     file_names = os.listdir(expert_path)
     # file_names = [i for i in range(29)]
