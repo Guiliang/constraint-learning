@@ -1,5 +1,5 @@
 task: 'AVICRL-highD'
-group: 'AVICRL-highD'
+group: 'AVICRL'
 device: 'cuda'
 verbose: 1
 env:

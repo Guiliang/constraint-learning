@@ -70,6 +70,15 @@ def generate_plots():
                     '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_no_is_p-1-1_dim-2-multi_env-Mar-31-2022-06:36-seed_123/'
                 ],
             }
+        elif env_id == 'HCWithPos-v0':
+            plot_key = ['reward', 'constraint']
+            plot_y_lim_dict = {'reward': (-50, 50),
+                               'constraint': (0, 1)}
+            log_path_dict = {
+                "ICRL_Pos": [
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-04-2022-07:44-seed_123/',
+                ],
+            }
         else:
             raise ValueError("Unknown env id {0}".format(env_id))
         all_results = []

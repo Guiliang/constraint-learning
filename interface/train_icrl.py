@@ -50,7 +50,7 @@ def train(config):
         config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 20
-        config['PPO']['n_steps'] = 32
+        # config['PPO']['n_steps'] = 32
         config['PPO']['n_epochs'] = 2
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
@@ -82,11 +82,11 @@ def train(config):
         seed
     )
 
-    if 'ICRL' in config['task']:
+    if 'ICRL' == config['group']:
         store_by_game = False
-    elif 'VICRL' in config['task']:
+    elif 'VICRL' == config['group']:
         store_by_game = False
-    elif 'SEVICRL' in config['task']:
+    elif 'SEVICRL' == config['group']:
         store_by_game = True
     else:
         raise ValueError("Unknown constraint model {0}".format(config['task']))
@@ -123,7 +123,7 @@ def train(config):
     save_valid_mother_dir = os.path.join(save_model_mother_dir, "valid/")
     if not os.path.exists(save_valid_mother_dir):
         os.mkdir(save_valid_mother_dir)
-    sampling_env = make_eval_env(env_id=config['env']['eval_env_id'],
+    sampling_env = make_eval_env(env_id=config['env']['train_env_id'],
                                  config_path=config['env']['config_path'],
                                  save_dir=save_valid_mother_dir,
                                  mode='valid',
@@ -233,12 +233,12 @@ def train(config):
         'task': config['task'],
     }
 
-    if 'ICRL' in config['task']:
+    if 'ICRL' == config['group']:
         constraint_net = ConstraintNet(**cn_parameters)
-    elif 'VICRL' in config['task']:
+    elif 'VICRL' == config['group']:
         cn_parameters.update({'di_prior': config['CN']['di_prior'], })
         constraint_net = VariationalConstraintNet(**cn_parameters)
-    elif 'SEVICRL' in config['task']:
+    elif 'SEVICRL' == config['group']:
         cn_parameters.update({'di_prior': config['CN']['di_prior'], })
         constraint_net = SelfExplainableVariationalConstraintNet(**cn_parameters)
     else:
@@ -325,7 +325,7 @@ def train(config):
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
             nominal_agent.learn(
                 total_timesteps=config['PPO']['forward_timesteps'],
-                cost_function="",  # Cost should come from cost wrapper
+                cost_function="cost",  # Cost should come from cost wrapper
                 callback=[callback] + all_callbacks
             )
             forward_metrics = logger.Logger.CURRENT.name_to_value

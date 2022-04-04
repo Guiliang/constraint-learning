@@ -1,5 +1,5 @@
 task: 'PPO-highD'
-group: 'PPO-highD'
+group: 'PPO'
 device: 'cuda'
 verbose: 1
 env:

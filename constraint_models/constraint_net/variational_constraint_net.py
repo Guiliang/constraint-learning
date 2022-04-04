@@ -100,7 +100,7 @@ class VariationalConstraintNet(ConstraintNet):
         alpha = alpha_beta[:, 0]
         beta = alpha_beta[:, 1]
         pred = torch.distributions.Beta(alpha, beta).rsample()
-        return pred
+        return pred.unsqueeze(-1)
 
     def kl_regularizer_loss(self, batch_size, alpha, beta):
         # prior = (torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior).to(self.device)

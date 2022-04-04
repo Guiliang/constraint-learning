@@ -1,5 +1,5 @@
 task: 'VICRL-HC'
-group: 'VICRL-HC'
+group: 'VICRL'
 device: 'cuda'
 verbose: 1
 env:

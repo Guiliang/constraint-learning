@@ -20,12 +20,9 @@ def make_env(env_id, env_configs, rank, log_dir, multi_env=False, seed=0):
             from commonroad_environment.commonroad_rl import gym_commonroad
         elif 'HC' in env_id:
             from mujuco_environment.custom_envs.envs import half_cheetah
-
-        if multi_env:
-            env_configs_copy = copy(env_configs)
+        env_configs_copy = copy(env_configs)
+        if multi_env and 'commonroad' in env_id:
             env_configs_copy.update({'train_reset_config_path': env_configs['train_reset_config_path'] + '/{0}'.format(rank)}),
-        else:
-            env_configs_copy = copy(env_configs)
         if 'external_reward' in env_configs:
             del env_configs_copy['external_reward']
         env = gym.make(id=env_id,

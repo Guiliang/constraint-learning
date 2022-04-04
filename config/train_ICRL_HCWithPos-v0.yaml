@@ -1,5 +1,5 @@
 task: 'ICRL-HC'
-group: 'ICRL-HC'
+group: 'ICRL'
 device: 'cuda'
 verbose: 2
 env:
@@ -24,8 +24,8 @@ running:
   save_every: 10
   expert_rollouts: 10
   sample_rollouts: 10
-  sample_data_num: 5000
-  store_sample_num: 5000
+  sample_data_num: 10000
+  store_sample_num: 10000
   expert_path: '../data/expert_data/HCWithPos-New/'
 
 PPO:
@@ -33,7 +33,6 @@ PPO:
   learning_rate: 0.0003
   n_steps: 2048
   n_epochs: 10
-  clip_obs: 20
   reward_gamma: 0.99
   reward_gae_lambda: 0.95
   cost_gamma: 0.99
@@ -52,7 +51,6 @@ PPO:
   cost_vf_layers': [64, 64]
   cost_vf_layers: False
   batch_size: 64
-  num_threads: 5
   eval_every: 2048
   use_curiosity_driven_exploration: False
   warmup_timesteps: False

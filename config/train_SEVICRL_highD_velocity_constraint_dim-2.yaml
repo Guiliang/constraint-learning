@@ -1,5 +1,5 @@
 task: 'SEVICRL-highD'
-group: 'SEVICRL-highD'
+group: 'SEVICRL'
 device: 'cuda'
 verbose: 1
 env:

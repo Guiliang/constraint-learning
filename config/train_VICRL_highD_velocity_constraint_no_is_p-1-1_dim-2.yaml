@@ -1,5 +1,5 @@
 task: 'VICRL-highD'
-group: 'VICRL-highD'
+group: 'VICRL'
 device: 'cuda'
 verbose: 1
 env:

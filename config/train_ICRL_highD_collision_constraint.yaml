@@ -1,5 +1,5 @@
 task: 'ICRL-highD'
-group: 'ICRL-highD'
+group: 'ICRL'
 device: 'cuda'
 verbose: 1
 env:
