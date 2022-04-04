@@ -18,51 +18,60 @@ def plot_results(results_moving_average, ylim, label, method_name, save_label):
 
 
 def generate_plots():
+    file_type = "PPO_highD_no-velocitybs--1_fs-5k_nee-10_vm-45"
+    env_id = 'commonroad-v1'
     modes = ['train', 'test']
-
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
-
-        plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out', 'avg_velocity',
-                    'is_over_speed']
-        plot_y_lim_dict = {'reward': (-50, 50),
-                           'is_collision': (0, 1),
-                           'is_off_road': (0, 1),
-                           'is_goal_reached': (0, 1),
-                           'is_time_out': (0, 1),
-                           'avg_velocity': (20, 50),
-                           'is_over_speed': (0, 1)}
-
-        file_type = "VICRL_highD_velocity-dim2-buff"
-
-        log_path_dict = {
-            "PPO_highD_velocity": [
-                '../save_model/PPO-highD/train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/',
-                '../save_model/PPO-highD/train_ppo_highD_velocity_penalty-multi_env-Mar-21-2022-05:29-seed_123/',
-            ],
-            "PPO_highD_no-velocity": [
-                '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty-multi_env-Mar-20-2022-10:18-seed_123/',
-                '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty-multi_env-Mar-21-2022-05:30-seed_123/'
-            ],
-            "PPO_highD_no-velocitybs--1_fs-5k_nee-10": [
-                '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10-multi_env-Apr-02-2022-01:16-seed_123/'
-            ],
-            "ICRL_highD_velocity-dim2": [
-                '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-00:37/',
-                '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-08:02/'
-            ],
-            "ICRL_highD_velocity-dim2-buff": [
-                '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-28-2022-06:56/',
-                '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-28-2022-09:44/'
-            ],
-            "ICRL_highD_velocity-dim3-buff": [
-                '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-3-multi_env-Mar-30-2022-06:05/',
-                '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-3-multi_env-Mar-31-2022-00:47-seed_321//'
-            ],
-            "VICRL_highD_velocity-dim2-buff": [
-                '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_no_is_p-1-1_dim-2-multi_env-Mar-31-2022-06:36-seed_123/'
-            ],
-        }
+        if env_id == 'commonroad-v1':
+            plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out', 'avg_velocity',
+                        'is_over_speed']
+            plot_y_lim_dict = {'reward': (-50, 50),
+                               'is_collision': (0, 1),
+                               'is_off_road': (0, 1),
+                               'is_goal_reached': (0, 1),
+                               'is_time_out': (0, 1),
+                               'avg_velocity': (20, 50),
+                               'is_over_speed': (0, 1)}
+            log_path_dict = {
+                "PPO_highD_velocity": [
+                    '../save_model/PPO-highD/train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/',
+                    '../save_model/PPO-highD/train_ppo_highD_velocity_penalty-multi_env-Mar-21-2022-05:29-seed_123/',
+                ],
+                "PPO_highD_no-velocity": [
+                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty-multi_env-Mar-20-2022-10:18-seed_123/',
+                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty-multi_env-Mar-21-2022-05:30-seed_123/'
+                ],
+                "PPO_highD_no-velocitybs--1_fs-5k_nee-10": [
+                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10-multi_env-Apr-02-2022-01:16-seed_123/'
+                ],
+                "PPO_highD_no-velocitybs--1_fs-5k_nee-10_lr-5e-4_vm--45": [
+                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm--45-multi_env-Apr-03-2022-04:07-seed_123/'
+                ],
+                "PPO_highD_no-velocitybs--1_fs-5k_nee-10_lr-5e-4_vm--50": [
+                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm--50-multi_env-Apr-03-2022-04:02-seed_123/'
+                ],
+                "PPO_highD_no-velocitybs--1_fs-5k_nee-10_vm-45": [
+                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_vm-45-multi_env-Apr-03-2022-04:10-seed_123/'
+                ],
+                "ICRL_highD_velocity-dim2": [
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-00:37/',
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-08:02/'
+                ],
+                "ICRL_highD_velocity-dim2-buff": [
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-28-2022-06:56/',
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-28-2022-09:44/'
+                ],
+                "ICRL_highD_velocity-dim3-buff": [
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-3-multi_env-Mar-30-2022-06:05/',
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-3-multi_env-Mar-31-2022-00:47-seed_321//'
+                ],
+                "VICRL_highD_velocity-dim2-buff": [
+                    '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_no_is_p-1-1_dim-2-multi_env-Mar-31-2022-06:36-seed_123/'
+                ],
+            }
+        else:
+            raise ValueError("Unknown env id {0}".format(env_id))
         all_results = []
         for log_path in log_path_dict[file_type]:
             if mode == 'train':

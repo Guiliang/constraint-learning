@@ -7,8 +7,8 @@ import numpy as np
 import gym
 import yaml
 import stable_baselines3.common.vec_env as vec_env
+from common.cns_monitor import CNSMonitor
 from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.utils import safe_mean, set_random_seed
 from stable_baselines3.common.preprocessing import is_image_space
 
@@ -35,7 +35,10 @@ def make_env(env_id, env_configs, rank, log_dir, multi_env=False, seed=0):
         if 'external_reward' in env_configs:
             print("Using external reward", flush=True)
             env = ExternalRewardWrapper(env=env, wrapper_config=env_configs['external_reward'])
-        env = Monitor(env, log_dir)
+        monitor_rank = None
+        if multi_env:
+            monitor_rank = rank
+        env = CNSMonitor(env=env, filename=log_dir, rank=monitor_rank)
         return env
 
     set_random_seed(seed)

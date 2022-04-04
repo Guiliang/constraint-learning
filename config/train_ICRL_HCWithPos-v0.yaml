@@ -22,6 +22,7 @@ running:
   n_iters: 30
   n_eval_episodes: 10
   save_every: 10
+  expert_path: '../data/expert_data/HCWithPos-New/'
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'
