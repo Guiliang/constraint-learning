@@ -47,6 +47,7 @@ def train(args):
     if debug_mode:
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 100  # 2000
+        config['PPO']['n_steps'] = 530
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
         debug_msg = 'debug-'
@@ -61,7 +62,6 @@ def train(args):
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
     # today = datetime.date.today()
     # currentTime = today.strftime("%b-%d-%Y-%h-%m")
-
     save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}-seed_{6}/'.format(
         config['env']['save_dir'],
         config['task'],
@@ -87,6 +87,7 @@ def train(args):
                                config_path=config['env']['config_path'],
                                save_dir=save_model_mother_dir,
                                base_seed=seed,
+                               group=config['group'],
                                num_threads=config['env']['num_threads'],
                                use_cost=config['env']['use_cost'],
                                normalize_obs=not config['env']['dont_normalize_obs'],
@@ -107,6 +108,7 @@ def train(args):
     eval_env = make_eval_env(env_id=config['env']['eval_env_id'],
                              config_path=config['env']['config_path'],
                              save_dir=save_test_mother_dir,
+                             group=config['group'],
                              use_cost=config['env']['use_cost'],
                              normalize_obs=not config['env']['dont_normalize_obs'],
                              log_file=log_file,

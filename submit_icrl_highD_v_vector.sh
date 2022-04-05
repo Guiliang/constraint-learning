@@ -3,7 +3,7 @@
 #SBATCH --partition=t4v1,t4v2,p100
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --time=24:00:00
+#SBATCH --time=48:00:00
 #SBATCH --mem=24GB
 #SBATCH --job-name=Mojuco
 task_name="train-Mojuco-ICRL"
