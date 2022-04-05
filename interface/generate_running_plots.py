@@ -86,7 +86,9 @@ def generate_plots():
                                'constraint': (0, 1)}
             log_path_dict = {
                 "ICRL_Pos": [
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-07:36-seed_123/',
                     '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-05:43-seed_321/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-07:16-seed_666/'
                 ],
             }
         else:
