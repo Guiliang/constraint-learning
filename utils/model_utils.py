@@ -37,7 +37,7 @@ def get_net_arch(config, log_file):
         separate_layers = dict(pi=config['PPO']['policy_layers'],  # Policy Layers
                                vf=config['PPO']['reward_vf_layers'])  # Value Function Layers
 
-    print("PPO layer is:", separate_layers, flush=True, file=log_file)
+    print("PPO layers are:", separate_layers, flush=True, file=log_file)
     return [separate_layers]
 
 
