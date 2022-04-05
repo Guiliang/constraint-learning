@@ -659,7 +659,7 @@ class ConstraintNet(nn.Module):
                     early_stop_itr = itr
                     break
             else:
-                is_weights = th.ones(nominal_data.shape[0])
+                is_weights = th.ones(nominal_data.shape[0]).to(self.device)
 
             # Do a complete pass on data
             for nom_batch_indices, exp_batch_indices in self.get(nominal_data.shape[0], expert_data.shape[0]):

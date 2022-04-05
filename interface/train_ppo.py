@@ -158,7 +158,7 @@ def train(args):
         verbose=config['verbose'],
         seed=seed,
         device=config['device'],
-        policy_kwargs=dict(net_arch=get_net_arch(config)))
+        policy_kwargs=dict(net_arch=get_net_arch(config, log_file)))
 
     ppo_agent = create_ppo_agent()
 

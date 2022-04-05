@@ -2,7 +2,28 @@ import torch
 import numpy as np
 
 
-def get_net_arch(config):
+# def get_net_arch(config):
+#     """
+#     Returns a dictionary with sizes of layers in policy network,
+#     value network and cost value network.
+#     """
+#     try:
+#         separate_layers = dict(pi=config.policy_layers,  # Policy Layers
+#                                vf=config.reward_vf_layers,  # Value Function Layers
+#                                cvf=config.cost_vf_layers)  # Cost Value Function Layers
+#     except:
+#         print("Could not define layers for policy, value func and " + \
+#               "cost_value_function, will attempt to just define " + \
+#               "policy and value func")
+#         separate_layers = dict(pi=config.policy_layers,  # Policy Layers
+#                                vf=config.reward_vf_layers)  # Value Function Layers
+#
+#     if config.shared_layers is not None:
+#         return [*config.shared_layers, separate_layers]
+#     else:
+#         return [separate_layers]
+
+def get_net_arch(config, log_file):
     """
     Returns a dictionary with sizes of layers in policy network,
     value network and cost value network.
@@ -13,15 +34,10 @@ def get_net_arch(config):
                                vf=config['PPO']['reward_vf_layers'],  # Value Function Layers
                                cvf=config['PPO']['cost_vf_layers'])  # Cost Value Function Layers
     else:
-        # print("Could not define layers for policy, value func and " + \
-        #       "cost_value_function, will attempt to just define " + \
-        #       "policy and value func")
         separate_layers = dict(pi=config['PPO']['policy_layers'],  # Policy Layers
                                vf=config['PPO']['reward_vf_layers'])  # Value Function Layers
 
-    # if config.shared_layers is not None:
-    #     return [*config.shared_layers, separate_layers]
-    # else:
+    print("PPO layer is:", separate_layers, flush=True, file=log_file)
     return [separate_layers]
 
 

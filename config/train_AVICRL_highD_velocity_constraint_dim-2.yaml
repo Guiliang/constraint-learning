@@ -43,7 +43,7 @@ PPO:
   shared_layers: null
   policy_layers: [64, 64]
   reward_vf_layers: [64, 64]
-  cost_vf_layers: False
+  cost_vf_layers: [64, 64]
   batch_size: 64
   num_threads: 5
   eval_every: 2048
