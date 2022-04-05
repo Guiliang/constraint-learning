@@ -49,16 +49,16 @@ def train(config):
     if debug_mode:
         # config['device'] = 'cpu'
         # config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 200  # 2000
-        config['PPO']['n_steps'] = 32
-        config['PPO']['n_epochs'] = 2
-        config['running']['n_eval_episodes'] = 10
-        config['running']['save_every'] = 1
-        config['running']['sample_rollouts'] = 10
-        config['running']['sample_data_num'] = 500
-        config['running']['store_sample_num'] = 1000
-        # config['CN']['cn_batch_size'] = 3
-        config['CN']['backward_iters'] = 1
+        config['PPO']['forward_timesteps'] = 2000  # 2000
+        # config['PPO']['n_steps'] = 32
+        # config['PPO']['n_epochs'] = 2
+        # config['running']['n_eval_episodes'] = 10
+        # config['running']['save_every'] = 1
+        # config['running']['sample_rollouts'] = 10
+        # config['running']['sample_data_num'] = 500
+        # config['running']['store_sample_num'] = 1000
+        # # config['CN']['cn_batch_size'] = 3
+        # config['CN']['backward_iters'] = 1
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'

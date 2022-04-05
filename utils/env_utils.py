@@ -19,7 +19,8 @@ def make_env(env_id, env_configs, rank, log_dir, multi_env=False, seed=0):
             # import commonroad_environment.commonroad_rl.gym_commonroad
             from commonroad_environment.commonroad_rl import gym_commonroad
         elif 'HC' in env_id:
-            from mujuco_environment.custom_envs.envs import half_cheetah
+            # from mujuco_environment.custom_envs.envs import half_cheetah
+            import mujuco_environment.custom_envs
         env_configs_copy = copy(env_configs)
         if multi_env and 'commonroad' in env_id:
             env_configs_copy.update({'train_reset_config_path': env_configs['train_reset_config_path'] + '/{0}'.format(rank)}),
@@ -64,7 +65,12 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
                     multi_env=multi_env,
                     seed=base_seed)
            for i in range(num_threads)]
-    env = vec_env.DummyVecEnv(env)
+    if 'HC' in env_id:
+        env = vec_env.SubprocVecEnv(env)
+    elif 'commonroad' in env_id:
+        env = vec_env.DummyVecEnv(env)
+    else:
+        raise ValueError("Unknown env id {0}".format(env_id))
     # print("The obs space is {0}".format(len(env.observation_space.high)), file=log_file, flush=True)
     if use_cost:
         env = vec_env.VecCostWrapper(env)
@@ -122,7 +128,12 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', mode='test', use_c
         env_configs = {}
     # env = [lambda: gym.make(env_id, **env_configs)]
     env = [make_env(env_id, env_configs, 0, os.path.join(save_dir, mode))]
-    env = vec_env.DummyVecEnv(env)
+    if 'HC' in env_id:
+        env = vec_env.SubprocVecEnv(env)
+    elif 'commonroad' in env_id:
+        env = vec_env.DummyVecEnv(env)
+    else:
+        raise ValueError("Unknown env id {0}".format(env_id))
     if use_cost:
         env = vec_env.VecCostWrapper(env)
     print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
