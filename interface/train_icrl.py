@@ -47,18 +47,18 @@ def train(config):
         log_file = None
     debug_msg = ''
     if debug_mode:
-        config['device'] = 'cpu'
-        config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 20
+        # config['device'] = 'cpu'
+        # config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
+        config['PPO']['forward_timesteps'] = 2000
         # config['PPO']['n_steps'] = 32
-        config['PPO']['n_epochs'] = 2
-        config['running']['n_eval_episodes'] = 10
-        config['running']['save_every'] = 1
-        config['running']['sample_rollouts'] = 10
-        config['running']['sample_data_num'] = 500
-        config['running']['store_sample_num'] = 1000
+        # config['PPO']['n_epochs'] = 2
+        # config['running']['n_eval_episodes'] = 10
+        # config['running']['save_every'] = 1
+        # config['running']['sample_rollouts'] = 10
+        # config['running']['sample_data_num'] = 500
+        # config['running']['store_sample_num'] = 1000
         # config['CN']['cn_batch_size'] = 3
-        config['CN']['backward_iters'] = 1
+        # config['CN']['backward_iters'] = 1
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
@@ -105,6 +105,7 @@ def train(config):
     train_env = make_train_env(env_id=config['env']['train_env_id'],
                                config_path=config['env']['config_path'],
                                save_dir=save_model_mother_dir,
+                               group=config['group'],
                                base_seed=seed,
                                num_threads=config['env']['num_threads'],
                                use_cost=config['env']['use_cost'],
@@ -126,6 +127,7 @@ def train(config):
     sampling_env = make_eval_env(env_id=config['env']['train_env_id'],
                                  config_path=config['env']['config_path'],
                                  save_dir=save_valid_mother_dir,
+                                 group=config['group'],
                                  mode='valid',
                                  use_cost=False,
                                  normalize_obs=not config['env']['dont_normalize_obs'],
@@ -138,6 +140,7 @@ def train(config):
     eval_env = make_eval_env(env_id=config['env']['eval_env_id'],
                              config_path=config['env']['config_path'],
                              save_dir=save_test_mother_dir,
+                             group=config['group'],
                              mode='test',
                              use_cost=False,
                              normalize_obs=not config['env']['dont_normalize_obs'],
@@ -349,6 +352,11 @@ def train(config):
             sample_data_queue.get(sample_num=config['running']['sample_data_num'],
                                   store_by_game=store_by_game,)
 
+        if 'HC' in config['env']['train_env_id']:
+            print("debugging")
+            sample_obs = orig_observations
+            sample_acts = actions
+
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Sampling', log_file=log_file)
         # Update constraint net
@@ -356,6 +364,7 @@ def train(config):
         if config['CN']['cn_normalize']:
             mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
 
+        # print(np.mean(sample_obs, axis=0), np.var(sample_obs, axis=0))
         backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
                                                    nominal_obs=sample_obs,
                                                    nominal_acs=sample_acts,

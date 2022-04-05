@@ -230,7 +230,7 @@ def load_expert_data(expert_path,
                      store_by_game=False,
                      add_next_step=True,
                      log_file=None):
-    file_names = os.listdir(expert_path)
+    file_names = sorted(os.listdir(expert_path))
     # file_names = [i for i in range(29)]
     # sample_names = random.sample(file_names, num_rollouts)
     expert_mean_reward = []

@@ -42,7 +42,7 @@ def make_env(env_id, env_configs, rank, log_dir, multi_env=False, seed=0):
     return _init
 
 
-def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
+def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_threads=1,
                    use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True, multi_env=False,
                    log_file=None, part_data=False,
                    **kwargs):
@@ -79,7 +79,7 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
             reward_gamma=kwargs['reward_gamma'],
             cost_gamma=kwargs['cost_gamma'])
     else:
-        if use_cost:
+        if 'ICRL' in group:
             assert (all(key in kwargs for key in ['reward_gamma', 'cost_gamma']))
             env = vec_env.VecNormalizeWithCost(
                 env, training=True,
@@ -107,7 +107,7 @@ def make_train_env(env_id, config_path, save_dir, base_seed=0, num_threads=1,
     return env
 
 
-def make_eval_env(env_id, config_path, save_dir, mode='test', use_cost=False, normalize_obs=True,
+def make_eval_env(env_id, config_path, save_dir, group='PPO', mode='test', use_cost=False, normalize_obs=True,
                   part_data=False, log_file=None):
 
     if config_path is not None:
@@ -126,7 +126,7 @@ def make_eval_env(env_id, config_path, save_dir, mode='test', use_cost=False, no
     if use_cost:
         env = vec_env.VecCostWrapper(env)
     print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
-    if use_cost:
+    if 'ICRL' in group:
         env = vec_env.VecNormalizeWithCost(env, training=False, norm_obs=normalize_obs,
                                            norm_reward=False, norm_cost=False)
     else:
