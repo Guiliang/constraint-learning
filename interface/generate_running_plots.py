@@ -18,7 +18,7 @@ def plot_results(results_moving_average, ylim, label, method_name, save_label):
 
 
 def generate_plots():
-    file_type = "PPO_highD_no-velocitybs--1_fs-5k_nee-10_vm-45"
+    file_type = "ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50"
     env_id = 'commonroad-v1'
     modes = ['train', 'test']
     for mode in modes:
@@ -54,6 +54,12 @@ def generate_plots():
                 "PPO_highD_no-velocitybs--1_fs-5k_nee-10_vm-45": [
                     '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_vm-45-multi_env-Apr-03-2022-04:10-seed_123/'
                 ],
+                'ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-45': [
+                    '../save_model/PPO-highD/train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-45-multi_env-Apr-04-2022-01:46-seed_123/'
+                ],
+                'ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50': [
+                    '../save_model/PPO-highD/train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50-multi_env-Apr-04-2022-01:47-seed_123/'
+                ],
                 "ICRL_highD_velocity-dim2": [
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-00:37/',
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-08:02/'
@@ -83,13 +89,17 @@ def generate_plots():
             raise ValueError("Unknown env id {0}".format(env_id))
         all_results = []
         for log_path in log_path_dict[file_type]:
+            monitor_path_all = []
             if mode == 'train':
-                log_path += 'monitor.csv'
+                run_files = os.listdir(log_path)
+                for file in run_files:
+                    if 'monitor' in file:
+                        monitor_path_all.append(log_path + file)
             else:
-                log_path += 'test/test.monitor.csv'
+                monitor_path_all.append(log_path + 'test/test.monitor.csv')
 
             # rewards, is_collision, is_off_road, is_goal_reached, is_time_out = read_running_logs(log_path=log_path)
-            results = read_running_logs(log_path=log_path, read_keys=plot_key)
+            results = read_running_logs(monitor_path_all=monitor_path_all, read_keys=plot_key)
             all_results.append(results)
 
         avg_results = average_plot_results(all_results)

@@ -129,42 +129,58 @@ def compute_moving_average(result_all, average_num=100):
     return result_moving_average_all
 
 
-def read_running_logs(log_path, read_keys):
+def read_running_logs(monitor_path_all, read_keys):
     read_running_logs = {}
 
-    with open(log_path, 'r') as file:
+    # handle the keys
+    with open(monitor_path_all[0], 'r') as file:
         running_logs = file.readlines()
-    old_results = None
-
     key_indices = {}
     record_keys = running_logs[1].replace('\n', '').split(',')
-
     if len(record_keys) > 10:
-        raise ValueError("Something wrong with the file {0}".format(log_path))
-
+        raise ValueError("Something wrong with the file {0}".format(monitor_path_all[0]))
     for key in read_keys:
         key_idx = record_keys.index(key)
         key_indices.update({key: key_idx})
         read_running_logs.update({key: []})
 
-    for running_performance in running_logs[2:]:
-        log_items = running_performance.split(',')
-        if len(log_items) != len(record_keys):
-            # continue
-            results = old_results
-        else:
-            try:
-                results = [item.replace("\n", "") for item in log_items]
-                if float(results[key_indices['reward']]) > 50 or float(results[key_indices['reward']]) < -50:
-                    # continue
-                    results = old_results
-            except:
-                results = old_results
+    # read all the logs
+    running_logs_all = []
+    max_len = 0
+    for monitor_path in monitor_path_all:
+        with open(monitor_path, 'r') as file:
+            running_logs = file.readlines()
+        running_logs_all.append(running_logs[2:])
+        if len(running_logs[2:]) > max_len:
+            max_len = len(running_logs[2:])
+
+    # iteratively read the logs
+    line_num = 0
+    while line_num < max_len:
+        old_results = None
+        for i in range(len(monitor_path_all)):
+            if line_num >= len(running_logs_all[i]):
+                continue
+            running_performance = running_logs_all[i][line_num]
+            log_items = running_performance.split(',')
+            if len(log_items) != len(record_keys):
                 # continue
-        if results is None:
-            continue
-        for key in read_keys:
-            read_running_logs[key].append(float(results[key_indices[key]]))
+                results = old_results
+            else:
+                try:
+                    results = [item.replace("\n", "") for item in log_items]
+                    if float(results[key_indices['reward']]) > 50 or float(results[key_indices['reward']]) < -50:
+                        # continue
+                        results = old_results
+                except:
+                    results = old_results
+                    # continue
+            if results is None:
+                continue
+            for key in read_keys:
+                read_running_logs[key].append(float(results[key_indices[key]]))
+        line_num += 1
+
     return read_running_logs
 
 
@@ -354,7 +370,8 @@ def get_obs_feature_names(env, env_id):
             for i in range(feature_len):
                 feature_names.append(key + '_' + str(i))
     if 'HC' in env_id:
-        feature_names.append('(pls visit: {0})'.format('https://github.com/openai/gym/blob/master/gym/envs/mujoco/assets/half_cheetah.xml'))
+        feature_names.append('(pls visit: {0})'.format(
+            'https://github.com/openai/gym/blob/master/gym/envs/mujoco/assets/half_cheetah.xml'))
     return feature_names
 
 

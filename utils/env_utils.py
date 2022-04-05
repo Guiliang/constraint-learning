@@ -15,6 +15,7 @@ from stable_baselines3.common.preprocessing import is_image_space
 
 def make_env(env_id, env_configs, rank, log_dir, multi_env=False, seed=0):
     def _init():
+        # import env
         if 'commonroad' in env_id:
             # import commonroad_environment.commonroad_rl.gym_commonroad
             from commonroad_environment.commonroad_rl import gym_commonroad
@@ -47,6 +48,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
                    use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True, multi_env=False,
                    log_file=None, part_data=False,
                    **kwargs):
+
     if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
