@@ -353,7 +353,7 @@ def train(config):
                                   store_by_game=store_by_game,)
 
         if 'HC' in config['env']['train_env_id']:
-            print("debugging")
+            # print("debugging")
             sample_obs = orig_observations
             sample_acts = actions
 
