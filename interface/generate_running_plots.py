@@ -18,12 +18,14 @@ def plot_results(results_moving_average, ylim, label, method_name, save_label):
 
 
 def generate_plots():
-    file_type = "ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50"
-    env_id = 'commonroad-v1'
+    file_type = "ICRL_Pos"
+    env_id = 'HCWithPos-v0'  # 'commonroad-v1'
     modes = ['train', 'test']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
         if env_id == 'commonroad-v1':
+            max_reward = 50
+            min_reward = -50
             plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out', 'avg_velocity',
                         'is_over_speed']
             plot_y_lim_dict = {'reward': (-50, 50),
@@ -77,12 +79,14 @@ def generate_plots():
                 ],
             }
         elif env_id == 'HCWithPos-v0':
+            max_reward = 10000
+            min_reward = -10000
             plot_key = ['reward', 'constraint']
-            plot_y_lim_dict = {'reward': (-50, 50),
+            plot_y_lim_dict = {'reward': (0, 6000),
                                'constraint': (0, 1)}
             log_path_dict = {
                 "ICRL_Pos": [
-                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-04-2022-07:44-seed_123/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-05:43-seed_321/',
                 ],
             }
         else:
@@ -99,7 +103,8 @@ def generate_plots():
                 monitor_path_all.append(log_path + 'test/test.monitor.csv')
 
             # rewards, is_collision, is_off_road, is_goal_reached, is_time_out = read_running_logs(log_path=log_path)
-            results = read_running_logs(monitor_path_all=monitor_path_all, read_keys=plot_key)
+            results = read_running_logs(monitor_path_all=monitor_path_all, read_keys=plot_key,
+                                        max_reward=max_reward, min_reward=min_reward)
             all_results.append(results)
 
         avg_results = average_plot_results(all_results)

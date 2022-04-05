@@ -352,10 +352,10 @@ def train(config):
             sample_data_queue.get(sample_num=config['running']['sample_data_num'],
                                   store_by_game=store_by_game,)
 
-        if 'HC' in config['env']['train_env_id']:
-            # print("debugging")
-            sample_obs = orig_observations
-            sample_acts = actions
+        # if 'HC' in config['env']['train_env_id']:
+        #     # print("debugging")
+        #     sample_obs = orig_observations
+        #     sample_acts = actions
 
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Sampling', log_file=log_file)

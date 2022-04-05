@@ -129,7 +129,7 @@ def compute_moving_average(result_all, average_num=100):
     return result_moving_average_all
 
 
-def read_running_logs(monitor_path_all, read_keys):
+def read_running_logs(monitor_path_all, read_keys,max_reward,min_reward):
     read_running_logs = {}
 
     # handle the keys
@@ -169,7 +169,7 @@ def read_running_logs(monitor_path_all, read_keys):
             else:
                 try:
                     results = [item.replace("\n", "") for item in log_items]
-                    if float(results[key_indices['reward']]) > 50 or float(results[key_indices['reward']]) < -50:
+                    if float(results[key_indices['reward']]) > max_reward or float(results[key_indices['reward']]) < min_reward:
                         # continue
                         results = old_results
                 except:
