@@ -18,7 +18,7 @@ def plot_results(results_moving_average, ylim, label, method_name, save_label):
 
 
 def generate_plots():
-    file_type = "ICRL_Pos"
+    file_type = "ICRL_Pos_with-buffer_with-action"
     env_id = 'HCWithPos-v0'  # 'commonroad-v1'
     modes = ['train', 'test']
     for mode in modes:
@@ -89,6 +89,13 @@ def generate_plots():
                     '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-07:36-seed_123/',
                     '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-05:43-seed_321/',
                     '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-07:16-seed_666/'
+                ],
+                "ICRL_Pos_with-buffer": [
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-12:19-seed_321/',
+                ],
+
+                "ICRL_Pos_with-buffer_with-action": [
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-12:29-seed_321/',
                 ],
             }
         else:
