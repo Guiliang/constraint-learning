@@ -575,10 +575,11 @@ class ConstraintNet(nn.Module):
     #         self.select_dim += [i for i in range(self.obs_dim)]
     #     elif self.obs_select_dim[0] != -1:
     #         self.select_dim += self.obs_select_dim
+    #     obs_len = len(self.select_obs_dim)
     #     if self.acs_select_dim is None:
-    #         self.select_dim += [i for i in range(self.acs_dim)]
+    #         self.select_dim += [obs_len+i for i in range(self.acs_dim)]
     #     elif self.acs_select_dim[0] != -1:
-    #         self.select_dim += self.acs_select_dim
+    #         self.select_dim += [obs_len+i for i in self.acs_select_dim]
     #     assert len(self.select_dim) > 0, ""
     #
     #     self.input_dims = len(self.select_dim)
