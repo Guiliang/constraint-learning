@@ -49,7 +49,7 @@ def train(args):
         config['PPO']['forward_timesteps'] = 100  # 2000
         config['PPO']['n_steps'] = 530
         config['running']['n_eval_episodes'] = 10
-        config['running']['save_every'] = 1
+        # config['running']['save_every'] = 1
         debug_msg = 'debug-'
         partial_data = True
     if partial_data:
@@ -215,10 +215,11 @@ def train(args):
 
         mem_during_training = process_memory()
         time_during_training = time.time()
-        print("Training consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
+        print("Itr: {3}, Training consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
             float(mem_during_training - mem_prev) / 1000000,
             float(mem_during_training) / 1000000,
-            time_during_training - time_prev), file=log_file, flush=True)
+            time_during_training - time_prev,
+            itr), file=log_file, flush=True)
         mem_prev = mem_during_training
         time_prev = time_during_training
 
@@ -268,10 +269,11 @@ def train(args):
 
         mem_during_testing = process_memory()
         time_during_testing = time.time()
-        print("Validating consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
+        print("Itr: {3}, Validating consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}".format(
             float(mem_during_testing - mem_prev) / 1000000,
             float(mem_during_testing) / 1000000,
-            time_during_testing - time_prev), file=log_file, flush=True)
+            time_during_testing - time_prev,
+            itr), file=log_file, flush=True)
         mem_prev = mem_during_testing
         time_prev = time_during_testing
 

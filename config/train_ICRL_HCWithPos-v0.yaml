@@ -10,13 +10,12 @@ env:
 #  expert_path: 'expert_data'
 #  expert_rollouts: 10
   cost_info_str: 'cost'
-  num_threads: 5
   use_cost: True
   reward_gamma: 0.99
   cost_gamma: 0.99  # no cost
   dont_normalize_obs: False
   dont_normalize_reward: False
-  dont_normalize_cost: False  # no cost
+  dont_normalize_cost: False  # cost
 
 running:
   n_iters: 30

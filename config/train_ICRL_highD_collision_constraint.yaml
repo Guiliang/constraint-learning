@@ -8,7 +8,6 @@ env:
   eval_env_id: 'commonroad-v1'
   save_dir: '../save_model'
   cost_info_str: 'cost'
-  num_threads: 5
   use_cost: True
   reward_gamma: 0.99
   cost_gamma: 0.99
@@ -46,7 +45,6 @@ PPO:
   reward_vf_layers: [64, 64]
   cost_vf_layers: [64, 64]
   batch_size: 64
-  num_threads: 5
   eval_every: 2048
   use_curiosity_driven_exploration: False
   warmup_timesteps: False

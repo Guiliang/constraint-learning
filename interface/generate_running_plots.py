@@ -18,7 +18,7 @@ def plot_results(results_moving_average, ylim, label, method_name, save_label):
 
 
 def generate_plots():
-    file_type = "PPO_highD_no-velocitybs--1_fs-5k_nee-10_lr-5e-4_vm--50"
+    file_type = "PPO_highD_no-velocitybs--1_fs-5k_nee-10_lr-5e-4_vm-45"
     env_id = 'commonroad-v1'  # 'commonroad-v1', 'HCWithPos-v0'
     modes = ['train', 'test']
     for mode in modes:
@@ -48,10 +48,10 @@ def generate_plots():
                     '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10-multi_env-Apr-02-2022-01:16-seed_123/'
                 ],
                 "PPO_highD_no-velocitybs--1_fs-5k_nee-10_lr-5e-4_vm-45": [
-                    '../save_model/PPO-highD/train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-45-multi_env-Apr-04-2022-01:46-seed_123/'
+                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-45-multi_env-Apr-05-2022-09:47-seed_123/'
                 ],
                 "PPO_highD_no-velocitybs--1_fs-5k_nee-10_lr-5e-4_vm-50": [
-                    '../save_model/PPO-highD/train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50-multi_env-Apr-04-2022-01:47-seed_123/'
+                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50-multi_env-Apr-05-2022-09:45-seed_123/'
                 ],
                 "PPO_highD_no-velocitybs--1_fs-5k_nee-10_lr-5e-4_vm--45": [
                     '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm--45-multi_env-Apr-03-2022-04:07-seed_123/'
