@@ -243,7 +243,7 @@ class ExternalRewardWrapper(gym.Wrapper):
                     info.update({'is_over_speed': 0})
             else:
                 raise ValueError("Unknown reward features: {0}".format(reward_feature))
-
+        # print(ego_velocity)
         return observation, reward, done, info
 
 

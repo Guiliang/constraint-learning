@@ -79,7 +79,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             )
         self.rewards = []
         if 'commonroad' in self.env.spec.id:
-            self.ego_velocity = []
+            self.ego_velocity_game = []
         self.needs_reset = False
         for key in self.reset_keywords:
             value = kwargs.get(key)
@@ -96,8 +96,6 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             raise RuntimeError("Tried to step environment that needs reset")
         observation, reward, done, info = self.env.step(action)
         self.rewards.append(reward)
-        if 'commonroad' in self.env.spec.id:
-            self.ego_velocity.append(info["ego_velocity"])
         for key in self.track_keywords:
             if key not in info:
                 raise ValueError(f"Expected to find {key} in info dict")
@@ -106,6 +104,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             if info['xpos'] <= -3:
                 self.event_dict['is_constraint_break'] = 1
         elif 'commonroad' in self.env.spec.id:
+            self.ego_velocity_game.append(info["ego_velocity"])
             if info['is_collision']:
                 self.event_dict['is_collision'] = 1
             if info['is_off_road']:
@@ -126,14 +125,14 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                            "time": round(time.time() - self.t_start, 2),
                            'constraint': self.event_dict['is_constraint_break']}
             elif 'commonroad' in self.env.spec.id:
-                ego_velocity_array = np.asarray(self.ego_velocity)
-                ego_velocity = np.sqrt(np.square(ego_velocity_array[:, 0]) + np.square(ego_velocity_array[:, 1]))
+                ego_velocity_array = np.asarray(self.ego_velocity_game)
+                ego_velocity_game = np.sqrt(np.square(ego_velocity_array[:, 0]) + np.square(ego_velocity_array[:, 1]))
                 # ego_velocity_tmp = np.sqrt(np.sum(np.square(ego_velocity_array), axis=1))
                 ep_info = {
                     "reward": round(ep_rew, 2),
                     "len": ep_len,
                     "time": round(time.time() - self.t_start, 2),
-                    "avg_velocity": round(float(ego_velocity.mean()), 2),
+                    "avg_velocity": round(float(ego_velocity_game.mean()), 2),
                     "is_collision": self.event_dict['is_collision'],
                     "is_off_road": self.event_dict['is_off_road'],
                     "is_goal_reached": self.event_dict['is_goal_reached'],
@@ -141,6 +140,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                     'is_over_speed': self.event_dict['is_over_speed'],
                     "env": self.env.env.benchmark_id,
                 }
+                self.ego_velocity_game = []
             else:
                 raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
             for key in self.info_keywords:

@@ -10,7 +10,6 @@ env:
 #  expert_path: 'expert_data'
   expert_rollouts: 10
   cost_info_str: ''
-  num_threads: 5
   use_cost: False
   reward_gamma: 0.99
   cost_gamma: null  # no cost
@@ -43,7 +42,6 @@ PPO:
   reward_vf_layers: [64, 64]
   cost_vf_layers: False
   batch_size: 64
-  num_threads: 5
   eval_every: 2048
   use_curiosity_driven_exploration: False
   warmup_timesteps: False
