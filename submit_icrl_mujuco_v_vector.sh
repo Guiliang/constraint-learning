@@ -17,6 +17,6 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 cd ./interface
 #python train_icrl.py ../config/train_ICRL_HCWithPos-v0.yaml -s 123 -l "$log_dir"
-python train_icrl.py ../config/train_ICRL_HCWithPos-v0.yaml -s 321 -l "$log_dir"
-#python train_icrl.py ../config/train_ICRL_HCWithPos-v0.yaml -s 666 -l "$log_dir"
+#python train_icrl.py ../config/train_ICRL_HCWithPos-v0.yaml -s 321 -l "$log_dir"
+python train_icrl.py ../config/train_ICRL_HCWithPos-v0.yaml -s 666 -l "$log_dir"
 
