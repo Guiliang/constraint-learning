@@ -521,10 +521,11 @@ class ConstraintNet(nn.Module):
             target_kl_new_old: float = -1,
             train_gail_lambda: Optional[bool] = False,
             eps: float = 1e-5,
-            device: str = "cpu"
+            device: str = "cpu",
+            log_file=None,
     ):
         super(ConstraintNet, self).__init__()
-
+        self.task = task
         self.obs_dim = obs_dim
         self.acs_dim = acs_dim
         self.obs_select_dim = obs_select_dim
@@ -564,6 +565,7 @@ class ConstraintNet(nn.Module):
         self.target_kl_new_old = target_kl_new_old
 
         self.current_progress_remaining = 1.
+        self.log_file = log_file
 
         self._build()
 

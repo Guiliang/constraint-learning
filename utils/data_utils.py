@@ -376,7 +376,7 @@ def get_obs_feature_names(env, env_id):
 
 
 def get_input_features_dim(feature_select_names, all_feature_names):
-    if len(feature_select_names) == 0:
+    if feature_select_names is None:
         feature_select_dim = None
     else:
         feature_select_dim = []

@@ -21,6 +21,7 @@ running:
   save_every: 10
   expert_rollouts: 10
   expert_path: '../data/expert_data/no-over_speed_train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/'
+  use_buffer: True
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'

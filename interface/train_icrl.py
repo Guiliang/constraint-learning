@@ -70,8 +70,8 @@ def train(config):
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
-
-    sample_data_queue = IRLDataQueue(max_length=config['running']['store_sample_num'], seed=seed)
+    if config['running']['use_buffer']:
+        sample_data_queue = IRLDataQueue(max_length=config['running']['store_sample_num'], seed=seed)
     save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}-seed_{6}/'.format(
         config['env']['save_dir'],
         config['task'],
@@ -199,12 +199,12 @@ def train(config):
                                * config['CN']['cn_learning_rate']
 
     cn_obs_select_name = config['CN']['cn_obs_select_name']
-    print("Selecting obs features are : {0}".format(cn_obs_select_name if len(cn_obs_select_name) > 0 else 'all'),
+    print("Selecting obs features are : {0}".format(cn_obs_select_name if cn_obs_select_name is not None else 'all'),
           file=log_file, flush=True)
     cn_obs_select_dim = get_input_features_dim(feature_select_names=cn_obs_select_name,
                                                all_feature_names=all_obs_feature_names)
     cn_acs_select_name = config['CN']['cn_acs_select_name']
-    print("Selecting acs features are : {0}".format(cn_acs_select_name if len(cn_acs_select_name) > 0 else 'all'),
+    print("Selecting acs features are : {0}".format(cn_acs_select_name if cn_acs_select_name is not None else 'all'),
           file=log_file, flush=True)
     cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
                                                all_feature_names=['a_ego_0', 'a_ego_1'])
@@ -344,16 +344,15 @@ def train(config):
             rollouts=config['running']['sample_rollouts'],
             store_by_game=store_by_game,
         )
-        sample_data_queue.put(obs=orig_observations,
-                              acs=actions,
-                              rs=rewards
-                              )
-        sample_obs, sample_acts, sample_rs = \
-            sample_data_queue.get(sample_num=config['running']['sample_data_num'],
-                                  store_by_game=store_by_game,)
-
-        if 'HC' in config['env']['train_env_id']:
-            # print("debugging")
+        if config['running']['use_buffer']:
+            sample_data_queue.put(obs=orig_observations,
+                                  acs=actions,
+                                  rs=rewards
+                                  )
+            sample_obs, sample_acts, sample_rs = \
+                sample_data_queue.get(sample_num=config['running']['sample_data_num'],
+                                      store_by_game=store_by_game,)
+        else:
             sample_obs = orig_observations
             sample_acts = actions
 

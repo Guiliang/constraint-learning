@@ -171,19 +171,12 @@ def run():
         config = yaml.safe_load(reader)
     print(json.dumps(config, indent=4), file=log_file, flush=True)
 
-    # TODO: remove this line in the future
-    if 'ppo' in config['env']['config_path']:
-        config['env']['config_path'] = config['env']['config_path'].replace('_ppo', '')
-
     with open(config['env']['config_path'], "r") as config_file:
         env_configs = yaml.safe_load(config_file)
 
     evaluation_path = os.path.join('../evaluate_model', config['task'], load_model_name)
     if not os.path.exists(evaluation_path):
         os.mkdir(evaluation_path)
-    # viz_path = os.path.join(evaluation_path, 'img')
-    # if not os.path.exists(viz_path):
-    #     os.mkdir(viz_path)
 
     save_expert_data_path = os.path.join('../data/expert_data/', '{0}{1}_{2}'.format(
         'debug_' if debug_mode else '',
@@ -221,51 +214,28 @@ def run():
             max_benchmark_num = len(env_ids[i])
 
     model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
-    # create_ppo_agent = lambda: PPO(
-    #     policy=config['PPO']['policy_name'],
-    #     env=env,
-    #     learning_rate=config['PPO']['learning_rate'],
-    #     n_steps=config['PPO']['n_steps'],
-    #     batch_size=config['PPO']['batch_size'],
-    #     n_epochs=config['PPO']['n_epochs'],
-    #     gamma=config['PPO']['reward_gamma'],
-    #     gae_lambda=config['PPO']['reward_gae_lambda'],
-    #     clip_range=config['PPO']['clip_range'],
-    #     ent_coef=config['PPO']['ent_coef'],
-    #     vf_coef=config['PPO']['reward_vf_coef'],
-    #     max_grad_norm=config['PPO']['max_grad_norm'],
-    #     use_sde=config['PPO']['use_sde'],
-    #     sde_sample_freq=config['PPO']['sde_sample_freq'],
-    #     target_kl=config['PPO']['target_kl'],
-    #     verbose=config['verbose'],
-    #     seed=123,
-    #     device=config['device'],
-    #     policy_kwargs=dict(net_arch=get_net_arch(config)))
-    # model = create_ppo_agent()
-
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios, benchmark_idx = 0, 0, 0, 0, 0, 0
-    # In case there a no scenarios at all
-    try:
-        benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
-                                          benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
-        obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
-        benchmark_idx += 1
-    except IndexError:
-        num_scenarios = 0
+
+    # # In case there a no scenarios at all
+    # benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
+    #                                   benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
+    # obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
+    # benchmark_idx += 1
 
     success = 0
     benchmark_id_all = []
     while benchmark_idx < max_benchmark_num:
+        benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
+                                          benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
+        obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
         done, state = False, None
-        benchmark_ids = [env.venv.envs[i].benchmark_id for i in range(num_threads)]
+        # benchmark_ids = [env.venv.envs[i].benchmark_id for i in range(num_threads)]
         save_data_flag = [True for i in range(num_threads)]
         for b_idx in range(len(benchmark_ids)):
             benchmark_id = benchmark_ids[b_idx]
             if benchmark_id in benchmark_id_all:
                 print('skip game', benchmark_id, file=log_file, flush=True)
                 save_data_flag[b_idx] = False
-                # obs = env.reset()
-                # continue
             else:
                 benchmark_id_all.append(benchmark_id)
                 print('senario id', benchmark_id, file=log_file, flush=True)
@@ -362,16 +332,16 @@ def run():
             if not info["out_of_scenarios"]:
                 out_of_scenarios = False
 
-        benchmark_ids = []
-        for i in range(num_threads):
-            if benchmark_total_nums[i] > benchmark_idx:
-                benchmark_ids.append(env_ids[i][benchmark_idx])
-            else:
-                benchmark_ids.append(None)
+        # benchmark_ids = []
+        # for i in range(num_threads):
+        #     if benchmark_total_nums[i] > benchmark_idx:
+        #         benchmark_ids.append(env_ids[i][benchmark_idx])
+        #     else:
+        #         benchmark_ids.append(None)
 
-        benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
-                                          benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
-        obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
+        # benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
+        #                                   benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
+        # obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
         benchmark_idx += 1
 
     print('total', total_scenarios, 'success', success, file=log_file, flush=True)
