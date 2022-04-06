@@ -28,7 +28,7 @@ PPO:
   n_steps: 1024 #2048
   n_epochs: 10
   clip_obs: 20
-  reward_gamma: 0.5
+  reward_gamma: 0.9
   reward_gae_lambda: 0.95
   clip_range: 0.2
   ent_coef: 0.0

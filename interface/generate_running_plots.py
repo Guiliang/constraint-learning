@@ -18,8 +18,8 @@ def plot_results(results_moving_average, ylim, label, method_name, save_label):
 
 
 def generate_plots():
-    file_type = "ICRL_Pos_with-buffer-100k_with-action"
-    env_id = 'HCWithPos-v0'  # 'commonroad-v1', 'HCWithPos-v0'
+    file_type = "ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50_gamma-5e-1"
+    env_id = 'commonroad-v1'  # 'commonroad-v1', 'HCWithPos-v0'
     modes = ['train', 'test']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -67,6 +67,9 @@ def generate_plots():
                 ],
                 'ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50': [
                     '../save_model/PPO-highD/train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50-multi_env-Apr-04-2022-01:47-seed_123/'
+                ],
+                'ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50_gamma-5e-1': [
+                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50_gamma-5e-1-multi_env-Apr-06-2022-01:46-seed_123/'
                 ],
                 "ICRL_highD_velocity-dim2": [
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-00:37/',
