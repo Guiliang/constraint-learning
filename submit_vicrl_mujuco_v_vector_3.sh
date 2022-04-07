@@ -16,7 +16,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 cd ./interface
-python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-1-1_no_is.yaml -n 5 -s 123 -l "$log_dir"
-#python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-1-1_no_is.yaml -n 5 -s 321 -l "$log_dir"
+#python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-1-1_no_is.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-1-1_no_is.yaml -n 5 -s 321 -l "$log_dir"
 #python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-1-1_no_is.yaml -n 5 -s 666 -l "$log_dir"
 
