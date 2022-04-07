@@ -24,8 +24,7 @@ running:
   sample_data_num: 5000
   store_sample_num: 5000
   expert_path: '../data/expert_data/HCWithPos-New/'
-  use_buffer: True
-  use_actions: True
+  use_buffer: False
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'
@@ -75,7 +74,7 @@ CN:
   cn_batch_size: null
   cn_obs_select_name:  null  # null means all
   cn_acs_select_name:  null  # null means all
-  no_importance_sampling: False
+  no_importance_sampling: True
   per_step_importance_sampling: True
   clip_obs: 20
   cn_normalize: False
