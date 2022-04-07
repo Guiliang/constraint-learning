@@ -16,4 +16,4 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 cd ./interface/
-python train_ppo.py ../config/train_ppo_HCWithPos-v0.yaml -n 5 -s 666 -l "$log_dir"
+python train_ppo.py ../config/train_ppo_HCWithPos-v0.yaml -n 5 -s 321 -l "$log_dir"
