@@ -258,7 +258,7 @@ def load_expert_data(expert_path,
     expert_acs = []
     expert_rs = []
     num_samples = 0
-    if num_rollouts is None:
+    if num_rollouts is None or num_rollouts > len(file_names):
         num_rollouts = len(file_names)
     for i in range(num_rollouts):
         # file_name = sample_names[i]

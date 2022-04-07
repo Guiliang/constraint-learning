@@ -208,7 +208,10 @@ def train(config):
           file=log_file, flush=True)
     cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
                                                all_feature_names=['a_ego_0', 'a_ego_1'])
-
+    # if config['CN']['cn_batch_size'] == -1:
+    #     cn_batch_size = None
+    # else:
+    #     cn_batch_size = config['CN']['cn_batch_size']
     cn_parameters = {
         'obs_dim': obs_dim,
         'acs_dim': acs_dim,
@@ -251,16 +254,17 @@ def train(config):
     train_env.set_cost_function(constraint_net.cost_function)
 
     # Initialize agent
-    if config['PPO']['batch_size'] == -1:
-        batch_size = config['PPO']['n_steps'] * num_threads
-    else:
-        batch_size = config['PPO']['batch_size']
+    # if config['PPO']['batch_size'] == -1:
+    #     ppo_batch_size = None  # config['PPO']['n_steps'] * num_threads
+    # else:
+    #     ppo_batch_size = config['PPO']['batch_size']
+
     create_nominal_agent = lambda: PPOLagrangian(
         policy=config['PPO']['policy_name'],
         env=train_env,
         learning_rate=config['PPO']['learning_rate'],
         n_steps=config['PPO']['n_steps'],
-        batch_size=batch_size,
+        batch_size=config['PPO']['batch_size'],
         n_epochs=config['PPO']['n_epochs'],
         reward_gamma=config['PPO']['reward_gamma'],
         reward_gae_lambda=config['PPO']['reward_gae_lambda'],

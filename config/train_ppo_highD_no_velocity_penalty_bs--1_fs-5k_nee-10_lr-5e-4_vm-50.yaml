@@ -41,7 +41,7 @@ PPO:
   policy_layers: [64, 64]
   reward_vf_layers: [64, 64]
   cost_vf_layers: False
-  batch_size: -1
+  batch_size: null
   eval_every: 2048
   use_curiosity_driven_exploration: False
   warmup_timesteps: False
