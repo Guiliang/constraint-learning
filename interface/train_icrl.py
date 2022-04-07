@@ -50,15 +50,15 @@ def train(config):
         # config['device'] = 'cpu'
         # config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 2000  # 2000
-        # config['PPO']['n_steps'] = 32
-        # config['PPO']['n_epochs'] = 2
-        # config['running']['n_eval_episodes'] = 10
-        # config['running']['save_every'] = 1
-        # config['running']['sample_rollouts'] = 10
-        # config['running']['sample_data_num'] = 500
-        # config['running']['store_sample_num'] = 1000
+        config['PPO']['n_steps'] = 32
+        config['PPO']['n_epochs'] = 2
+        config['running']['n_eval_episodes'] = 10
+        config['running']['save_every'] = 1
+        config['running']['sample_rollouts'] = 10
+        config['running']['sample_data_num'] = 500
+        config['running']['store_sample_num'] = 1000
         # # config['CN']['cn_batch_size'] = 3
-        # config['CN']['backward_iters'] = 1
+        config['CN']['backward_iters'] = 1
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
@@ -251,12 +251,16 @@ def train(config):
     train_env.set_cost_function(constraint_net.cost_function)
 
     # Initialize agent
+    if config['PPO']['batch_size'] == -1:
+        batch_size = config['PPO']['n_steps'] * num_threads
+    else:
+        batch_size = config['PPO']['batch_size']
     create_nominal_agent = lambda: PPOLagrangian(
         policy=config['PPO']['policy_name'],
         env=train_env,
         learning_rate=config['PPO']['learning_rate'],
         n_steps=config['PPO']['n_steps'],
-        batch_size=config['PPO']['batch_size'],
+        batch_size=batch_size,
         n_epochs=config['PPO']['n_epochs'],
         reward_gamma=config['PPO']['reward_gamma'],
         reward_gae_lambda=config['PPO']['reward_gae_lambda'],

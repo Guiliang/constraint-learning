@@ -157,7 +157,7 @@ def run():
     log_file = None
     # num_scenarios = 2000
     # load_model_name = 'train_ppo_highD_velocity_penalty-multi_env-Mar-21-2022-05:29-seed_123'
-    load_model_name = 'train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123'
+    load_model_name = 'train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:29-seed_123'
     # 'train_ppo_highD-multi_env-Mar-10-2022-04:37'  # 'part-train_ppo_highD-Feb-01-2022-10:31'
     task_name = 'PPO-highD'
     data_generate_type = 'no-over_speed'

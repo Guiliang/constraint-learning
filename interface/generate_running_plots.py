@@ -1,24 +1,36 @@
 import os
 
-from utils.data_utils import read_running_logs, compute_moving_average, average_plot_results
-from utils.plot_utils import plot_curve
+from utils.data_utils import read_running_logs, compute_moving_average, mean_std_plot_results
+from utils.plot_utils import plot_curve, plot_shadow_curve
 
 
-def plot_results(results_moving_average, ylim, label, method_name, save_label):
-    plot_x_dict = {method_name: [i for i in range(len(results_moving_average))]}
-    plot_y_dict = {method_name: results_moving_average}
-    plot_curve(draw_keys=[method_name],
-               x_dict=plot_x_dict,
-               y_dict=plot_y_dict,
-               ylim=ylim,
-               xlabel='Episode',
-               ylabel=label,
-               title='{0}'.format(save_label),
-               plot_name='./plot_results/{0}'.format(save_label))
+def plot_results(mean_results_moving_average, std_results_moving_average, ylim, label, method_name, save_label):
+    plot_x_dict = {method_name: [i for i in range(len(mean_results_moving_average))]}
+    plot_mean_y_dict = {method_name: mean_results_moving_average}
+    plot_std_y_dict = {method_name: std_results_moving_average}
+    # plot_curve(draw_keys=[method_name],
+    #            x_dict=plot_x_dict,
+    #            y_dict=plot_y_dict,
+    #            ylim=ylim,
+    #            xlabel='Episode',
+    #            ylabel=label,
+    #            title='{0}'.format(save_label),
+    #            plot_name='./plot_results/{0}'.format(save_label))
+    plot_shadow_curve(draw_keys=[method_name],
+                      x_dict_mean=plot_x_dict,
+                      y_dict_mean=plot_mean_y_dict,
+                      x_dict_std=plot_x_dict,
+                      y_dict_std=plot_std_y_dict,
+                      ylim=ylim,
+                      title='{0}'.format(save_label),
+                      xlabel='Episode',
+                      ylabel=label,
+                      legend_size=None,
+                      plot_name='./plot_results/{0}'.format(save_label), )
 
 
 def generate_plots():
-    file_type = "ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50_gamma-9e-1"
+    file_type = "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40"
     env_id = 'commonroad-v1'  # 'commonroad-v1', 'HCWithPos-v0'
     modes = ['train', 'test']
     for mode in modes:
@@ -47,6 +59,9 @@ def generate_plots():
                 "PPO_highD_no-velocity_bs--1_fs-5k_nee-10": [
                     '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10-multi_env-Apr-02-2022-01:16-seed_123/'
                 ],
+                "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": [
+                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:28-seed_123/'
+                ],
                 "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-45": [
                     '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-45-multi_env-Apr-05-2022-09:47-seed_123/'
                 ],
@@ -61,6 +76,9 @@ def generate_plots():
                 ],
                 "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_vm-45": [
                     '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_vm-45-multi_env-Apr-03-2022-04:10-seed_123/'
+                ],
+                'ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40': [
+                    '../save_model/PPO-highD/train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:29-seed_123/'
                 ],
                 'ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-45': [
                     '../save_model/PPO-highD/train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-45-multi_env-Apr-04-2022-01:46-seed_123/'
@@ -101,6 +119,9 @@ def generate_plots():
                                'constraint': (0, 1)}
             log_path_dict = {
                 "ICRL_Pos": [
+                    # '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-06-2022-10:56-seed_123/',
+                    # '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-06-2022-10:58-seed_321/',
+                    # '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-06-2022-10:59-seed_666/',
                     '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-07:36-seed_123/',
                     '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-05:43-seed_321/',
                     '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-07:16-seed_666/'
@@ -109,7 +130,9 @@ def generate_plots():
                     '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-12:19-seed_321/',
                 ],
                 "ICRL_Pos_with-buffer_with-action": [
-                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-12:29-seed_321/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_with-buffer-Apr-06-2022-10:56-seed_123/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_with-buffer-Apr-06-2022-10:58-seed_321/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_with-buffer-Apr-06-2022-10:59-seed_666/',
                 ],
                 "ICRL_Pos_with-buffer-100k_with-action": [
                     '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-23:50-seed_123/',
@@ -117,9 +140,9 @@ def generate_plots():
                     # '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-23:51-seed_666/',
                 ],
                 "ICRL_Pos_with-action": [
-                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-06-2022-05:50-seed_123/',
-                    # '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-23:50-seed_321/',
-                    # '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-05-2022-23:51-seed_666/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action-Apr-06-2022-10:56-seed_123/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action-Apr-06-2022-10:58-seed_321/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action-Apr-06-2022-10:59-seed_666/',
                 ],
             }
         else:
@@ -140,7 +163,7 @@ def generate_plots():
                                         max_reward=max_reward, min_reward=min_reward)
             all_results.append(results)
 
-        avg_results = average_plot_results(all_results)
+        mean_results, std_results = mean_std_plot_results(all_results)
 
         # if not os.path.exists('./plot_results/' + log_path.split('/')[3]):
         #     os.mkdir('./plot_results/' + log_path.split('/')[3])
@@ -148,8 +171,12 @@ def generate_plots():
             os.mkdir('./plot_results/' + file_type)
 
         for idx in range(len(plot_key)):
-            results_moving_average = compute_moving_average(result_all=avg_results[plot_key[idx]], average_num=100)
-            plot_results(results_moving_average,
+            mean_results_moving_average = compute_moving_average(result_all=mean_results[plot_key[idx]],
+                                                                 average_num=100)
+            std_results_moving_average = compute_moving_average(result_all=std_results[plot_key[idx]],
+                                                                average_num=100)
+            plot_results(mean_results_moving_average,
+                         std_results_moving_average,
                          label=plot_key[idx],
                          method_name=file_type,
                          ylim=plot_y_lim_dict[plot_key[idx]],

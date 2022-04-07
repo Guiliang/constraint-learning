@@ -125,8 +125,11 @@ def compute_moving_average(result_all, average_num=100):
     moving_values = deque([], maxlen=average_num)
     for result in result_all:
         moving_values.append(result)
-        result_moving_average_all.append(np.mean(moving_values))
-    return result_moving_average_all
+        if len(moving_values) < average_num:  # this is to average the results in the beginning
+            result_moving_average_all.append(np.mean(result_all[:100]))
+        else:
+            result_moving_average_all.append(np.mean(moving_values))
+    return np.asarray(result_moving_average_all)
 
 
 def read_running_logs(monitor_path_all, read_keys,max_reward,min_reward):
@@ -246,6 +249,7 @@ def load_expert_data(expert_path,
                      store_by_game=False,
                      add_next_step=True,
                      log_file=None):
+    print('Loading expert data from {0}.'.format(expert_path), file=log_file, flush=True)
     file_names = sorted(os.listdir(expert_path))
     # file_names = [i for i in range(29)]
     # sample_names = random.sample(file_names, num_rollouts)
@@ -389,8 +393,9 @@ def get_input_features_dim(feature_select_names, all_feature_names):
     return feature_select_dim
 
 
-def average_plot_results(all_results):
-    results_avg = {}
+def mean_std_plot_results(all_results):
+    mean_results = {}
+    std_results = {}
     for key in all_results[0]:
         all_plot_values = []
         max_len = 0
@@ -400,16 +405,19 @@ def average_plot_results(all_results):
                 max_len = len(plot_values)
             all_plot_values.append(plot_values)
         # max_len = 1000
-        avg_plot_values = []
+        mean_plot_values = []
+        std_plot_values = []
         for i in range(max_len):
             plot_value_t = []
             for plot_values in all_plot_values:
                 if len(plot_values) > i:
                     plot_value_t.append(plot_values[i])
-            avg_plot_values.append(np.mean(plot_value_t))
-        results_avg.update({key: avg_plot_values})
+            mean_plot_values.append(np.mean(plot_value_t))
+            std_plot_values.append(np.std(plot_value_t))
+        mean_results.update({key: mean_plot_values})
+        std_results.update({key: std_plot_values})
 
-    return results_avg
+    return mean_results, std_results
 
 
 def print_resource(mem_prev, time_prev, process_name, log_file):
