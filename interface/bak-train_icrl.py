@@ -21,7 +21,7 @@ from tqdm import tqdm
 
 import commonroad_environment.commonroad_rl.gym_commonroad  # this line must be included
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make
-from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
+from utils.env_utils import make_train_env, make_eval_env, multi_threads_sample_from_agent
 from utils.model_utils import get_net_arch
 
 
@@ -265,7 +265,7 @@ def train(config):
 
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sampling_env)
-        orig_observations, observations, actions, rewards, lengths = sample_from_agent(
+        orig_observations, observations, actions, rewards, lengths = multi_threads_sample_from_agent(
             agent=nominal_agent,
             env=sampling_env,
             rollouts=config['running']['expert_rollouts'])

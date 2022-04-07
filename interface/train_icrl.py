@@ -23,7 +23,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_obs_feature_names, get_input_features_dim, process_memory, print_resource
-from utils.env_utils import make_train_env, make_eval_env, sample_from_agent
+from utils.env_utils import make_train_env, make_eval_env, multi_threads_sample_from_agent, sample_from_agent
 from utils.model_utils import get_net_arch
 
 
@@ -49,7 +49,7 @@ def train(config):
     if debug_mode:
         # config['device'] = 'cpu'
         # config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 2000  # 2000
+        config['PPO']['forward_timesteps'] = 200  # 2000
         config['PPO']['n_steps'] = 32
         config['PPO']['n_epochs'] = 2
         config['running']['n_eval_episodes'] = 10
@@ -107,7 +107,7 @@ def train(config):
                                save_dir=save_model_mother_dir,
                                group=config['group'],
                                base_seed=seed,
-                               num_threads=config['env']['num_threads'],
+                               num_threads=num_threads,
                                use_cost=config['env']['use_cost'],
                                normalize_obs=not config['env']['dont_normalize_obs'],
                                normalize_reward=not config['env']['dont_normalize_reward'],
@@ -124,14 +124,22 @@ def train(config):
     save_valid_mother_dir = os.path.join(save_model_mother_dir, "valid/")
     if not os.path.exists(save_valid_mother_dir):
         os.mkdir(save_valid_mother_dir)
+    if 'commonroad' in config['env']['train_env_id']:
+        sample_num_threads = num_threads
+        sample_multi_env = multi_env
+    else:
+        sample_num_threads = 1
+        sample_multi_env = False
     sampling_env = make_eval_env(env_id=config['env']['train_env_id'],
                                  config_path=config['env']['config_path'],
                                  save_dir=save_valid_mother_dir,
                                  group=config['group'],
-                                 mode='valid',
+                                 num_threads=sample_num_threads,
+                                 mode='sample',
                                  use_cost=False,
                                  normalize_obs=not config['env']['dont_normalize_obs'],
                                  part_data=partial_data,
+                                 multi_env=sample_multi_env,
                                  log_file=log_file)
     # We don't need cost when during evaluation
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
@@ -141,10 +149,12 @@ def train(config):
                              config_path=config['env']['config_path'],
                              save_dir=save_test_mother_dir,
                              group=config['group'],
+                             num_threads=1,
                              mode='test',
                              use_cost=False,
                              normalize_obs=not config['env']['dont_normalize_obs'],
                              part_data=partial_data,
+                             multi_env=False,
                              log_file=log_file)
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
@@ -346,12 +356,21 @@ def train(config):
                                              process_name='Training PPO model', log_file=log_file)
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sampling_env)
-        orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
-            agent=nominal_agent,
-            env=sampling_env,
-            rollouts=config['running']['sample_rollouts'],
-            store_by_game=store_by_game,
-        )
+        if sample_multi_env:
+            orig_observations, observations, actions, rewards, sum_rewards, lengths = multi_threads_sample_from_agent(
+                agent=nominal_agent,
+                env=sampling_env,
+                rollouts=int(config['running']['sample_rollouts']),
+                num_threads=num_threads,
+                store_by_game=store_by_game,
+            )
+        else:
+            orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
+                agent=nominal_agent,
+                env=sampling_env,
+                rollouts=int(config['running']['sample_rollouts']),
+                store_by_game=store_by_game,
+            )
         if config['running']['use_buffer']:
             sample_data_queue.put(obs=orig_observations,
                                   acs=actions,

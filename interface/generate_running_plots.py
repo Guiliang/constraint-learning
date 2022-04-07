@@ -30,9 +30,10 @@ def plot_results(mean_results_moving_average, std_results_moving_average, ylim, 
 
 
 def generate_plots():
-    file_type = "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40"
+    file_type = "ICRL_highD_velocity_constraint_no_is_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dim-2"
     env_id = 'commonroad-v1'  # 'commonroad-v1', 'HCWithPos-v0'
     modes = ['train', 'test']
+    max_episodes = 10000
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
         if env_id == 'commonroad-v1':
@@ -107,6 +108,12 @@ def generate_plots():
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-3-multi_env-Mar-30-2022-06:05/',
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-3-multi_env-Mar-31-2022-00:47-seed_321//'
                 ],
+                'ICRL_highD_velocity_constraint_no_is_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dim-2': [
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dim-2-multi_env-Apr-07-2022-04:41-seed_123/'
+                ],
+                'ICRL_highD_velocity_constraint_no_is_bs--1_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2': [
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2-multi_env-Apr-07-2022-04:53-seed_123/'
+                ],
                 "VICRL_highD_velocity-dim2-buff": [
                     '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_no_is_p-1-1_dim-2-multi_env-Mar-31-2022-06:36-seed_123/'
                 ],
@@ -175,6 +182,9 @@ def generate_plots():
                                                                  average_num=100)
             std_results_moving_average = compute_moving_average(result_all=std_results[plot_key[idx]],
                                                                 average_num=100)
+            if max_episodes:
+                mean_results_moving_average = mean_results_moving_average[:max_episodes]
+                std_results_moving_average = std_results_moving_average[:max_episodes]
             plot_results(mean_results_moving_average,
                          std_results_moving_average,
                          label=plot_key[idx],

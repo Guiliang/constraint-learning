@@ -16,28 +16,8 @@ from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 # from utils.model_utils import get_net_arch
 # from stable_baselines3 import PPO
 from commonroad_environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
-
-from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model, get_benchmark_ids
-
-# def make_env(env_id, seed,  , info_keywords=()):
-#     log_dir = 'icrl/test_log'
-#
-#     logging_path = 'icrl/test_log'
-#
-#     if log_dir is not None:
-#         os.makedirs(log_dir, exist_ok=True)
-#
-#     def _init():
-#         env = gym.make(env_id, logging_path=logging_path, **env_kwargs)
-#         rank = 0
-#         env.seed(seed + rank)
-#         log_file = os.path.join(log_dir, str(rank)) if log_dir is not None else None
-#         env = Monitor(env, log_file, info_keywords=info_keywords)
-#         return env
-#
-#     return _init
-from utils.env_utils import make_env
-from utils.plot_utils import pngs2gif
+from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model
+from utils.env_utils import make_env, get_all_env_ids, get_benchmark_ids
 
 
 class CommonRoadVecEnv(DummyVecEnv):
@@ -201,18 +181,7 @@ def run():
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
 
-    max_benchmark_num = 0
-    benchmark_total_nums = []
-    env_ids = []
-    for i in range(num_threads):
-        try:  # we need to change this setting if you modify the number of env wrappers.
-            env_ids.append(list(env.venv.envs[i].env.env.env.all_problem_dict.keys()))
-        except:
-            env_ids.append(list(env.venv.envs[i].env.env.all_problem_dict.keys()))
-        benchmark_total_nums.append(len(env_ids[i]))
-        if len(env_ids[i]) > max_benchmark_num:
-            max_benchmark_num = len(env_ids[i])
-
+    max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)
     model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios, benchmark_idx = 0, 0, 0, 0, 0, 0
 
@@ -252,8 +221,8 @@ def run():
         infos_done = [None for i in range(num_threads)]
         while not done:
             action, state = model.predict(obs, state=state, deterministic=True)
-            new_obs, rewards, dones, infos = env.step(action)
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
+            new_obs, rewards, dones, infos = env.step(action)
             # benchmark_ids = [env.venv.envs[i].benchmark_id for i in range(num_threads)]
             # print(dones)
             # print(benchmark_ids)

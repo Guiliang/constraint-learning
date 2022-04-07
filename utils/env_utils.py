@@ -24,7 +24,8 @@ def make_env(env_id, env_configs, rank, log_dir, multi_env=False, seed=0):
             import mujuco_environment.custom_envs
         env_configs_copy = copy(env_configs)
         if multi_env and 'commonroad' in env_id:
-            env_configs_copy.update({'train_reset_config_path': env_configs['train_reset_config_path'] + '/{0}'.format(rank)}),
+            env_configs_copy.update(
+                {'train_reset_config_path': env_configs['train_reset_config_path'] + '/{0}'.format(rank)}),
         if 'external_reward' in env_configs:
             del env_configs_copy['external_reward']
         env = gym.make(id=env_id,
@@ -48,7 +49,6 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
                    use_cost=False, normalize_obs=True, normalize_reward=True, normalize_cost=True, multi_env=False,
                    log_file=None, part_data=False,
                    **kwargs):
-
     if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
@@ -115,21 +115,30 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     return env
 
 
-def make_eval_env(env_id, config_path, save_dir, group='PPO', mode='test', use_cost=False, normalize_obs=True,
-                  part_data=False, log_file=None):
-
+def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
+                  mode='test', use_cost=False, normalize_obs=True,
+                  part_data=False, multi_env=False, log_file=None):
     if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
+            if multi_env:
+                env_configs['train_reset_config_path'] += '_split'
             if part_data:
                 env_configs['train_reset_config_path'] += '_debug'
                 env_configs['test_reset_config_path'] += '_debug'
                 env_configs['meta_scenario_path'] += '_debug'
-        env_configs["test_env"] = True
+        if mode == 'test':
+            env_configs["test_env"] = True
     else:
         env_configs = {}
     # env = [lambda: gym.make(env_id, **env_configs)]
-    env = [make_env(env_id, env_configs, 0, os.path.join(save_dir, mode))]
+    # env = [make_env(env_id, env_configs, 0, os.path.join(save_dir, mode))]
+    env = [make_env(env_id=env_id,
+                    env_configs=env_configs,
+                    rank=i,
+                    log_dir=os.path.join(save_dir, mode),
+                    multi_env=multi_env)
+           for i in range(num_threads)]
     if 'HC' in env_id:
         env = vec_env.SubprocVecEnv(env)
     elif 'commonroad' in env_id:
@@ -150,6 +159,76 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', mode='test', use_c
         env = vec_env.VecTransposeImage(env)
 
     return env
+
+
+def get_benchmark_ids(num_threads, benchmark_idx, benchmark_total_nums, env_ids):
+    benchmark_ids = []
+    for i in range(num_threads):
+        if benchmark_total_nums[i] > benchmark_idx:
+            benchmark_ids.append(env_ids[i][benchmark_idx])
+        else:
+            benchmark_ids.append(None)
+    return benchmark_ids
+
+
+def multi_threads_sample_from_agent(agent, env, rollouts, num_threads, store_by_game=False):
+    # if isinstance(env, vec_env.VecEnv):
+    #     assert env.num_envs == 1, "You must pass only one environment when using this function"
+    rollouts = int(float(rollouts) / num_threads)
+    all_orig_obs, all_obs, all_acs, all_rs = [], [], [], []
+    sum_rewards, all_lengths = [], []
+    max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)
+    for j in range(rollouts):
+        benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=j,
+                                          benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
+        obs = env.reset_benchmark(benchmark_ids=benchmark_ids)  # force reset for all games
+        multi_thread_already_dones = [False for i in range(num_threads)]
+        done, states = False, None
+        episode_sum_rewards = [0 for i in range(num_threads)]
+        episode_lengths = [0 for i in range(num_threads)]
+        origin_obs_game = [[] for i in range(num_threads)]
+        obs_game = [[] for i in range(num_threads)]
+        acs_game = [[] for i in range(num_threads)]
+        rs_game = [[] for i in range(num_threads)]
+        while not done:
+            actions, states = agent.predict(obs, state=states, deterministic=False)
+            original_obs = env.get_original_obs()
+            new_obs, rewards, dones, _infos = env.step(actions)
+            # benchmark_ids = [env.venv.envs[i].benchmark_id for i in range(num_threads)]
+            # print(benchmark_ids)
+            for i in range(num_threads):
+                if not multi_thread_already_dones[i]:  # we will not store when a game is done
+                    origin_obs_game[i].append(original_obs[i])
+                    obs_game[i].append(obs[i])
+                    acs_game[i].append(actions[i])
+                    rs_game[i].append(rewards[i])
+                    episode_sum_rewards[i] += rewards[i]
+                    episode_lengths[i] += 1
+                if dones[i]:
+                    multi_thread_already_dones[i] = True
+            done = True
+            for multi_thread_done in multi_thread_already_dones:
+                if not multi_thread_done:  # we will wait for all games done
+                    done = False
+                    break
+            obs = new_obs
+        origin_obs_game = [np.array(origin_obs_game[i]) for i in range(num_threads)]
+        obs_game = [np.array(obs_game[i]) for i in range(num_threads)]
+        acs_game = [np.array(acs_game[i]) for i in range(num_threads)]
+        rs_game = [np.array(rs_game[i]) for i in range(num_threads)]
+        all_orig_obs += origin_obs_game
+        all_obs += obs_game
+        all_acs += acs_game
+        all_rs += rs_game
+
+        sum_rewards += episode_sum_rewards
+        all_lengths += episode_lengths
+    if not store_by_game:
+        all_orig_obs = np.concatenate(np.array(all_orig_obs), axis=0)
+        all_obs = np.concatenate(np.array(all_obs), axis=0)
+        all_acs = np.concatenate(np.array(all_acs), axis=0)
+        all_rs = np.concatenate(np.array(all_rs), axis=0)
+    return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, all_lengths
 
 
 def sample_from_agent(agent, env, rollouts, store_by_game=False):
@@ -260,3 +339,18 @@ class SaveVecNormalizeCallback(BaseCallback):
         save_path_name = os.path.join(self.save_path, "vecnormalize.pkl")
         self.model.get_vec_normalize_env().save(save_path_name)
         print("Saved vectorized and normalized environment to {}".format(save_path_name))
+
+
+def get_all_env_ids(num_threads, env):
+    max_benchmark_num = 0
+    env_ids = []
+    benchmark_total_nums = []
+    for i in range(num_threads):
+        try:  # we need to change this setting if you modify the number of env wrappers.
+            env_ids.append(list(env.venv.envs[i].env.env.env.all_problem_dict.keys()))
+        except:
+            env_ids.append(list(env.venv.envs[i].env.env.all_problem_dict.keys()))
+        benchmark_total_nums.append(len(env_ids[i]))
+        if len(env_ids[i]) > max_benchmark_num:
+            max_benchmark_num = len(env_ids[i])
+    return max_benchmark_num, env_ids, benchmark_total_nums

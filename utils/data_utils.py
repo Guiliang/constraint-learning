@@ -351,16 +351,6 @@ def load_ppo_model(model_path: str, iter_msg: str, log_file):
     return model
 
 
-def get_benchmark_ids(num_threads, benchmark_idx, benchmark_total_nums, env_ids):
-    benchmark_ids = []
-    for i in range(num_threads):
-        if benchmark_total_nums[i] > benchmark_idx:
-            benchmark_ids.append(env_ids[i][benchmark_idx])
-        else:
-            benchmark_ids.append(None)
-    return benchmark_ids
-
-
 def get_obs_feature_names(env, env_id):
     feature_names = []
     if 'commonroad' in env_id:

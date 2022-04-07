@@ -71,6 +71,8 @@ class DummyVecEnv(VecEnv):
             else:
                 obs = self.envs[env_idx].reset()  # random pick
             self._save_obs(env_idx, obs)
+        buf_obs = self._obs_from_buf()
+        self.old_obs = buf_obs
         return self._obs_from_buf()
 
     def close(self):

@@ -805,18 +805,27 @@ class ConstraintNet(nn.Module):
             yield np.arange(nom_size), np.arange(exp_size)
         else:
             size = min(nom_size, exp_size)
-            indices = np.random.permutation(size)
-
-            batch_size = self.batch_size
-            # Return everything, don't create minibatches
-            if batch_size is None:
-                batch_size = size
-
+            expert_indices = np.random.permutation(exp_size)
+            nom_indices = np.random.permutation(nom_size)
             start_idx = 0
             while start_idx < size:
-                batch_indices = indices[start_idx:start_idx + batch_size]
-                yield batch_indices, batch_indices
-                start_idx += batch_size
+                batch_expert_indices = expert_indices[start_idx:start_idx + self.batch_size]
+                batch_nom_indices = nom_indices[start_idx:start_idx + self.batch_size]
+                yield batch_nom_indices, batch_expert_indices
+                start_idx += self.batch_size
+
+            # size = min(nom_size, exp_size)
+            # indices = np.random.permutation(size)
+            # batch_size = self.batch_size
+            # # Return everything, don't create minibatches
+            # if batch_size is None:
+            #     batch_size = size
+            #
+            # start_idx = 0
+            # while start_idx < size:
+            #     batch_indices = indices[start_idx:start_idx + batch_size]
+            #     yield batch_indices, batch_indices
+            #     start_idx += batch_size
 
     def _update_learning_rate(self, current_progress_remaining) -> None:
         self.current_progress_remaining = current_progress_remaining
