@@ -6,7 +6,7 @@
 #SBATCH --time=24:00:00
 #SBATCH --mem=24GB
 #SBATCH --job-name=Mojuco
-task_name="train-Mojuco-ICRL"
+task_name="train-Mojuco-VICRL_3"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 export PATH=/pkgs/anaconda3/bin:$PATH
