@@ -392,7 +392,6 @@ def train(config):
         if config['CN']['cn_normalize']:
             mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
 
-        # print(np.mean(sample_obs, axis=0), np.var(sample_obs, axis=0))
         backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
                                                    nominal_obs=sample_obs,
                                                    nominal_acs=sample_acts,

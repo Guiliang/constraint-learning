@@ -178,6 +178,7 @@ def multi_threads_sample_from_agent(agent, env, rollouts, num_threads, store_by_
     all_orig_obs, all_obs, all_acs, all_rs = [], [], [], []
     sum_rewards, all_lengths = [], []
     max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)
+    assert rollouts <= min(benchmark_total_nums)
     for j in range(rollouts):
         benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=j,
                                           benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
