@@ -6,13 +6,10 @@ import gym
 import numpy as np
 import datetime
 import yaml
-
-from common.cns_env import make_train_env, make_eval_env, sync_envs_normalization_ppo
-from utils.plot_utils import plot_curve
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
-
+from common.cns_env import make_train_env, make_eval_env, sync_envs_normalization_ppo
+from utils.plot_utils import plot_curve
 from exploration.exploration import ExplorationRewardCallback
 from stable_baselines3 import PPO, PPOLagrangian
 from stable_baselines3.common import logger
