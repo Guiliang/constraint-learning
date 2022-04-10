@@ -93,6 +93,7 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
                      rank=i,
                      log_dir=test_path,
                      multi_env=True if num_threads > 1 else False,
+                     group=env_kwargs["env_kwargs"],
                      seed=0)
             for i in range(num_threads)]
     env = CommonRoadVecEnv(envs)

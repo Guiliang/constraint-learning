@@ -27,6 +27,7 @@ running:
   store_sample_num: 100000
   expert_path: '../data/expert_data/HCWithPos-New/'
   use_buffer: False
+  store_by_game: False
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'

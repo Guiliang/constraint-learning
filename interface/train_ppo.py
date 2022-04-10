@@ -7,18 +7,20 @@ import numpy as np
 import datetime
 import yaml
 
+from common.cns_env import make_train_env, make_eval_env, sync_envs_normalization_ppo
+from utils.plot_utils import plot_curve
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 
 from exploration.exploration import ExplorationRewardCallback
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, PPOLagrangian
 from stable_baselines3.common import logger
-from stable_baselines3.common.evaluation import evaluate_policy
+from common.cns_evaluation import evaluate_icrl_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 
 from utils.data_utils import colorize, ProgressBarManager, del_and_make, read_args, load_config, process_memory
-from utils.env_utils import make_train_env, make_eval_env
-from utils.model_utils import get_net_arch
+from utils.model_utils import get_net_arch, load_ppo_config
 from config.config_commonroad import cfg
 
 config = cfg()
@@ -49,7 +51,7 @@ def train(args):
         config['PPO']['forward_timesteps'] = 100  # 2000
         config['PPO']['n_steps'] = 530
         config['running']['n_eval_episodes'] = 10
-        # config['running']['save_every'] = 1
+        config['running']['save_every'] = 1
         debug_msg = 'debug-'
         partial_data = True
     if partial_data:
@@ -111,6 +113,7 @@ def train(args):
                              group=config['group'],
                              use_cost=config['env']['use_cost'],
                              normalize_obs=not config['env']['dont_normalize_obs'],
+                             cost_info_str=config['env']['cost_info_str'],
                              log_file=log_file,
                              part_data=partial_data)
 
@@ -120,7 +123,7 @@ def train(args):
         float(mem_loading_environment - mem_prev) / 1000000,
         float(mem_loading_environment) / 1000000,
         time_loading_environment - time_prev),
-          file=log_file, flush=True)
+        file=log_file, flush=True)
     mem_prev = mem_loading_environment
     time_prev = time_loading_environment
 
@@ -136,33 +139,15 @@ def train(args):
     else:
         ppo_logger = logger.HumanOutputFormat(log_file)
 
-    if config['PPO']['batch_size'] == -1:
-        batch_size = config['PPO']['n_steps'] * num_threads
+    ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
+    if config['group'] == 'PPO':
+        create_ppo_agent = lambda: PPO(**ppo_parameters)
+    elif config['group'] == 'PPO-Lag':
+        create_ppo_agent = lambda: PPOLagrangian(**ppo_parameters)
     else:
-        batch_size = config['PPO']['batch_size']
-
-    create_ppo_agent = lambda: PPO(
-        policy=config['PPO']['policy_name'],
-        env=train_env,
-        learning_rate=config['PPO']['learning_rate'],
-        n_steps=config['PPO']['n_steps'],
-        batch_size=batch_size,
-        n_epochs=config['PPO']['n_epochs'],
-        gamma=config['PPO']['reward_gamma'],
-        gae_lambda=config['PPO']['reward_gae_lambda'],
-        clip_range=config['PPO']['clip_range'],
-        ent_coef=config['PPO']['ent_coef'],
-        vf_coef=config['PPO']['reward_vf_coef'],
-        max_grad_norm=config['PPO']['max_grad_norm'],
-        use_sde=config['PPO']['use_sde'],
-        sde_sample_freq=config['PPO']['sde_sample_freq'],
-        target_kl=config['PPO']['target_kl'],
-        verbose=config['verbose'],
-        seed=seed,
-        device=config['device'],
-        policy_kwargs=dict(net_arch=get_net_arch(config, log_file)))
-
+        raise ValueError("Unknown ppo group: {0}".format(config['group']))
     ppo_agent = create_ppo_agent()
+
 
     # Callbacks
     all_callbacks = []
@@ -170,24 +155,14 @@ def train(args):
         explorationCallback = ExplorationRewardCallback(obs_dim, acs_dim, device=config.device)
         all_callbacks.append(explorationCallback)
 
-    # Warmup
-    # Warmup
     timesteps = 0.
-    if config['PPO']['warmup_timesteps']:
-        # print(colorize("\nWarming up", color="green", bold=True), file=log_file, flush=True)
-        print("\nWarming up", file=log_file, flush=True)
-        with ProgressBarManager(config['PPO']['warmup_timesteps']) as callback:
-            ppo_agent.learn(total_timesteps=config['PPO']['warmup_timesteps'],
-                            callback=callback)
-            timesteps += ppo_agent.num_timesteps
-
     mem_before_training = process_memory()
     time_before_training = time.time()
     print("Setting model consumed memory: {0:.2f}/{1:.2f} and time: {2:.2f}".format(
         float(mem_before_training - mem_prev) / 1000000,
         float(mem_before_training) / 1000000,
         time_before_training - time_prev),
-          file=log_file, flush=True)
+        file=log_file, flush=True)
     mem_prev = mem_before_training
     time_prev = time_before_training
 
@@ -202,14 +177,17 @@ def train(args):
             print("Resetting agent", file=log_file, flush=True)
             ppo_agent = create_ppo_agent()
 
-        current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
-
         # Update agent
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
-            ppo_agent.learn(
-                total_timesteps=config['PPO']['forward_timesteps'],
-                callback=[callback] + all_callbacks
-            )
+            if config['group'] == 'PPO':
+                ppo_agent.learn(total_timesteps=config['PPO']['warmup_timesteps'],
+                                callback=callback)
+            elif config['group'] == 'PPO-Lag':
+                ppo_agent.learn(
+                    total_timesteps=config['PPO']['forward_timesteps'],
+                    cost_function=config['env']['cost_info_str'],  # Cost should come from cost wrapper
+                    callback=[callback] + all_callbacks
+                )
             forward_metrics = logger.Logger.CURRENT.name_to_value
             timesteps += ppo_agent.num_timesteps
 
@@ -225,19 +203,37 @@ def train(args):
 
         # Evaluate:
         # reward on true environment
-        sync_envs_normalization(train_env, eval_env)
-        average_true_reward, std_true_reward = evaluate_policy(ppo_agent, eval_env,
-                                                               n_eval_episodes=config['running']['n_eval_episodes'],
-                                                               deterministic=False)
+        sync_envs_normalization_ppo(train_env, eval_env)
+        average_true_reward, std_true_reward, record_infos, costs = \
+            evaluate_icrl_policy(model=ppo_agent,
+                                 env=eval_env,
+                                 record_info_names=config['env']["record_info_names"],
+                                 n_eval_episodes=config['running']['n_eval_episodes'],
+                                 deterministic=False)
 
         # Save
-        # (1) periodically
         if itr % config['running']['save_every'] == 0:
             path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
             del_and_make(path)
             ppo_agent.save(os.path.join(path, "nominal_agent"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(path, "train_env_stats.pkl"))
+
+            for record_info_name in config['env']["record_info_names"]:
+                plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
+                plot_curve(draw_keys=[record_info_name],
+                           x_dict={record_info_name: plot_record_infos},
+                           y_dict={record_info_name: plot_costs},
+                           plot_name=os.path.join(path, "{0}".format(record_info_name))
+                           )
+            # env_tmp = train_env
+            # while isinstance(env_tmp, VecEnvWrapper):
+            #     env_tmp = env_tmp.venv
+            #     if isinstance(env_tmp, VecCostWrapper) or isinstance(env_tmp, InternalVecCostWrapper):
+            #         env_tmp = env_tmp.venv
+            # for i in len(env_tmp.envs):
+            #     env_tmp.envs[i].info_saving_file = open(os.path.join(path, 'info_saving_{0}.txt'.format(i)), 'w')
+            #     env_tmp.envs[i].info_saving_items = ['ego_velocity', 'cost']
 
         # (2) best
         if average_true_reward > best_true_reward:

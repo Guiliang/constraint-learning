@@ -166,3 +166,56 @@ def torch_kron_prod(a, b):
     res = torch.einsum('ij,ik->ijk', [a, b])
     res = torch.reshape(res, [-1, np.prod(res.shape[1:])])
     return res
+
+
+def load_ppo_config(config, train_env, seed, log_file):
+    ppo_parameters = {
+        "policy": config['PPO']['policy_name'],
+        "env": train_env,
+        "learning_rate": config['PPO']['learning_rate'],
+        "n_steps": config['PPO']['n_steps'],
+        "batch_size": config['PPO']['batch_size'],
+        "n_epochs": config['PPO']['n_epochs'],
+        "clip_range": config['PPO']['clip_range'],
+        "ent_coef": config['PPO']['ent_coef'],
+        "max_grad_norm": config['PPO']['max_grad_norm'],
+        "use_sde": config['PPO']['use_sde'],
+        "sde_sample_freq": config['PPO']['sde_sample_freq'],
+        "target_kl": config['PPO']['target_kl'],
+        "verbose": config['verbose'],
+        "seed": seed,
+        "device": config['device'],
+        "policy_kwargs": dict(net_arch=get_net_arch(config, log_file))
+    }
+    if config["group"] == "PPO":
+        ppo_parameters.update({
+            "gamma": config['PPO']['reward_gamma'],
+            "gae_lambda": config['PPO']['reward_gae_lambda'],
+            "vf_coef": config['PPO']['reward_vf_coef'],
+        })
+    elif config['group'] == "PPO-Lag":
+        ppo_parameters.update({
+            "reward_gamma": config['PPO']['reward_gamma'],
+            "reward_gae_lambda": config['PPO']['reward_gae_lambda'],
+            "cost_gamma": config['PPO']['cost_gamma'],
+            "cost_gae_lambda": config['PPO']['cost_gae_lambda'],
+            "clip_range_reward_vf": None if not config['PPO']['clip_range_reward_vf'] else config['PPO'][
+                'clip_range_reward_vf'],
+            "clip_range_cost_vf": None if not config['PPO']['clip_range_cost_vf'] else config['PPO'][
+                'clip_range_cost_vf'],
+            "reward_vf_coef": config['PPO']['reward_vf_coef'],
+            "cost_vf_coef": config['PPO']['cost_vf_coef'],
+            "penalty_initial_value": config['PPO']['penalty_initial_value'],
+            "penalty_learning_rate": config['PPO']['penalty_learning_rate'],
+            "budget": config['PPO']['budget'],
+            "pid_kwargs": dict(alpha=config['PPO']['budget'],
+                               penalty_init=config['PPO']['penalty_initial_value'],
+                               Kp=config['PPO']['proportional_control_coeff'],
+                               Ki=config['PPO']['integral_control_coeff'],
+                               Kd=config['PPO']['derivative_control_coeff'],
+                               pid_delay=config['PPO']['pid_delay'],
+                               delta_p_ema_alpha=config['PPO']['proportional_cost_ema_alpha'],
+                               delta_d_ema_alpha=config['PPO']['derivative_cost_ema_alpha'], ),
+        })
+
+    return ppo_parameters

@@ -101,34 +101,36 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
                                                                          [self.input_dims]
                                                             ).to(self.device)
         elif self.explain_model_name == 'ndt':
+            # the ndt cannot scale well to the large dimensions, we apply it for modelling actions
             self.ndt = NeuralDecisionTree(num_class=2,
-                                          num_cut=self.num_cut,
+                                          num_cut=[self.num_cut]*len(self.input_acs_dim),
                                           temperature=self.temperature,
                                           device=self.device
                                           )
             self.sample_conceptizers = []
             self.sample_parameterizers = []
             for i in range(self.ndt.num_leaf):
+                # since the actions are handled by ndt, se will handle obs.
                 self.sample_conceptizers.append(IdentityConceptizer().to(self.device))
                 self.sample_parameterizers.append(
-                    LinearParameterizer(num_concepts=self.input_dims,
+                    LinearParameterizer(num_concepts=len(self.input_obs_dim),
                                         num_classes=1,
-                                        hidden_sizes=[self.input_dims] +
+                                        hidden_sizes=[len(self.input_obs_dim)] +
                                                      self.hidden_sizes +
-                                                     [self.input_dims]
+                                                     [len(self.input_obs_dim)]
                                         ).to(self.device))
             self.sample_conceptizers = nn.ModuleList(self.sample_conceptizers)
             self.sample_parameterizers = nn.ModuleList(self.sample_parameterizers)
 
         self.sample_aggregator = SumAggregator(num_classes=1).to(self.device)
         self.encoder = nn.Sequential(
-            *create_mlp(self.input_dims, 1, self.hidden_sizes)
-        )
+            *create_mlp(self.input_dims, 2, self.hidden_sizes)
+        ).to(self.device)
 
         # build different optimizers for different models
         self.optimizers = {'ICRL': None, 'policy': None}
         param_active_key_words = {'ICRL': ['sample', 'ndt', 'encoder'],
-                                  'policy': ['policy_network'], }
+                                  'policy': [''], }
         for key in self.optimizers.keys():
             param_frozen_list, param_active_list = \
                 handle_model_parameters(model=self,
@@ -154,22 +156,22 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
         for optimizer_name in self.optimizers.keys():
             update_learning_rate(self.optimizers[optimizer_name], self.lr_schedule(current_progress_remaining))
 
-    def predict(self, obs: torch.tensor, deterministic=False):
-        mean_action = self.policy_network(obs)
-        std = torch.exp(self.log_std)
-        eps = torch.randn_like(std)
-        if deterministic:
-            action = mean_action
-        else:
-            action = eps * std + mean_action
+    # def predict(self, obs: torch.tensor, deterministic=False):
+    #     mean_action = self.policy_network(obs)
+    #     std = torch.exp(self.log_std)
+    #     eps = torch.randn_like(std)
+    #     if deterministic:
+    #         action = mean_action
+    #     else:
+    #         action = eps * std + mean_action
+    #
+    #     output_action = []
+    #     for i in range(self.acs_dim):
+    #         output_action.append(torch.clamp(action[:, i], min=self.action_low[i], max=self.action_high[i]))
+    #
+    #     return torch.stack(output_action, dim=1)
 
-        output_action = []
-        for i in range(self.acs_dim):
-            output_action.append(torch.clamp(action[:, i], min=self.action_low[i], max=self.action_high[i]))
-
-        return torch.stack(output_action, dim=1)
-
-    def train_nn(
+    def train_traj_nn(
             self,
             iterations: int,
             nominal_obs: list,
@@ -233,17 +235,19 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
                 batch_size = batch_expert_traj_obs.shape[0]
                 traj_loss = []
                 for i in range(batch_seq_len):
+                    batch_expert_input = torch.cat([batch_expert_traj_obs[:, i, :],
+                                                    batch_expert_traj_acs[:, i, :]], dim=-1)
                     expert_stab_loss, expert_kld_loss, expert_recon_loss, expert_constraint_loss, expert_preds_t = \
-                        self.compute_losses(batch_obs=batch_expert_traj_obs[:, i, :],
-                                            batch_acs=batch_expert_traj_acs[:, i, :],
+                        self.compute_losses(batch_input=batch_expert_input,
                                             expert_loss=True)
                     expert_stab_loss_all_step.append(expert_stab_loss)
                     expert_kld_loss_all_step.append(expert_kld_loss)
                     expert_recon_loss_all_step.append(expert_recon_loss)
                     expert_preds_all_step.append(expert_preds_t)
+                    batch_nominal_input = torch.cat([batch_nominal_traj_obs[:, i, :],
+                                                     batch_nominal_traj_acs[:, i, :]], dim=-1)
                     nominal_stab_loss, nominal_kld_loss, nominal_recon_loss, nominal_constraint_loss, nominal_preds_t = \
-                        self.compute_losses(batch_obs=batch_nominal_traj_obs[:, i, :],
-                                            batch_acs=batch_nominal_traj_acs[:, i, :],
+                        self.compute_losses(batch_input=batch_nominal_input,
                                             expert_loss=False)
                     nominal_stab_loss_all_step.append(nominal_stab_loss)
                     nominal_kld_loss_all_step.append(nominal_kld_loss)
@@ -295,6 +299,98 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
 
         return bw_metrics
 
+    def train_nn(
+            self,
+            iterations: int,
+            nominal_obs: np.ndarray,
+            nominal_acs: np.ndarray,
+            episode_lengths: np.ndarray,
+            # nominal_traj_rs: list,
+            # episode_lengths: np.ndarray,
+            obs_mean: Optional[np.ndarray] = None,
+            obs_var: Optional[np.ndarray] = None,
+            current_progress_remaining: float = 1,
+    ) -> Dict[str, Any]:
+
+        # Update learning rate
+        self._update_learning_rate(current_progress_remaining)
+
+        # Update normalization stats
+        self.current_obs_mean = obs_mean
+        self.current_obs_var = obs_var
+
+        # Prepare data
+        nominal_data = self.prepare_data(nominal_obs, nominal_acs)
+        expert_data = self.prepare_data(self.expert_obs, self.expert_acs)
+
+        # Save current network predictions if using importance sampling
+        if self.importance_sampling:
+            with torch.no_grad():
+                start_preds = self.forward(nominal_data).detach()
+
+        early_stop_itr = iterations
+        loss = torch.tensor(np.inf)
+        for itr in tqdm(range(iterations)):
+            # Compute IS weights
+            if self.importance_sampling:
+                with torch.no_grad():
+                    current_preds = self.forward(nominal_data).detach()
+                is_weights, kl_old_new, kl_new_old = self.compute_is_weights(start_preds.clone(), current_preds.clone(),
+                                                                             episode_lengths)
+                # Break if kl is very large
+                if ((self.target_kl_old_new != -1 and kl_old_new > self.target_kl_old_new) or
+                        (self.target_kl_new_old != -1 and kl_new_old > self.target_kl_new_old)):
+                    early_stop_itr = itr
+                    break
+            else:
+                is_weights = torch.ones(nominal_data.shape[0]).to(self.device)
+
+            # Do a complete pass on data
+            for nom_batch_indices, exp_batch_indices in self.get(nominal_data.shape[0], expert_data.shape[0]):
+                is_batch = is_weights[nom_batch_indices][..., None]
+                nominal_batch = nominal_data[nom_batch_indices]
+                expert_batch = expert_data[exp_batch_indices]
+                expert_stab_loss, expert_kld_loss, expert_recon_loss, expert_constraint_loss, expert_preds = \
+                    self.compute_losses(batch_input=expert_batch,
+                                        expert_loss=True)
+                nominal_stab_loss, nominal_kld_loss, nominal_recon_loss, nominal_constraint_loss, nominal_preds = \
+                    self.compute_losses(batch_input=nominal_batch,
+                                        expert_loss=False)
+                expert_loss = expert_recon_loss.mean() + self.regularizer_coeff * (
+                        expert_kld_loss + expert_stab_loss + expert_constraint_loss)
+                nominal_loss = (is_batch * nominal_recon_loss).mean() + self.regularizer_coeff * (
+                        nominal_kld_loss + nominal_stab_loss + nominal_constraint_loss)
+                loss = torch.mean(expert_loss) + torch.mean(nominal_loss)
+
+                self.optimizers['ICRL'].zero_grad()
+                loss.backward()
+                self.optimizers['ICRL'].step()
+
+        bw_metrics = {"backward/loss": loss.item(),
+                      "backward/expert/stab_loss": expert_stab_loss.item(),
+                      "backward/expert/kld_loss": expert_kld_loss.item(),
+                      "backward/expert/recon_loss": expert_recon_loss.item(),
+                      "backward/nominal/stab_loss": nominal_stab_loss.item(),
+                      "backward/nominal/kld_loss": nominal_kld_loss.item(),
+                      "backward/nominal/recon_loss": nominal_recon_loss.item(),
+                      # "backward/is_mean": torch.mean(is_weights).detach().item(),
+                      # "backward/is_max": torch.max(is_weights).detach().item(),
+                      # "backward/is_min": torch.min(is_weights).detach().item(),
+                      "backward/nominal/preds_max": torch.max(nominal_preds).item(),
+                      "backward/nominal/preds_min": torch.min(nominal_preds).item(),
+                      "backward/nominal/preds_mean": torch.mean(nominal_preds).item(),
+                      "backward/expert/preds_max": torch.max(expert_preds).item(),
+                      "backward/expert/preds_min": torch.min(expert_preds).item(),
+                      "backward/expert/preds_mean": torch.mean(expert_preds).item(),
+                      }
+        # if self.importance_sampling:
+        #     stop_metrics = {"backward/kl_old_new": kl_old_new.item(),
+        #                     "backward/kl_new_old": kl_new_old.item(),
+        #                     "backward/early_stop_itr": early_stop_itr}
+        #     bw_metrics.update(stop_metrics)
+
+        return bw_metrics
+
     def self_explainable_model(self, batch_input, add_loss=False):
         if self.explain_model_name == "senn":
             batch_input.requires_grad_()  # track all operations on x for jacobian calculation
@@ -311,26 +407,28 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
             else:
                 return preds, None
         elif self.explain_model_name == 'ndt':
-            dt_preds, leaves_probs = self.ndt(x=batch_input)
-            leaves_preds_t = []
+            batch_obs_input = batch_input[:, :len(self.input_obs_dim)]
+            batch_act_input = batch_input[:, len(self.input_obs_dim):]
+            dt_preds, leaves_probs = self.ndt(x=batch_act_input)
+            leaves_preds = []
             leaves_stab_loss = []
             for i in range(self.ndt.num_leaf):
-                batch_input.requires_grad_()  # track all operations on x for jacobian calculation
-                sample_concepts, _ = self.sample_conceptizers[i](batch_input)
-                sample_relevance = self.sample_parameterizers[i](batch_input)
+                batch_obs_input.requires_grad_()  # track all operations on x for jacobian calculation
+                sample_concepts, _ = self.sample_conceptizers[i](batch_obs_input)
+                sample_relevance = self.sample_parameterizers[i](batch_obs_input)
                 # Both the alpha and the beta parameters should be greater than 0,
-                leaf_preds_t = F.softplus(self.sample_aggregator(sample_concepts, sample_relevance))
-                leaves_preds_t.append(leaf_preds_t)
+                leaf_preds_leaf = F.sigmoid(self.sample_aggregator(sample_concepts, sample_relevance))
+                leaves_preds.append(leaf_preds_leaf)
                 if add_loss:
-                    leaf_stab_loss = stability_loss(input_data=batch_input,
-                                                    aggregates=leaf_preds_t,
+                    leaf_stab_loss = stability_loss(input_data=batch_obs_input,
+                                                    aggregates=leaf_preds_leaf,
                                                     concepts=sample_concepts,
                                                     relevances=sample_relevance)
                     leaves_stab_loss.append(leaf_stab_loss)
             # leaves_probs = torch.reshape(leaves_probs, shape=[-1])
             leaves_probs = leaves_probs
-            leaves_preds_t = torch.stack(leaves_preds_t, dim=1)
-            preds = torch.bmm(leaves_probs.unsqueeze(1), leaves_preds_t).squeeze(1)
+            leaves_preds = torch.stack(leaves_preds, dim=1)
+            preds = torch.bmm(leaves_probs.unsqueeze(1), leaves_preds).squeeze(1)
             if add_loss:
                 leaves_stab_loss = torch.stack(leaves_stab_loss, dim=1)
                 stab_loss = torch.bmm(leaves_probs.unsqueeze(1), leaves_stab_loss).squeeze(1)
@@ -338,8 +436,7 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
             else:
                 return preds, None
 
-    def compute_losses(self, batch_obs, batch_acs, expert_loss):
-        batch_input = torch.cat([batch_obs, batch_acs], dim=-1)
+    def compute_losses(self, batch_input, expert_loss):
         preds, stab_loss = self.self_explainable_model(batch_input=batch_input, add_loss=True)
         alpha_beta = self.encoder(batch_input)
         alpha = alpha_beta[:, 0]
@@ -348,11 +445,10 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
         batch_size = preds.shape[0]
         analytical_kld_loss = self.kl_regularizer_loss(batch_size, alpha=alpha, beta=beta)
         if expert_loss:
-            recon_loss = -torch.mean(torch.log(preds + self.eps))
+            recon_loss = -torch.log(preds + self.eps)
         else:
-            recon_loss = torch.mean(torch.log(preds + self.eps))
-
-        return stab_loss, analytical_kld_loss, recon_loss, constraint_loss, preds
+            recon_loss = torch.log(preds + self.eps)
+        return stab_loss.mean(), analytical_kld_loss, recon_loss, constraint_loss, preds
 
     def padding_input(self,
                       input_data: list,
@@ -394,8 +490,8 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
             rs = self.padding_input(input_data=rs, length=max_seq_len, padding_symbol=0)
         acs = self.reshape_actions(acs)
         if select_dim:
-            obs = self.select_appropriate_dims(select_dim=self.select_obs_dim, x=obs)
-            acs = self.select_appropriate_dims(select_dim=self.select_acs_dim, x=acs)
+            obs = self.select_appropriate_dims(select_dim=self.input_obs_dim, x=obs)
+            acs = self.select_appropriate_dims(select_dim=self.input_acs_dim, x=acs)
         if rs is None:
             return torch.tensor(obs, dtype=torch.float32).to(self.device), \
                    torch.tensor(acs, dtype=torch.float32).to(self.device)

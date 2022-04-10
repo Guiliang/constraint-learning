@@ -98,7 +98,11 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
         env_kwargs['test_reset_config_path'] += '_debug'
     # Create environment
     # note that CommonRoadVecEnv is inherited from DummyVecEnv
-    env = CommonRoadVecEnv([make_env(env_id, env_kwargs, rank=0, log_dir=test_path, seed=0)])
+    env = CommonRoadVecEnv([make_env(env_id, env_kwargs,
+                                     group=env_kwargs["env_kwargs"],
+                                     rank=0,
+                                     log_dir=test_path,
+                                     seed=0)])
 
     # env_fn = lambda: gym.make(env_id, play=True, **env_kwargs)
     # env = CommonRoadVecEnv([env_fn])

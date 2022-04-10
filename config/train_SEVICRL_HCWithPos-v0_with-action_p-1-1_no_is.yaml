@@ -1,5 +1,5 @@
-task: 'VICRL-HC'
-group: 'VICRL'
+task: 'SEVICRL-HC'
+group: 'SEVICRL'
 device: 'cuda'
 verbose: 1
 env:
@@ -74,7 +74,7 @@ CN:
   cn_layers: [20]
   cn_batch_size: null
   cn_obs_select_name:  null  # null means all
-  cn_acs_select_name:  [-1]  # -1 meas do not select
+  cn_acs_select_name:  null  # null means all
   no_importance_sampling: True
   per_step_importance_sampling: True
   clip_obs: 20
@@ -86,4 +86,7 @@ CN:
   backward_iters: 10
   anneal_clr_by_factor: 0.9
   di_prior: [1, 1]
+  num_cut: 1
+  temperature: 0.1
+  explain_model_name: 'ndt'
 

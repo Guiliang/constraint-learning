@@ -24,7 +24,7 @@ running:
   sample_data_num: 500000
   expert_path: '../data/expert_data/no-over_speed_train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/'
   use_buffer: True
-  use_actions: True
+  store_by_game: False
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'
@@ -74,9 +74,6 @@ CN:
   cn_batch_size: 64
   cn_obs_select_name: ['v_ego_0', 'v_ego_1']
   cn_acs_select_name: [-1]
-  num_cut: [ 5, 5 ]
-  temperature: 0.1
-  explain_model_name: 'ndt'
   no_importance_sampling: True
   per_step_importance_sampling: True
   clip_obs: 20
@@ -88,4 +85,7 @@ CN:
   backward_iters: 10
   anneal_clr_by_factor: 0.9
   di_prior: [1, 1]
+  num_cut: [ 5, 5 ]
+  temperature: 0.1
+  explain_model_name: 'ndt'
 

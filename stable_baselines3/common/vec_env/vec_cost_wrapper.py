@@ -4,9 +4,11 @@ import numpy as np
 # Cost Wrapper
 # =============================================================================
 
+
 class VecCostWrapper(VecEnvWrapper):
-    def __init__(self, venv):
+    def __init__(self, venv, cost_info_str='cost'):
         super().__init__(venv)
+        self.cost_info_str = cost_info_str
 
     def step_async(self, actions: np.ndarray):
         self.actions = actions
@@ -61,7 +63,7 @@ class VecCostWrapper(VecEnvWrapper):
         # Cost depends on previous observation and current actions
         cost = self.cost_function(self.previous_obs.copy(), self.actions.copy())
         for i in range(len(infos)):
-            infos[i]['cost'] = cost[i]
+            infos[i][self.cost_info_str] = cost[i]
         self.previous_obs = obs.copy()
         return obs, rews, news, infos
 

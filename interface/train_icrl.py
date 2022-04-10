@@ -11,7 +11,7 @@ import numpy as np
 import yaml
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
-
+from common.cns_env import make_train_env, make_eval_env
 from common.memory_buffer import IRLDataQueue
 from constraint_models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
 from constraint_models.constraint_net.variational_constraint_net import VariationalConstraintNet
@@ -23,7 +23,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_obs_feature_names, get_input_features_dim, process_memory, print_resource
-from utils.env_utils import make_train_env, make_eval_env, multi_threads_sample_from_agent, sample_from_agent
+from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent
 from utils.model_utils import get_net_arch
 
 
@@ -47,7 +47,7 @@ def train(config):
         log_file = None
     debug_msg = ''
     if debug_mode:
-        # config['device'] = 'cpu'
+        config['device'] = 'cpu'
         # config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 200  # 2000
         config['PPO']['n_steps'] = 32
@@ -81,15 +81,6 @@ def train(config):
         debug_msg,
         seed
     )
-
-    if 'ICRL' == config['group']:
-        store_by_game = False
-    elif 'VICRL' == config['group']:
-        store_by_game = False
-    elif 'SEVICRL' == config['group']:
-        store_by_game = True
-    else:
-        raise ValueError("Unknown constraint model {0}".format(config['task']))
 
     if not os.path.exists('{0}/{1}/'.format(config['env']['save_dir'], config['task'])):
         os.mkdir('{0}/{1}/'.format(config['env']['save_dir'], config['task']))
@@ -181,11 +172,11 @@ def train(config):
         expert_path=expert_path,
         use_pickle5=True if 'HC' in config['env']['train_env_id'] else False,  # True for the Mujoco envs
         num_rollouts=expert_rollouts,
-        store_by_game=store_by_game,
+        store_by_game=config['running']['store_by_game'],
         add_next_step=False,
         log_file=log_file
     )
-    if store_by_game:
+    if config['running']['store_by_game']:
         expert_obs_mean = np.mean(np.concatenate(expert_obs, axis=0), axis=0).tolist()
     else:
         expert_obs_mean = np.mean(expert_obs, axis=0).tolist()
@@ -255,7 +246,11 @@ def train(config):
         cn_parameters.update({'di_prior': config['CN']['di_prior'], })
         constraint_net = VariationalConstraintNet(**cn_parameters)
     elif 'SEVICRL' == config['group']:
-        cn_parameters.update({'di_prior': config['CN']['di_prior'], })
+        cn_parameters.update({'di_prior': config['CN']['di_prior'],
+                              'num_cut': config['CN']['num_cut'],
+                              'temperature': config['CN']['temperature'],
+                              'explain_model_name': config['CN']['explain_model_name'],
+                              })
         constraint_net = SelfExplainableVariationalConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown constraint model {0}".format(config['task']))
@@ -362,14 +357,14 @@ def train(config):
                 env=sampling_env,
                 rollouts=int(config['running']['sample_rollouts']),
                 num_threads=num_threads,
-                store_by_game=store_by_game,
+                store_by_game=config['running']['store_by_game'],
             )
         else:
             orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
                 agent=nominal_agent,
                 env=sampling_env,
                 rollouts=int(config['running']['sample_rollouts']),
-                store_by_game=store_by_game,
+                store_by_game=config['running']['store_by_game'],
             )
         if config['running']['use_buffer']:
             sample_data_queue.put(obs=orig_observations,
@@ -378,7 +373,7 @@ def train(config):
                                   )
             sample_obs, sample_acts, sample_rs = \
                 sample_data_queue.get(sample_num=config['running']['sample_data_num'],
-                                      store_by_game=store_by_game,)
+                                      store_by_game=config['running']['store_by_game'],)
         else:
             sample_obs = orig_observations
             sample_acts = actions

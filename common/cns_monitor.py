@@ -70,6 +70,14 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
             self.logger.writeheader()
             self.file_handler.flush()
+            self.info_saving_file = None
+            self.info_saving_items = []
+
+    def set_info_saving_file(self, info_saving_file, info_saving_items):
+        if self.info_saving_file is not None:
+            self.info_saving_file.close()
+        self.info_saving_file = info_saving_file
+        self.info_saving_items = info_saving_items
 
     def reset(self, **kwargs) -> np.ndarray:
         if not self.allow_early_resets and not self.needs_reset:
@@ -115,6 +123,11 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 self.event_dict['is_time_out'] = 1
             if 'is_over_speed' in info.keys() and info['is_over_speed']:
                 self.event_dict['is_over_speed'] = 1
+
+        if self.info_saving_file is not None:
+            info_saving_msg = ",".join([info[item] for item in self.info_saving_items])
+            self.info_saving_file.write(info_saving_msg)
+
         if done:
             self.needs_reset = True
             ep_rew = sum(self.rewards)

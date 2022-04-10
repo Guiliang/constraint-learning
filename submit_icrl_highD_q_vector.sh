@@ -2,7 +2,7 @@
 #SBATCH -N 1
 #SBATCH --gres=gpu:1
 #SBATCH -p gpu
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=12
 #SBATCH --time=48:00:00
 #SBATCH --mem=160GB
 #SBATCH --job-name=ICRL
