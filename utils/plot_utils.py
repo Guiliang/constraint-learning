@@ -8,7 +8,7 @@ import numpy as np
 def plot_curve(draw_keys, x_dict, y_dict, plot_name,
                ylim=(0, 1),
                linewidth=3, xlabel=None, ylabel=None, title=None,
-               apply_rainbow=False,
+               apply_rainbow=False, apply_scatter=False,
                img_size=(8, 5), axis_size=15, legend_size=15):
     import matplotlib as mpl
     mpl.rcParams['xtick.labelsize'] = axis_size
@@ -19,10 +19,16 @@ def plot_curve(draw_keys, x_dict, y_dict, plot_name,
     if apply_rainbow:
         color = cm.rainbow(np.linspace(0, 1, len(draw_keys)))
         for key, c in zip(draw_keys, color):
-            plt.plot(x_dict[key], y_dict[key], label=key, linewidth=linewidth, c=c)
+            if apply_scatter:
+                plt.scatter(x_dict[key], y_dict[key], label=key, s=linewidth * 7, c=c)
+            else:
+                plt.plot(x_dict[key], y_dict[key], label=key, linewidth=linewidth, c=c)
     else:
         for key in draw_keys:
-            plt.plot(x_dict[key], y_dict[key], label=key, linewidth=linewidth)
+            if apply_scatter:
+                plt.scatter(x_dict[key], y_dict[key], label=key, s=linewidth * 7)
+            else:
+                plt.plot(x_dict[key], y_dict[key], label=key, linewidth=linewidth)
     ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%01.2lf'))
     plt.ylim(ylim[0], ylim[1])
     if legend_size is not None:

@@ -9,6 +9,10 @@ import random
 import gym
 import numpy as np
 import yaml
+
+from common.cns_evaluation import evaluate_icrl_policy
+from utils.plot_utils import plot_curve
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_env import make_train_env, make_eval_env
@@ -58,7 +62,7 @@ def train(config):
         config['running']['sample_data_num'] = 500
         config['running']['store_sample_num'] = 1000
         # # config['CN']['cn_batch_size'] = 3
-        config['CN']['backward_iters'] = 1
+        config['CN']['backward_iters'] = 2
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
@@ -142,7 +146,7 @@ def train(config):
                              group=config['group'],
                              num_threads=1,
                              mode='test',
-                             use_cost=False,
+                             use_cost=config['env']['use_cost'],
                              normalize_obs=not config['env']['dont_normalize_obs'],
                              part_data=partial_data,
                              multi_env=False,
@@ -398,28 +402,38 @@ def train(config):
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Training CN model', log_file=log_file)
 
-        # Pass updated cost_function to cost wrapper (train_env)
+        # Pass updated cost_function to cost wrapper (train_env, eval_env, but not sampling_env)
         train_env.set_cost_function(constraint_net.cost_function)
+        eval_env.set_cost_function(constraint_net.cost_function)
 
         # Evaluate:
         # reward on true environment
         sync_envs_normalization(train_env, eval_env)
-        average_true_reward, std_true_reward = evaluate_policy(nominal_agent, eval_env,
-                                                               n_eval_episodes=config['running']['n_eval_episodes'],
-                                                               deterministic=False)
+        average_true_reward, std_true_reward, record_infos, costs = \
+            evaluate_icrl_policy(nominal_agent, eval_env,
+                                 record_info_names=config['env']["record_info_names"],
+                                 n_eval_episodes=config['running']['n_eval_episodes'],
+                                 deterministic=False)
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Evaluation', log_file=log_file)
 
         # Save
         # (1) periodically
         if itr % config['running']['save_every'] == 0:
-            # TODO: I think we need to record the training dataset
             path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
             del_and_make(path)
             nominal_agent.save(os.path.join(path, "nominal_agent"))
             constraint_net.save(os.path.join(path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(path, "train_env_stats.pkl"))
+            for record_info_name in config['env']["record_info_names"]:
+                plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
+                plot_curve(draw_keys=[record_info_name],
+                           x_dict={record_info_name: plot_record_infos},
+                           y_dict={record_info_name: plot_costs},
+                           plot_name=os.path.join(path, "{0}".format(record_info_name)),
+                           apply_scatter=True,
+                           )
 
         # (2) best
         if average_true_reward > best_true_reward:
