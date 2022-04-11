@@ -77,9 +77,9 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
                     log_file=log_file)
            for i in range(num_threads)]
     # if 'HC' in env_id:
-    # env = vec_env.SubprocVecEnv(env)
+    env = vec_env.SubprocVecEnv(env)
     # elif 'commonroad' in env_id:
-    env = vec_env.DummyVecEnv(env)
+    # env = vec_env.DummyVecEnv(env)
     # else:
     #     raise ValueError("Unknown env id {0}".format(env_id))
 
