@@ -37,11 +37,11 @@ def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0,
             env = CommonRoadExternalSignalsWrapper(env=env,
                                                    group=group,
                                                    wrapper_config=env_configs['external_reward'])
-        # elif if_mujoco(env_id):
-        #     print("Using external signal for env: {0}.".format(env_id), flush=True, file=log_file)
-        #     env = MujocoExternalSignalWrapper(env=env,
-        #                                       group=group,
-        #                                       wrapper_config={})
+        elif if_mujoco(env_id):
+            print("Using external signal for env: {0}.".format(env_id), flush=True, file=log_file)
+            env = MujocoExternalSignalWrapper(env=env,
+                                              group=group,
+                                              wrapper_config={})
         monitor_rank = None
         if multi_env:
             monitor_rank = rank
@@ -154,9 +154,9 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
                     multi_env=multi_env)
            for i in range(num_threads)]
     # if 'HC' in env_id:
-    # env = vec_env.SubprocVecEnv(env)
+    env = vec_env.SubprocVecEnv(env)
     # elif 'commonroad' in env_id:
-    env = vec_env.DummyVecEnv(env)
+    # env = vec_env.DummyVecEnv(env)
     # else:
     #     raise ValueError("Unknown env id {0}".format(env_id))
     if use_cost:
