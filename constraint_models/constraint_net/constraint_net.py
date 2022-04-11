@@ -736,8 +736,7 @@ class ConstraintNet(nn.Module):
             cumulative = [0] + list(accumulate(episode_lengths))
 
             ratio = (preds_new + self.eps) / (preds_old + self.eps)
-            prod = [th.prod(ratio[cumulative[j]:cumulative[j + 1]])
-                    for j in range(n_episodes)]
+            prod = [th.prod(ratio[cumulative[j]:cumulative[j + 1]]) for j in range(n_episodes)]
             prod = th.tensor(prod)
             normed = n_episodes * prod / (th.sum(prod) + self.eps)
 
