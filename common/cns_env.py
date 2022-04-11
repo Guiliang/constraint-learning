@@ -13,7 +13,7 @@ from stable_baselines3.common.vec_env import VecEnvWrapper, VecEnv, VecNormalize
 from utils.env_utils import CommonRoadExternalSignalsWrapper, MujocoExternalSignalWrapper, if_mujoco, if_commonroad
 
 
-def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0, log_file=None):
+def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0):
     def _init():
         # import env
         if if_commonroad(env_id):
@@ -33,12 +33,12 @@ def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0,
         env.seed(seed + rank)
         del env_configs_copy
         if if_commonroad(env_id) and 'external_reward' in env_configs:
-            print("Using external signal for env: {0}.".format(env_id), flush=True, file=log_file)
+            print("Using external signal for env: {0}.".format(env_id), flush=True)
             env = CommonRoadExternalSignalsWrapper(env=env,
                                                    group=group,
                                                    wrapper_config=env_configs['external_reward'])
         elif if_mujoco(env_id):
-            print("Using external signal for env: {0}.".format(env_id), flush=True, file=log_file)
+            print("Using external signal for env: {0}.".format(env_id), flush=True)
             env = MujocoExternalSignalWrapper(env=env,
                                               group=group,
                                               wrapper_config={})
@@ -73,8 +73,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
                     log_dir=save_dir,
                     group=group,
                     multi_env=multi_env,
-                    seed=base_seed,
-                    log_file=log_file)
+                    seed=base_seed)
            for i in range(num_threads)]
     # if 'HC' in env_id:
     env = vec_env.SubprocVecEnv(env)
@@ -164,16 +163,16 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
             env = vec_env.VecCostWrapper(env, cost_info_str)  # external cost
         elif group == 'PPO-Lag':
             env = InternalVecCostWrapper(env, cost_info_str)  # internal cost
-    print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
+    # print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
     if 'ICRL' in group or "Lag" in group:
         env = vec_env.VecNormalizeWithCost(env, training=False, norm_obs=normalize_obs,
                                            norm_reward=False, norm_cost=False)
     else:
         env = vec_env.VecNormalize(env, training=False, norm_obs=normalize_obs, norm_reward=False)
 
-    if is_image_space(env.observation_space) and not isinstance(env, vec_env.VecTransposeImage):
-        print("Wrapping eval env in a VecTransposeImage.")
-        env = vec_env.VecTransposeImage(env)
+    # if is_image_space(env.observation_space) and not isinstance(env, vec_env.VecTransposeImage):
+    #     print("Wrapping eval env in a VecTransposeImage.")
+    #     env = vec_env.VecTransposeImage(env)
 
     return env
 

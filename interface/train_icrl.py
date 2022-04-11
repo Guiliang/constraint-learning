@@ -109,7 +109,9 @@ def train(config):
                                reward_gamma=config['env']['reward_gamma'],
                                cost_gamma=config['env']['cost_gamma'],
                                multi_env=multi_env,
-                               part_data=partial_data, )
+                               part_data=partial_data,
+                               log_file=log_file,
+                               )
     all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
     print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
 
@@ -146,6 +148,7 @@ def train(config):
                              mode='test',
                              use_cost=config['env']['use_cost'],
                              normalize_obs=not config['env']['dont_normalize_obs'],
+                             cost_info_str=config['env']['cost_info_str'],
                              part_data=partial_data,
                              multi_env=False,
                              log_file=log_file)

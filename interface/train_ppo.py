@@ -87,7 +87,7 @@ def train(args):
                                save_dir=save_model_mother_dir,
                                base_seed=seed,
                                group=config['group'],
-                               num_threads=config['env']['num_threads'],
+                               num_threads=num_threads,
                                use_cost=config['env']['use_cost'],
                                normalize_obs=not config['env']['dont_normalize_obs'],
                                normalize_reward=not config['env']['dont_normalize_reward'],
