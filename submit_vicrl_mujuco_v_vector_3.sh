@@ -6,7 +6,7 @@
 #SBATCH --time=24:00:00
 #SBATCH --mem=24GB
 #SBATCH --job-name=Mojuco
-task_name="train-Mojuco-VICRL_1"
+task_name="train-Mojuco-VICRL_3"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 export PATH=/pkgs/anaconda3/bin:$PATH
@@ -16,7 +16,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 cd ./interface
-python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_no_is.yaml -n 5 -s 123 -l "$log_dir"
-#python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_no_is.yaml -n 5 -s 321 -l "$log_dir"
-#python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_no_is.yaml -n 5 -s 666 -l "$log_dir"
+python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_bs-64-1e3_no_is.yaml -n 5 -s 123 -l "$log_dir"
+#python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_bs-64-1e3_no_is.yaml -n 5 -s 321 -l "$log_dir"
+#python train_icrl.py ../config/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_bs-64-1e3_no_is.yaml -n 5 -s 666 -l "$log_dir"
 
