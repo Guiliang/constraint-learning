@@ -46,7 +46,7 @@ def train(args):
     if debug_mode:
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 100  # 2000
-        config['PPO']['n_steps'] = 530
+        config['PPO']['n_steps'] = 200
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
         debug_msg = 'debug-'
@@ -221,7 +221,8 @@ def train(args):
                 plot_curve(draw_keys=[record_info_name],
                            x_dict={record_info_name: plot_record_infos},
                            y_dict={record_info_name: plot_costs},
-                           plot_name=os.path.join(path, "{0}".format(record_info_name))
+                           plot_name=os.path.join(path, "{0}".format(record_info_name)),
+                           apply_scatter=True
                            )
             # env_tmp = train_env
             # while isinstance(env_tmp, VecEnvWrapper):

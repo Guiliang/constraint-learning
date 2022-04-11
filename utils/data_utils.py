@@ -350,25 +350,6 @@ def load_ppo_model(model_path: str, iter_msg: str, log_file):
     model = PPO.load(model_path)
     return model
 
-
-def get_obs_feature_names(env, env_id):
-    feature_names = []
-    if 'commonroad' in env_id:
-        try:  # we need to change this setting if you modify the number of env wrappers.
-            observation_space_dict = env.venv.envs[0].env.env.env.observation_collector.observation_space_dict
-        except:
-            observation_space_dict = env.venv.envs[0].env.env.observation_collector.observation_space_dict
-        observation_space_names = observation_space_dict.keys()
-        for key in observation_space_names:
-            feature_len = observation_space_dict[key].shape[0]
-            for i in range(feature_len):
-                feature_names.append(key + '_' + str(i))
-    if 'HC' in env_id:
-        feature_names.append('(pls visit: {0})'.format(
-            'https://github.com/openai/gym/blob/master/gym/envs/mujoco/assets/half_cheetah.xml'))
-    return feature_names
-
-
 def get_input_features_dim(feature_select_names, all_feature_names):
     if feature_select_names is None:
         feature_select_dim = None

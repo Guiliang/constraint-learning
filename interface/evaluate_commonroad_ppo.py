@@ -7,31 +7,13 @@ from typing import Union, Callable
 import numpy as np
 import yaml
 from gym import Env
+
+from common.cns_env import make_env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3 import PPO
 from commonroad_environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
-
-
-from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model, get_obs_feature_names
-
-# def make_env(env_id, seed,  , info_keywords=()):
-#     log_dir = 'icrl/test_log'
-#
-#     logging_path = 'icrl/test_log'
-#
-#     if log_dir is not None:
-#         os.makedirs(log_dir, exist_ok=True)
-#
-#     def _init():
-#         env = gym.make(env_id, logging_path=logging_path, **env_kwargs)
-#         rank = 0
-#         env.seed(seed + rank)
-#         log_file = os.path.join(log_dir, str(rank)) if log_dir is not None else None
-#         env = Monitor(env, log_file, info_keywords=info_keywords)
-#         return env
-#
-#     return _init
-from utils.env_utils import make_env
+from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model
+from utils.env_utils import get_obs_feature_names
 from utils.plot_utils import pngs2gif
 
 

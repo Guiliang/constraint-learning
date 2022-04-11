@@ -24,8 +24,8 @@ from stable_baselines3.common import logger
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
-    get_obs_feature_names, get_input_features_dim, process_memory, print_resource
-from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent
+    get_input_features_dim, process_memory, print_resource
+from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names
 from utils.model_utils import get_net_arch
 
 

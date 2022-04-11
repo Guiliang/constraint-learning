@@ -1,15 +1,10 @@
 import os
-from copy import copy, deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import gym
-import yaml
 import stable_baselines3.common.vec_env as vec_env
-from common.cns_monitor import CNSMonitor
 from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.utils import safe_mean, set_random_seed
-from stable_baselines3.common.preprocessing import is_image_space
 
 
 def get_benchmark_ids(num_threads, benchmark_idx, benchmark_total_nums, env_ids):
@@ -148,9 +143,27 @@ def sample_from_agent(agent, env, rollouts, store_by_game=False):
         return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
 
 
-class ExternalRewardWrapper(gym.Wrapper):
+class MujocoExternalSignalWrapper(gym.Wrapper):
     def __init__(self, env: gym.Wrapper, group: str, wrapper_config: dict):
-        super(ExternalRewardWrapper, self).__init__(env=env)
+        super(MujocoExternalSignalWrapper, self).__init__(env=env)
+        self.wrapper_config = wrapper_config
+        self.group = group
+
+    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
+        observation, reward, done, info = self.env.step(action)
+        lag_cost = 0
+        if self.spec.id == 'HCWithPos-v0':
+            if info['xpos'] <= -3:
+                lag_cost = 1
+                # print(info['xpos'], lag_cost)
+        if self.group == 'PPO-Lag':
+            info.update({'lag_cost': lag_cost})
+        return observation, reward, done, info
+
+
+class CommonRoadExternalSignalsWrapper(gym.Wrapper):
+    def __init__(self, env: gym.Wrapper, group: str, wrapper_config: dict):
+        super(CommonRoadExternalSignalsWrapper, self).__init__(env=env)
         self.wrapper_config = wrapper_config
         self.group = group
 
@@ -211,3 +224,35 @@ def get_all_env_ids(num_threads, env):
         if len(env_ids[i]) > max_benchmark_num:
             max_benchmark_num = len(env_ids[i])
     return max_benchmark_num, env_ids, benchmark_total_nums
+
+
+def if_mujoco(env_id):
+    if 'HC' in env_id:
+        return True
+    else:
+        return False
+
+
+def if_commonroad(env_id):
+    if 'commonroad' in env_id:
+        return True
+    else:
+        return False
+
+
+def get_obs_feature_names(env, env_id):
+    feature_names = []
+    if if_commonroad(env_id):
+        try:  # we need to change this setting if you modify the number of env wrappers.
+            observation_space_dict = env.venv.envs[0].env.env.env.observation_collector.observation_space_dict
+        except:
+            observation_space_dict = env.venv.envs[0].env.env.observation_collector.observation_space_dict
+        observation_space_names = observation_space_dict.keys()
+        for key in observation_space_names:
+            feature_len = observation_space_dict[key].shape[0]
+            for i in range(feature_len):
+                feature_names.append(key + '_' + str(i))
+    if if_mujoco(env_id):
+        feature_names.append('(pls visit: {0})'.format(
+            'https://github.com/openai/gym/blob/master/gym/envs/mujoco/assets/half_cheetah.xml'))
+    return feature_names

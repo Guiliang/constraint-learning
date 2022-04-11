@@ -10,16 +10,16 @@ from common.cns_monitor import CNSMonitor
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.preprocessing import is_image_space
 from stable_baselines3.common.vec_env import VecEnvWrapper, VecEnv, VecNormalize, VecCostWrapper
-from utils.env_utils import ExternalRewardWrapper
+from utils.env_utils import CommonRoadExternalSignalsWrapper, MujocoExternalSignalWrapper, if_mujoco, if_commonroad
 
 
-def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0):
+def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0, log_file=None):
     def _init():
         # import env
-        if 'commonroad' in env_id:
+        if if_commonroad(env_id):
             # import commonroad_environment.commonroad_rl.gym_commonroad
             from commonroad_environment.commonroad_rl import gym_commonroad
-        elif 'HC' in env_id:
+        elif if_mujoco(env_id):
             # from mujuco_environment.custom_envs.envs import half_cheetah
             import mujuco_environment.custom_envs
         env_configs_copy = copy(env_configs)
@@ -32,9 +32,16 @@ def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0)
                        **env_configs_copy)
         env.seed(seed + rank)
         del env_configs_copy
-        if 'external_reward' in env_configs:
-            print("Using external reward", flush=True)
-            env = ExternalRewardWrapper(env=env, group=group, wrapper_config=env_configs['external_reward'])
+        if if_commonroad(env_id) and 'external_reward' in env_configs:
+            print("Using external signal for env: {0}.".format(env_id), flush=True, file=log_file)
+            env = CommonRoadExternalSignalsWrapper(env=env,
+                                                   group=group,
+                                                   wrapper_config=env_configs['external_reward'])
+        elif if_mujoco(env_id):
+            print("Using external signal for env: {0}.".format(env_id), flush=True, file=log_file)
+            env = MujocoExternalSignalWrapper(env=env,
+                                              group=group,
+                                              wrapper_config={})
         monitor_rank = None
         if multi_env:
             monitor_rank = rank
@@ -66,21 +73,33 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
                     log_dir=save_dir,
                     group=group,
                     multi_env=multi_env,
-                    seed=base_seed)
+                    seed=base_seed,
+                    log_file=log_file)
            for i in range(num_threads)]
-    if 'HC' in env_id:
-        env = vec_env.SubprocVecEnv(env)
-    elif 'commonroad' in env_id:
-        env = vec_env.DummyVecEnv(env)
-    else:
-        raise ValueError("Unknown env id {0}".format(env_id))
+    # if 'HC' in env_id:
+    env = vec_env.SubprocVecEnv(env)
+    # elif 'commonroad' in env_id:
+    # env = vec_env.DummyVecEnv(env)
+    # else:
+    #     raise ValueError("Unknown env id {0}".format(env_id))
 
     if use_cost:
         if group == 'ICRL' or group == 'VICRL' or group == 'SEVICRL':
             env = vec_env.VecCostWrapper(env, kwargs['cost_info_str'])  # external cost
         elif group == 'PPO-Lag':
             env = InternalVecCostWrapper(env, kwargs['cost_info_str'])  # internal cost
-    if normalize_reward and normalize_cost:
+    # if normalize_reward and normalize_cost:
+    #     assert (all(key in kwargs for key in ['cost_info_str', 'reward_gamma', 'cost_gamma']))
+    #     env = vec_env.VecNormalizeWithCost(
+    #         env, training=True,
+    #         norm_obs=normalize_obs,
+    #         norm_reward=normalize_reward,
+    #         norm_cost=normalize_cost,
+    #         cost_info_str=kwargs['cost_info_str'],
+    #         reward_gamma=kwargs['reward_gamma'],
+    #         cost_gamma=kwargs['cost_gamma'])
+    # else:
+    if 'ICRL' in group or "Lag" in group:  # ICRL or PPO-Lag
         assert (all(key in kwargs for key in ['cost_info_str', 'reward_gamma', 'cost_gamma']))
         env = vec_env.VecNormalizeWithCost(
             env, training=True,
@@ -90,24 +109,14 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
             cost_info_str=kwargs['cost_info_str'],
             reward_gamma=kwargs['reward_gamma'],
             cost_gamma=kwargs['cost_gamma'])
-    else:
-        if 'ICRL' in group or "Lag" in group:  # ICRL or PPO-Lag
-            assert (all(key in kwargs for key in ['reward_gamma', 'cost_gamma']))
-            env = vec_env.VecNormalizeWithCost(
-                env, training=True,
-                norm_obs=normalize_obs,
-                norm_reward=normalize_reward,
-                norm_cost=normalize_cost,
-                reward_gamma=kwargs['reward_gamma'],
-                cost_gamma=kwargs['cost_gamma'])
-        else:
-            assert (all(key in kwargs for key in ['reward_gamma']))
-            env = vec_env.VecNormalize(
-                env,
-                training=True,
-                norm_obs=normalize_obs,
-                norm_reward=normalize_reward,
-                gamma=kwargs['reward_gamma'])
+    else:  # PPO
+        assert (all(key in kwargs for key in ['reward_gamma']))
+        env = vec_env.VecNormalize(
+            env,
+            training=True,
+            norm_obs=normalize_obs,
+            norm_reward=normalize_reward,
+            gamma=kwargs['reward_gamma'])
     # else:
     #     if use_cost:
     #         env = vec_env.VecNormalizeWithCost(
@@ -144,19 +153,19 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
                     log_dir=os.path.join(save_dir, mode),
                     multi_env=multi_env)
            for i in range(num_threads)]
-    if 'HC' in env_id:
-        env = vec_env.SubprocVecEnv(env)
-    elif 'commonroad' in env_id:
-        env = vec_env.DummyVecEnv(env)
-    else:
-        raise ValueError("Unknown env id {0}".format(env_id))
+    # if 'HC' in env_id:
+    env = vec_env.SubprocVecEnv(env)
+    # elif 'commonroad' in env_id:
+    #     env = vec_env.DummyVecEnv(env)
+    # else:
+    #     raise ValueError("Unknown env id {0}".format(env_id))
     if use_cost:
         if group == 'ICRL' or group == 'VICRL' or group == 'SEVICRL':
             env = vec_env.VecCostWrapper(env, cost_info_str)  # external cost
         elif group == 'PPO-Lag':
             env = InternalVecCostWrapper(env, cost_info_str)  # internal cost
     print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
-    if 'ICRL' in group:
+    if 'ICRL' in group or "Lag" in group:
         env = vec_env.VecNormalizeWithCost(env, training=False, norm_obs=normalize_obs,
                                            norm_reward=False, norm_cost=False)
     else:

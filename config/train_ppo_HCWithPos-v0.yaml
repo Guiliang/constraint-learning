@@ -5,7 +5,7 @@ verbose: 2
 env:
   config_path: null
   train_env_id : 'HCWithPos-v0'
-  eval_env_id: 'HCWithPosTest-v0'
+  eval_env_id: 'HCWithPos-v0'  # 'HCWithPosTest-v0'
   save_dir: '../save_model'
   cost_info_str: ''
   use_cost: False
@@ -18,7 +18,7 @@ env:
 running:
   n_iters: 30
   n_eval_episodes: 10
-  save_every: 10
+  save_every: 5
 
 PPO:
   policy_name: 'MlpPolicy'

@@ -5,7 +5,7 @@ verbose: 2
 env:
   config_path: null
   train_env_id : 'HCWithPos-v0'
-  eval_env_id: 'HCWithPosTest-v0'
+  eval_env_id: 'HCWithPos-v0'  # 'HCWithPosTest-v0'
   save_dir: '../save_model'
 #  expert_path: 'expert_data'
 #  expert_rollouts: 10
@@ -20,7 +20,7 @@ env:
 running:
   n_iters: 30
   n_eval_episodes: 10
-  save_every: 10
+  save_every: 5
   expert_rollouts: 10
   sample_rollouts: 10
   sample_data_num: 10000

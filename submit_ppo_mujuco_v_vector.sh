@@ -3,7 +3,7 @@
 #SBATCH --partition=t4v1,t4v2,p100
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --time=48:00:00
+#SBATCH --time=24:00:00
 #SBATCH --mem=120GB
 #SBATCH --job-name=PPO
 task_name="train-mujoco-PPO"
@@ -16,4 +16,4 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 cd ./interface/
-python train_ppo.py ../config/train_ppo_HCWithPos-v0.yaml -n 5 -s 321 -l "$log_dir"
+python train_ppo.py ../config/train_ppo_lag_HCWithPos-v0.yaml -n 5 -s 123 -l "$log_dir"
