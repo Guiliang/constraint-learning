@@ -37,11 +37,11 @@ def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0,
             env = CommonRoadExternalSignalsWrapper(env=env,
                                                    group=group,
                                                    wrapper_config=env_configs['external_reward'])
-        elif if_mujoco(env_id):
-            print("Using external signal for env: {0}.".format(env_id), flush=True, file=log_file)
-            env = MujocoExternalSignalWrapper(env=env,
-                                              group=group,
-                                              wrapper_config={})
+        # elif if_mujoco(env_id):
+        #     print("Using external signal for env: {0}.".format(env_id), flush=True, file=log_file)
+        #     env = MujocoExternalSignalWrapper(env=env,
+        #                                       group=group,
+        #                                       wrapper_config={})
         monitor_rank = None
         if multi_env:
             monitor_rank = rank
