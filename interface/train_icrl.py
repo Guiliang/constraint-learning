@@ -9,13 +9,10 @@ import random
 import gym
 import numpy as np
 import yaml
-
-from common.cns_visualization import plot_constraints
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_evaluation import evaluate_icrl_policy
-from utils.plot_utils import plot_curve
+from common.cns_visualization import plot_constraints
 from common.cns_env import make_train_env, make_eval_env
 from common.memory_buffer import IRLDataQueue
 from constraint_models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
