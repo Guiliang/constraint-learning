@@ -369,10 +369,10 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
         bw_metrics = {"backward/loss": loss.item(),
                       "backward/expert/stab_loss": expert_stab_loss.item(),
                       "backward/expert/kld_loss": expert_kld_loss.item(),
-                      "backward/expert/recon_loss": expert_recon_loss.item(),
+                      "backward/expert/recon_loss": expert_recon_loss.mean().item(),
                       "backward/nominal/stab_loss": nominal_stab_loss.item(),
                       "backward/nominal/kld_loss": nominal_kld_loss.item(),
-                      "backward/nominal/recon_loss": nominal_recon_loss.item(),
+                      "backward/nominal/recon_loss": nominal_recon_loss.mean().item(),
                       # "backward/is_mean": torch.mean(is_weights).detach().item(),
                       # "backward/is_max": torch.max(is_weights).detach().item(),
                       # "backward/is_min": torch.min(is_weights).detach().item(),
@@ -512,3 +512,33 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
             obs = np.clip(obs, -self.clip_obs, self.clip_obs)
         obs = np.reshape(obs, newshape=[bs, -1, obs.shape[-1]])
         return obs.squeeze(1)
+
+    def save(self, save_path):
+        state_dict = dict(
+            obs_dim=self.obs_dim,
+            acs_dim=self.acs_dim,
+            is_discrete=self.is_discrete,
+            obs_select_dim=self.obs_select_dim,
+            acs_select_dim=self.acs_select_dim,
+            clip_obs=self.clip_obs,
+            obs_mean=self.current_obs_mean,
+            obs_var=self.current_obs_var,
+            action_low=self.action_low,
+            action_high=self.action_high,
+            device=self.device,
+            hidden_sizes=self.hidden_sizes
+        )
+
+        for key in self.optimizers.keys():
+            state_dict.update({'cn_optimizer_' + key: self.optimizers[key].state_dict()})
+        tmp = self.state_dict()
+        if self.explain_model_name == 'ndt':
+            state_dict.update({'ndt_model': self.ndt.state_dict()})
+            state_dict.update({'conceptizers_model': self.sample_conceptizers.state_dict()})
+            state_dict.update({'parameterizers_model': self.sample_parameterizers.state_dict()})
+            state_dict.update({'aggregator_model': self.sample_aggregator.state_dict()})
+        elif self.explain_model_name == 'senn':
+            state_dict.update({'conceptizer_model': self.sample_conceptizer.state_dict()})
+            state_dict.update({'parameterizer_model': self.sample_parameterizer.state_dict()})
+            state_dict.update({'aggregator_model': self.sample_aggregator.state_dict()})
+        torch.save(state_dict, save_path)

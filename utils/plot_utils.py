@@ -5,7 +5,7 @@ import matplotlib.ticker as mtick
 import numpy as np
 
 
-def plot_curve(draw_keys, x_dict, y_dict, plot_name,
+def plot_curve(draw_keys, x_dict, y_dict, save_name,
                ylim=(0, 1),
                linewidth=3, xlabel=None, ylabel=None, title=None,
                apply_rainbow=False, apply_scatter=False,
@@ -39,10 +39,10 @@ def plot_curve(draw_keys, x_dict, y_dict, plot_name,
         plt.ylabel(ylabel, fontsize=axis_size)
     if title is not None:
         plt.title(title, fontsize=axis_size)
-    if not plot_name:
+    if not save_name:
         plt.show()
     else:
-        plt.savefig('{0}.png'.format(plot_name))
+        plt.savefig('{0}.png'.format(save_name))
     plt.close()
 
 

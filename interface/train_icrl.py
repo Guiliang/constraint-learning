@@ -9,6 +9,9 @@ import random
 import gym
 import numpy as np
 import yaml
+
+from common.cns_visualization import plot_constraints
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_evaluation import evaluate_icrl_policy
@@ -21,7 +24,7 @@ from constraint_models.constraint_net.constraint_net import ConstraintNet
 from exploration.exploration import ExplorationRewardCallback
 from stable_baselines3 import PPOLagrangian
 from stable_baselines3.common import logger
-from stable_baselines3.common.evaluation import evaluate_policy
+
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource
@@ -116,15 +119,16 @@ def train(config):
     print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
 
     # We don't need cost when taking samples
-    save_valid_mother_dir = os.path.join(save_model_mother_dir, "valid/")
+    save_valid_mother_dir = os.path.join(save_model_mother_dir, "sample/")
     if not os.path.exists(save_valid_mother_dir):
         os.mkdir(save_valid_mother_dir)
-    if 'commonroad' in config['env']['train_env_id']:
-        sample_num_threads = num_threads
-        sample_multi_env = multi_env
-    else:
-        sample_num_threads = 1
-        sample_multi_env = False
+    # if 'commonroad' in config['env']['train_env_id']:
+    #     sample_num_threads = num_threads
+    #     sample_multi_env = multi_env
+    # else:
+    # TODO: multi_env sampling
+    sample_num_threads = 1
+    sample_multi_env = False
     sampling_env = make_eval_env(env_id=config['env']['train_env_id'],
                                  config_path=config['env']['config_path'],
                                  save_dir=save_valid_mother_dir,
@@ -427,14 +431,28 @@ def train(config):
             constraint_net.save(os.path.join(path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(path, "train_env_stats.pkl"))
-            for record_info_name in config['env']["record_info_names"]:
+            for record_info_idx in range(len(config['env']["record_info_names"])):
+                record_info_name = config['env']["record_info_names"][record_info_idx]
                 plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
-                plot_curve(draw_keys=[record_info_name],
-                           x_dict={record_info_name: plot_record_infos},
-                           y_dict={record_info_name: plot_costs},
-                           plot_name=os.path.join(path, "{0}".format(record_info_name)),
-                           apply_scatter=True,
-                           )
+                # plot_curve(draw_keys=[record_info_name],
+                #            x_dict={record_info_name: plot_record_infos},
+                #            y_dict={record_info_name: plot_costs},
+                #            save_name=os.path.join(path, "{0}_empirical_visualize".format(record_info_name)),
+                #            xlabel=record_info_name,
+                #            ylabel='cost',
+                #            apply_scatter=True,
+                #            )
+                plot_constraints(cost_function=constraint_net.cost_function,
+                                 feature_range=config['env']["visualize_info_ranges"][record_info_idx],
+                                 select_dim=config['env']["record_info_input_dims"][record_info_idx],
+                                 obs_dim=constraint_net.obs_dim,
+                                 acs_dim=constraint_net.acs_dim,
+                                 device=constraint_net.device,
+                                 save_name=os.path.join(path, "{0}_visual.png".format(record_info_name)),
+                                 feature_data=plot_record_infos,
+                                 feature_cost=plot_costs,
+                                 feature_name=record_info_name,
+                                 empirical_input_means=np.concatenate([expert_obs, expert_acs], axis=1).mean(0))
 
         # (2) best
         if average_true_reward > best_true_reward:

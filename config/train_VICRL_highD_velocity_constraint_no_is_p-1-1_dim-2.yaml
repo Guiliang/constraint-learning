@@ -14,7 +14,7 @@ env:
   dont_normalize_obs: False
   dont_normalize_reward: False
   dont_normalize_cost: False  # no cost
-  record_info_names: ["xpos"]
+  record_info_names: ["ego_velocity_x", "ego_velocity_y"]
 
 running:
   n_iters: 30000

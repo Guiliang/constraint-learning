@@ -918,144 +918,144 @@ class ConstraintNet(nn.Module):
 
 # The following functions exploit knowledge about the environment
 
-def plot_constraints(cost_function, env, env_id, select_dim, obs_dim, acs_dim,
-                     save_name, observations=None):
-    if env_id in ['PointEnv-v0',
-                  'PointEnvTest-v0',
-                  'HCWithPos-v0',
-                  'AntWallTest-v0',
-                  'HCWithPosTest-v0',
-                  'PointCircle-v0',
-                  'PointCircleTest-v0',
-                  'WalkerWithPos-v0',
-                  'WalkerWithPosTest-v0']:
-        plot_for_gym_envs(cost_function, env, env_id, select_dim, obs_dim, acs_dim,
-                          save_name, observations)
-    elif env_id in ["D2B-v0", "DD2B-v0", "CDD2B-v0", "TCDD2B-v0",
-                    "D3B-v0", "DD3B-v0", "CDD3B-v0", "TCDD3B-v0"]:
-        plot_for_bridges_envs(cost_function, save_name, observations)
-    elif env_id in ["LGW-v0", "CLGW-v0"]:
-        pass
-        # plot_for_lap_env(cost_function, save_name, observations)
-    else:
-        print("Env id not recognized; skipping plotting of constraint net")
-
-
-def plot_for_gym_envs(cost_function, env, env_id, select_dim, obs_dim, acs_dim,
-                      save_name, obs=None):
-    if len(select_dim) > 2:
-        print("Cannot plot; constraint net has more than two dimensions.")
-        return
-
-    x_range = [-12, 12] if "Point" in env_id else [-20, 20]
-
-    if len(select_dim) == 1:
-        fig, ax = plt.subplots(1, 2, figsize=(30, 15))
-        num_points = 1000
-        obs_all = np.linspace(x_range[0], x_range[1], num_points)[..., None]
-        obs_all = np.concatenate((obs_all, np.zeros((num_points, obs_dim - 1))), axis=-1)
-
-        action = np.zeros((num_points, acs_dim))
-        preds = 1 - cost_function(obs_all, action)
-        ax[0].plot(obs_all, preds)
-        if obs is not None:
-            ax[0].scatter(obs[..., 0], 0.2 + np.zeros(obs.shape[0]))
-            ax[1].hist(obs[:, 0], bins=40, range=(-20, 20))
-            ax[1].set_axisbelow(True)
-            # Turn on the minor TICKS, which are required for the minor GRID
-            ax[1].minorticks_on()
-            ax[1].grid(which='major', linestyle='-', linewidth='0.5', color='red')
-            ax[1].grid(which='minor', linestyle=':', linewidth='0.5', color='black')
-        ax[0].set_ylim([0, 1])
-        ax[0].set_xlim(x_range)
-        ax[0].set_axisbelow(True)
-        # Turn on the minor TICKS, which are required for the minor GRID
-        ax[0].minorticks_on()
-        ax[0].grid(which='major', linestyle='-', linewidth='0.5', color='red')
-        ax[0].grid(which='minor', linestyle=':', linewidth='0.5', color='black')
-        fig.savefig(save_name)
-        plt.close(fig=fig)
-
-    elif len(select_dim) == 2:
-        fig, ax = plt.subplots(1, 1, figsize=(30, 15))
-        r = np.arange(-20, 20, 0.1)
-        X, Y = np.meshgrid(r, r)
-        obs_all = np.concatenate([X.reshape([-1, 1]), Y.reshape([-1, 1])], axis=-1)
-        obs_all = np.concatenate((obs_all, np.zeros((np.size(X), obs_dim - 2))), axis=-1)
-
-        action = np.zeros((np.size(X), acs_dim))
-        outs = 1 - cost_function(obs_all, action)
-        im = ax.imshow(outs.reshape(X.shape), extent=[-20, 20, -20, 20], cmap='jet_r',
-                       vmin=0, vmax=1, origin='lower')
-        # axs[action].set_title('Action: %s' % action_desc[action])
-        fig.colorbar(im, ax=ax)
-
-        if obs is not None:
-            obs = np.clip(obs, -20, 20)
-            ax.scatter(obs[..., 0], obs[..., 1], clip_on=False)
-        ax.set_ylim([-20, 20])
-        ax.set_xlim([-20, 20])
-        plt.grid('on')
-        fig.savefig(save_name)
-        plt.close(fig=fig)
-
-
-def plot_for_bridges_envs(cost_function, save_name, observations=None):
-    if observations is not None:
-        # Unnormalize
-        observations = 10 * (observations + 1)
-    action_desc = ['right', 'left', 'up', 'bottom']
-    r = np.arange(0, 20, 0.1)
-    X, Y = np.meshgrid(r, r)
-    obs = np.concatenate([X.reshape([-1, 1]), Y.reshape([-1, 1])], axis=-1)
-    # Normalize
-    obs = obs / 10 - 1
-
-    fig, axs = plt.subplots(2, 2)
-    axs = [ax for axs_ in axs for ax in axs_]
-    fig.set_size_inches(20, 20)
-    for action in range(4):
-        acs = action * np.ones([obs.shape[0], 1])
-        outs = 1 - cost_function(obs, acs)
-        im = axs[action].imshow(outs.reshape(X.shape), extent=[0, 20, 0, 20], cmap='jet_r',
-                                vmin=0, vmax=1, origin='lower')
-        axs[action].set_title('Action: %s' % action_desc[action])
-        fig.colorbar(im, ax=axs[action])
-
-        if observations is not None:
-            axs[action].scatter(observations[:, 0], observations[:, 1], clip_on=False)
-
-        axs[action].set_xlim(0, 20)
-        axs[action].set_ylim(0, 20)
-
-    fig.savefig(save_name)
-    plt.close(fig=fig)
-
-
-def plot_for_lap_env(cost_function, save_name, obs=None):
-    # Assumes a lap size of 11
-    LAP_SIZE = 11
-    action_desc = ['Forward', 'Backward']
-    number_of_cells = (LAP_SIZE - 1) * 4
-    all_obs = np.arange(number_of_cells)[:, None]
-    fig, ax = plt.subplots(1, 2, figsize=(30, 15))
-    if obs is not None: obs = np.round((obs[:, :1] + 1) * (number_of_cells / 2))
-    for action in range(2):
-        ac = action * np.ones([all_obs.shape[0], 1])
-        outs = 1 - cost_function(all_obs, ac)
-        outs = _reshape_lap_to_grid(outs)
-        # Plotting
-        c = ax[action].pcolor(outs, edgecolors='w', linewidths=2, cmap='jet_r', vmin=-0.0, vmax=1.0)
-        ax[action].set_title('Action: %s' % action_desc[action])
-        if obs is not None:
-            co_ords = []
-            for i in range(obs.shape[0]):
-                for j in range(obs.shape[1]):
-                    co_ords.append(_idx_to_xy(obs[i, j]))
-            x, y = zip(*co_ords)
-            x, y = np.array(x) + 0.5, np.array(y) + 0.5
-            ax[action].scatter(x, y)
-
-    plt.axis('off')
-    fig.savefig(save_name)
-    plt.close(fig=fig)
+# def plot_constraints(cost_function, env, env_id, select_dim, obs_dim, acs_dim,
+#                      save_name, observations=None):
+#     if env_id in ['PointEnv-v0',
+#                   'PointEnvTest-v0',
+#                   'HCWithPos-v0',
+#                   'AntWallTest-v0',
+#                   'HCWithPosTest-v0',
+#                   'PointCircle-v0',
+#                   'PointCircleTest-v0',
+#                   'WalkerWithPos-v0',
+#                   'WalkerWithPosTest-v0']:
+#         plot_for_gym_envs(cost_function, env, env_id, select_dim, obs_dim, acs_dim,
+#                           save_name, observations)
+#     elif env_id in ["D2B-v0", "DD2B-v0", "CDD2B-v0", "TCDD2B-v0",
+#                     "D3B-v0", "DD3B-v0", "CDD3B-v0", "TCDD3B-v0"]:
+#         plot_for_bridges_envs(cost_function, save_name, observations)
+#     elif env_id in ["LGW-v0", "CLGW-v0"]:
+#         pass
+#         # plot_for_lap_env(cost_function, save_name, observations)
+#     else:
+#         print("Env id not recognized; skipping plotting of constraint net")
+#
+#
+# def plot_for_gym_envs(cost_function, env, env_id, select_dim, obs_dim, acs_dim,
+#                       save_name, obs=None):
+#     if len(select_dim) > 2:
+#         print("Cannot plot; constraint net has more than two dimensions.")
+#         return
+#
+#     x_range = [-12, 12] if "Point" in env_id else [-20, 20]
+#
+#     if len(select_dim) == 1:
+#         fig, ax = plt.subplots(1, 2, figsize=(30, 15))
+#         num_points = 1000
+#         obs_all = np.linspace(x_range[0], x_range[1], num_points)[..., None]
+#         obs_all = np.concatenate((obs_all, np.zeros((num_points, obs_dim - 1))), axis=-1)
+#
+#         action = np.zeros((num_points, acs_dim))
+#         preds = 1 - cost_function(obs_all, action)
+#         ax[0].plot(obs_all, preds)
+#         if obs is not None:
+#             ax[0].scatter(obs[..., 0], 0.2 + np.zeros(obs.shape[0]))
+#             ax[1].hist(obs[:, 0], bins=40, range=(-20, 20))
+#             ax[1].set_axisbelow(True)
+#             # Turn on the minor TICKS, which are required for the minor GRID
+#             ax[1].minorticks_on()
+#             ax[1].grid(which='major', linestyle='-', linewidth='0.5', color='red')
+#             ax[1].grid(which='minor', linestyle=':', linewidth='0.5', color='black')
+#         ax[0].set_ylim([0, 1])
+#         ax[0].set_xlim(x_range)
+#         ax[0].set_axisbelow(True)
+#         # Turn on the minor TICKS, which are required for the minor GRID
+#         ax[0].minorticks_on()
+#         ax[0].grid(which='major', linestyle='-', linewidth='0.5', color='red')
+#         ax[0].grid(which='minor', linestyle=':', linewidth='0.5', color='black')
+#         fig.savefig(save_name)
+#         plt.close(fig=fig)
+#
+#     elif len(select_dim) == 2:
+#         fig, ax = plt.subplots(1, 1, figsize=(30, 15))
+#         r = np.arange(-20, 20, 0.1)
+#         X, Y = np.meshgrid(r, r)
+#         obs_all = np.concatenate([X.reshape([-1, 1]), Y.reshape([-1, 1])], axis=-1)
+#         obs_all = np.concatenate((obs_all, np.zeros((np.size(X), obs_dim - 2))), axis=-1)
+#
+#         action = np.zeros((np.size(X), acs_dim))
+#         outs = 1 - cost_function(obs_all, action)
+#         im = ax.imshow(outs.reshape(X.shape), extent=[-20, 20, -20, 20], cmap='jet_r',
+#                        vmin=0, vmax=1, origin='lower')
+#         # axs[action].set_title('Action: %s' % action_desc[action])
+#         fig.colorbar(im, ax=ax)
+#
+#         if obs is not None:
+#             obs = np.clip(obs, -20, 20)
+#             ax.scatter(obs[..., 0], obs[..., 1], clip_on=False)
+#         ax.set_ylim([-20, 20])
+#         ax.set_xlim([-20, 20])
+#         plt.grid('on')
+#         fig.savefig(save_name)
+#         plt.close(fig=fig)
+#
+#
+# def plot_for_bridges_envs(cost_function, save_name, observations=None):
+#     if observations is not None:
+#         # Unnormalize
+#         observations = 10 * (observations + 1)
+#     action_desc = ['right', 'left', 'up', 'bottom']
+#     r = np.arange(0, 20, 0.1)
+#     X, Y = np.meshgrid(r, r)
+#     obs = np.concatenate([X.reshape([-1, 1]), Y.reshape([-1, 1])], axis=-1)
+#     # Normalize
+#     obs = obs / 10 - 1
+#
+#     fig, axs = plt.subplots(2, 2)
+#     axs = [ax for axs_ in axs for ax in axs_]
+#     fig.set_size_inches(20, 20)
+#     for action in range(4):
+#         acs = action * np.ones([obs.shape[0], 1])
+#         outs = 1 - cost_function(obs, acs)
+#         im = axs[action].imshow(outs.reshape(X.shape), extent=[0, 20, 0, 20], cmap='jet_r',
+#                                 vmin=0, vmax=1, origin='lower')
+#         axs[action].set_title('Action: %s' % action_desc[action])
+#         fig.colorbar(im, ax=axs[action])
+#
+#         if observations is not None:
+#             axs[action].scatter(observations[:, 0], observations[:, 1], clip_on=False)
+#
+#         axs[action].set_xlim(0, 20)
+#         axs[action].set_ylim(0, 20)
+#
+#     fig.savefig(save_name)
+#     plt.close(fig=fig)
+#
+#
+# def plot_for_lap_env(cost_function, save_name, obs=None):
+#     # Assumes a lap size of 11
+#     LAP_SIZE = 11
+#     action_desc = ['Forward', 'Backward']
+#     number_of_cells = (LAP_SIZE - 1) * 4
+#     all_obs = np.arange(number_of_cells)[:, None]
+#     fig, ax = plt.subplots(1, 2, figsize=(30, 15))
+#     if obs is not None: obs = np.round((obs[:, :1] + 1) * (number_of_cells / 2))
+#     for action in range(2):
+#         ac = action * np.ones([all_obs.shape[0], 1])
+#         outs = 1 - cost_function(all_obs, ac)
+#         outs = _reshape_lap_to_grid(outs)
+#         # Plotting
+#         c = ax[action].pcolor(outs, edgecolors='w', linewidths=2, cmap='jet_r', vmin=-0.0, vmax=1.0)
+#         ax[action].set_title('Action: %s' % action_desc[action])
+#         if obs is not None:
+#             co_ords = []
+#             for i in range(obs.shape[0]):
+#                 for j in range(obs.shape[1]):
+#                     co_ords.append(_idx_to_xy(obs[i, j]))
+#             x, y = zip(*co_ords)
+#             x, y = np.array(x) + 0.5, np.array(y) + 0.5
+#             ax[action].scatter(x, y)
+#
+#     plt.axis('off')
+#     fig.savefig(save_name)
+#     plt.close(fig=fig)

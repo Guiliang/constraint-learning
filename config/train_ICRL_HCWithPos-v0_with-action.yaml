@@ -16,6 +16,9 @@ env:
   dont_normalize_obs: False
   dont_normalize_reward: False
   dont_normalize_cost: False  # cost
+  record_info_names: ["xpos"]
+  record_info_input_dims: [0] # the dim of record info in inputs=(obs, action)
+  visualize_info_ranges: [[-30, 30]]
 
 running:
   n_iters: 30

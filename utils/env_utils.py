@@ -243,15 +243,58 @@ def if_commonroad(env_id):
 def get_obs_feature_names(env, env_id):
     feature_names = []
     if if_commonroad(env_id):
-        try:  # we need to change this setting if you modify the number of env wrappers.
-            observation_space_dict = env.venv.envs[0].env.env.env.observation_collector.observation_space_dict
-        except:
-            observation_space_dict = env.venv.envs[0].env.env.observation_collector.observation_space_dict
-        observation_space_names = observation_space_dict.keys()
-        for key in observation_space_names:
-            feature_len = observation_space_dict[key].shape[0]
-            for i in range(feature_len):
-                feature_names.append(key + '_' + str(i))
+        # try:  # we need to change this setting if you modify the number of env wrappers.
+        #     observation_space_dict = env.venv.envs[0].env.env.env.observation_collector.observation_space_dict
+        # except:
+        #     observation_space_dict = env.venv.envs[0].env.env.observation_collector.observation_space_dict
+        # observation_space_names = observation_space_dict.keys()
+        # for key in observation_space_names:
+        #     feature_len = observation_space_dict[key].shape[0]
+        #     for i in range(feature_len):
+        #         feature_names.append(key + '_' + str(i))
+        feature_names = \
+            ['distance_goal_long_0',
+             'distance_goal_long_advance_0',
+             'distance_goal_lat_0',
+             'distance_goal_lat_advance_0',
+             'is_goal_reached_0',
+             'is_time_out_0',
+             'v_ego_0', 'v_ego_1',
+             'a_ego_0', 'a_ego_1',
+             'is_friction_violation_0',
+             'remaining_steps_0',
+             'lane_based_v_rel_0', 'lane_based_v_rel_1', 'lane_based_v_rel_2', 'lane_based_v_rel_3',
+             'lane_based_v_rel_4', 'lane_based_v_rel_5',
+             'lane_based_p_rel_0', 'lane_based_p_rel_1', 'lane_based_p_rel_2', 'lane_based_p_rel_3',
+             'lane_based_p_rel_4', 'lane_based_p_rel_5',
+             'vehicle_type_0', 'vehicle_type_1', 'vehicle_type_2', 'vehicle_type_3', 'vehicle_type_4', 'vehicle_type_5',
+             'is_collision_0',
+             'is_off_road_0',
+             'left_marker_distance_0',
+             'right_marker_distance_0',
+             'left_road_edge_distance_0',
+             'right_road_edge_distance_0',
+             'lat_offset_0',
+             'lane_curvature_0',
+             'route_reference_path_positions_0', 'route_reference_path_positions_1', 'route_reference_path_positions_2',
+             'route_reference_path_positions_3', 'route_reference_path_positions_4', 'route_reference_path_positions_5',
+             'route_reference_path_positions_6', 'route_reference_path_positions_7', 'route_reference_path_positions_8',
+             'route_reference_path_positions_9',
+             'route_reference_path_orientations_0', 'route_reference_path_orientations_1',
+             'route_reference_path_orientations_2', 'route_reference_path_orientations_3',
+             'route_reference_path_orientations_4',
+             'route_multilanelet_waypoints_positions_0', 'route_multilanelet_waypoints_positions_1',
+             'route_multilanelet_waypoints_positions_2', 'route_multilanelet_waypoints_positions_3',
+             'route_multilanelet_waypoints_positions_4', 'route_multilanelet_waypoints_positions_5',
+             'route_multilanelet_waypoints_positions_6', 'route_multilanelet_waypoints_positions_7',
+             'route_multilanelet_waypoints_positions_8', 'route_multilanelet_waypoints_positions_9',
+             'route_multilanelet_waypoints_positions_10', 'route_multilanelet_waypoints_positions_11',
+             'route_multilanelet_waypoints_orientations_0', 'route_multilanelet_waypoints_orientations_1',
+             'route_multilanelet_waypoints_orientations_2', 'route_multilanelet_waypoints_orientations_3',
+             'route_multilanelet_waypoints_orientations_4', 'route_multilanelet_waypoints_orientations_5',
+             'distance_togoal_via_referencepath_0', 'distance_togoal_via_referencepath_1',
+             'distance_togoal_via_referencepath_2']
+
     if if_mujoco(env_id):
         feature_names.append('(pls visit: {0})'.format(
             'https://github.com/openai/gym/blob/master/gym/envs/mujoco/assets/half_cheetah.xml'))

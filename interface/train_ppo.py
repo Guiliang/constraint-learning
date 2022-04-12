@@ -221,7 +221,9 @@ def train(args):
                 plot_curve(draw_keys=[record_info_name],
                            x_dict={record_info_name: plot_record_infos},
                            y_dict={record_info_name: plot_costs},
-                           plot_name=os.path.join(path, "{0}".format(record_info_name)),
+                           xlabel=record_info_name,
+                           ylabel='cost',
+                           save_name=os.path.join(path, "{0}".format(record_info_name)),
                            apply_scatter=True
                            )
             # env_tmp = train_env
