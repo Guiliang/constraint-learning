@@ -199,10 +199,8 @@ def load_ppo_config(config, train_env, seed, log_file):
             "reward_gae_lambda": config['PPO']['reward_gae_lambda'],
             "cost_gamma": config['PPO']['cost_gamma'],
             "cost_gae_lambda": config['PPO']['cost_gae_lambda'],
-            "clip_range_reward_vf": None if not config['PPO']['clip_range_reward_vf'] else config['PPO'][
-                'clip_range_reward_vf'],
-            "clip_range_cost_vf": None if not config['PPO']['clip_range_cost_vf'] else config['PPO'][
-                'clip_range_cost_vf'],
+            "clip_range_reward_vf":  config['PPO']['clip_range_reward_vf'],
+            "clip_range_cost_vf": config['PPO']['clip_range_cost_vf'],
             "reward_vf_coef": config['PPO']['reward_vf_coef'],
             "cost_vf_coef": config['PPO']['cost_vf_coef'],
             "penalty_initial_value": config['PPO']['penalty_initial_value'],

@@ -12,4 +12,4 @@ log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
 conda activate galen-cr37
 cd ./interface/
-python train_icrl.py ../config/train_VICRL_highD_velocity_constraint_no_is_p-1-1_dim-2.yaml -s 123 -n 5 -l "$log_dir"
+python train_icrl.py ../config/highD_velocity_constraint/train_VICRL_highD_velocity_constraint_no_is_p-1-1_dim-2.yaml -s 123 -n 5 -l "$log_dir"

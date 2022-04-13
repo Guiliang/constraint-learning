@@ -6,6 +6,7 @@ import gym
 import numpy as np
 import datetime
 import yaml
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_env import make_train_env, make_eval_env, sync_envs_normalization_ppo
@@ -14,18 +15,10 @@ from exploration.exploration import ExplorationRewardCallback
 from stable_baselines3 import PPO, PPOLagrangian
 from stable_baselines3.common import logger
 from common.cns_evaluation import evaluate_icrl_policy
-from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
+from stable_baselines3.common.vec_env import VecNormalize
 
-from utils.data_utils import colorize, ProgressBarManager, del_and_make, read_args, load_config, process_memory
-from utils.model_utils import get_net_arch, load_ppo_config
-from config.config_commonroad import cfg
-
-config = cfg()
-
-
-def null_cost(x, *args):
-    # Zero cost everywhere
-    return np.zeros(x.shape[:1])
+from utils.data_utils import ProgressBarManager, del_and_make, read_args, load_config, process_memory
+from utils.model_utils import load_ppo_config
 
 
 def train(args):

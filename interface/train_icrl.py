@@ -26,7 +26,7 @@ from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormali
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource
 from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names
-from utils.model_utils import get_net_arch
+from utils.model_utils import get_net_arch, load_ppo_config
 
 
 def null_cost(x, *args):
@@ -269,46 +269,8 @@ def train(config):
     #     ppo_batch_size = None  # config['PPO']['n_steps'] * num_threads
     # else:
     #     ppo_batch_size = config['PPO']['batch_size']
-
-    create_nominal_agent = lambda: PPOLagrangian(
-        policy=config['PPO']['policy_name'],
-        env=train_env,
-        learning_rate=config['PPO']['learning_rate'],
-        n_steps=config['PPO']['n_steps'],
-        batch_size=config['PPO']['batch_size'],
-        n_epochs=config['PPO']['n_epochs'],
-        reward_gamma=config['PPO']['reward_gamma'],
-        reward_gae_lambda=config['PPO']['reward_gae_lambda'],
-        cost_gamma=config['PPO']['cost_gamma'],
-        cost_gae_lambda=config['PPO']['cost_gae_lambda'],
-        clip_range=config['PPO']['clip_range'],
-        clip_range_reward_vf=None if not config['PPO']['clip_range_reward_vf'] else config['PPO'][
-            'clip_range_reward_vf'],
-        clip_range_cost_vf=None if not config['PPO']['clip_range_cost_vf'] else config['PPO']['clip_range_cost_vf'],
-        ent_coef=config['PPO']['ent_coef'],
-        reward_vf_coef=config['PPO']['reward_vf_coef'],
-        cost_vf_coef=config['PPO']['cost_vf_coef'],
-        max_grad_norm=config['PPO']['max_grad_norm'],
-        use_sde=config['PPO']['use_sde'],
-        sde_sample_freq=config['PPO']['sde_sample_freq'],
-        target_kl=config['PPO']['target_kl'],
-        penalty_initial_value=config['PPO']['penalty_initial_value'],
-        penalty_learning_rate=config['PPO']['penalty_learning_rate'],
-        budget=config['PPO']['budget'],
-        seed=seed,
-        device=config['device'],
-        verbose=config['verbose'],
-        pid_kwargs=dict(alpha=config['PPO']['budget'],
-                        penalty_init=config['PPO']['penalty_initial_value'],
-                        Kp=config['PPO']['proportional_control_coeff'],
-                        Ki=config['PPO']['integral_control_coeff'],
-                        Kd=config['PPO']['derivative_control_coeff'],
-                        pid_delay=config['PPO']['pid_delay'],
-                        delta_p_ema_alpha=config['PPO']['proportional_cost_ema_alpha'],
-                        delta_d_ema_alpha=config['PPO']['derivative_cost_ema_alpha'], ),
-        policy_kwargs=dict(net_arch=get_net_arch(config, log_file))
-    )
-
+    ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
+    create_nominal_agent = lambda: PPOLagrangian(**ppo_parameters)
     nominal_agent = create_nominal_agent()
 
     # Callbacks
