@@ -4,7 +4,7 @@
 #SBATCH -p gpu
 #SBATCH --cpus-per-task=12
 #SBATCH --time=48:00:00
-#SBATCH --mem=160GB
+#SBATCH --mem=200GB
 #SBATCH --job-name=ICRL
 task_name="train-highD-ICRL"
 launch_time=$(date +"%H:%M-%m-%d-%y")
