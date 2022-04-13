@@ -155,11 +155,13 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         if self.spec.id == 'HCWithPos-v0':
             if info['xpos'] <= -3:
                 lag_cost = 1
-        if self.spec.id == 'LGW-v0':
+        elif self.spec.id == 'LGW-v0':
+            # print(action)
+            info.update({'action': action})
             if action == 1:
                 lag_cost = 1
-        if self.group == 'PPO-Lag':
-            info.update({'lag_cost': lag_cost})
+        # if self.group == 'PPO-Lag':
+        info.update({'lag_cost': lag_cost})
         return observation, reward, done, info
 
 

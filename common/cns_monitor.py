@@ -109,9 +109,12 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             if key not in info:
                 raise ValueError(f"Expected to find {key} in info dict")
             self.track[key].append(info[key])
-        if if_mujoco(self.env.spec.id):
-            if info['xpos'] <= -3:
-                self.event_dict['is_constraint_break'] = 1
+        if if_mujoco(self.env.spec.id) and info['lag_cost']:
+            self.event_dict['is_constraint_break'] = 1
+            # if self.env.spec.id == 'HCWithPos-v0' and info['xpos'] <= -3:
+            #     self.event_dict['is_constraint_break'] = 1
+            # if self.env.spec.id == 'LGW-v0' and action == 1:
+            #     self.event_dict['is_constraint_break'] = 1
         elif if_commonroad(self.env.spec.id):
             self.ego_velocity_game.append(info["ego_velocity"])
             if info['is_collision']:

@@ -14,7 +14,7 @@ env:
   dont_normalize_obs: True
   dont_normalize_reward: True
   dont_normalize_cost: True  # cost
-  record_info_names: []
+  record_info_names: ['action']
 
 running:
   n_iters: 10
