@@ -30,13 +30,13 @@ def plot_results(mean_results_moving_average, std_results_moving_average, ylim, 
 
 
 def generate_plots():
-    file_type = "PPO_lag_LapGrid"
-    env_id = 'LGW-v0'  # 'commonroad-v1', 'HCWithPos-v0'
+    file_type = "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40"
+    env_id = 'commonroad-v1'  # 'commonroad-v1', 'HCWithPos-v0'
     modes = ['train', 'test']
-    max_episodes = 10000
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
         if env_id == 'commonroad-v1':
+            max_episodes = 10000
             max_reward = 50
             min_reward = -50
             plot_key = ['reward', 'is_collision', 'is_off_road',
@@ -125,7 +125,13 @@ def generate_plots():
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2-multi_env-Apr-11-2022-00:30-seed_123/',
                 ],
                 'ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2': [
-                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2-multi_env-Apr-11-2022-11:53-seed_123/',
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2-multi_env-Apr-13-2022-10:20-seed_123/'
+                ],
+                'ICRL_highD_velocity_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40': [
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-13-2022-12:42-seed_123/'
+                ],
+                'ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40': [
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-13-2022-12:41-seed_123/'
                 ],
                 'ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2': [
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2-multi_env-Apr-11-2022-04:12-seed_123/',
@@ -135,6 +141,7 @@ def generate_plots():
                 ],
             }
         elif env_id == 'HCWithPos-v0':
+            max_episodes = 10000
             max_reward = 10000
             min_reward = -10000
             plot_key = ['reward', 'constraint']
@@ -250,6 +257,7 @@ def generate_plots():
                 ],
             }
         elif env_id == 'LGW-v0':
+            max_episodes = 6000
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'constraint']
