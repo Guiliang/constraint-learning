@@ -30,8 +30,8 @@ def plot_results(mean_results_moving_average, std_results_moving_average, ylim, 
 
 
 def generate_plots():
-    file_type = "ICRL_Pos_with-buffer_with-action_crl-5e-3"
-    env_id = 'HCWithPos-v0'  # 'commonroad-v1', 'HCWithPos-v0'
+    file_type = "PPO_lag_LapGrid"
+    env_id = 'LGW-v0'  # 'commonroad-v1', 'HCWithPos-v0'
     modes = ['train', 'test']
     max_episodes = 10000
     for mode in modes:
@@ -249,6 +249,19 @@ def generate_plots():
                     '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_bs-64-1e3_no_is-multi_env-Apr-11-2022-11:21-seed_666/'
                 ],
             }
+        elif env_id == 'LGW-v0':
+            max_reward = float('inf')
+            min_reward = -float('inf')
+            plot_key = ['reward', 'constraint']
+            plot_y_lim_dict = {'reward': (0, 60),
+                               'constraint': (0, 1)}
+            log_path_dict = {
+                'PPO_lag_LapGrid': [
+                    '../save_model/PPO-Lag-LapGrid/train_ppo_lag_LGW-v0-multi_env-Apr-13-2022-13:24-seed_123/',
+                    '../save_model/PPO-Lag-LapGrid/train_ppo_lag_LGW-v0-multi_env-Apr-13-2022-13:37-seed_321/',
+                    '../save_model/PPO-Lag-LapGrid/train_ppo_lag_LGW-v0-multi_env-Apr-13-2022-13:50-seed_666/'
+                ],
+            }
         else:
             raise ValueError("Unknown env id {0}".format(env_id))
         all_results = []
@@ -269,10 +282,10 @@ def generate_plots():
 
         mean_results, std_results = mean_std_plot_results(all_results)
 
-        # if not os.path.exists('./plot_results/' + log_path.split('/')[3]):
-        #     os.mkdir('./plot_results/' + log_path.split('/')[3])
-        if not os.path.exists('./plot_results/' + file_type):
-            os.mkdir('./plot_results/' + file_type)
+        if not os.path.exists(os.path.join('./plot_results/', env_id)):
+            os.mkdir(os.path.join('./plot_results/', env_id))
+        if not os.path.exists(os.path.join('./plot_results/', env_id, file_type)):
+            os.mkdir(os.path.join('./plot_results/', env_id, file_type))
 
         for idx in range(len(plot_key)):
             mean_results_moving_average = compute_moving_average(result_all=mean_results[plot_key[idx]],
@@ -287,7 +300,7 @@ def generate_plots():
                          label=plot_key[idx],
                          method_name=file_type,
                          ylim=plot_y_lim_dict[plot_key[idx]],
-                         save_label=file_type + '/' + plot_key[idx] + '_' + mode)
+                         save_label=os.path.join(env_id, file_type, plot_key[idx] + '_' + mode))
 
 
 if __name__ == "__main__":

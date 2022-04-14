@@ -315,8 +315,10 @@ def train(config):
             forward_metrics = logger.Logger.CURRENT.name_to_value
             timesteps += nominal_agent.num_timesteps
 
-        mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
-                                             process_name='Training PPO model', log_file=log_file)
+        mem_prev, time_prev = print_resource(mem_prev=mem_prev,
+                                             time_prev=time_prev,
+                                             process_name='Training PPO model',
+                                             log_file=log_file)
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sampling_env)
         if sample_multi_env:
@@ -401,17 +403,21 @@ def train(config):
                 #            ylabel='cost',
                 #            apply_scatter=True,
                 #            )
+                if len(expert_acs.shape) == 1:
+                    empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
+                else:
+                    empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
                 plot_constraints(cost_function=constraint_net.cost_function,
                                  feature_range=config['env']["visualize_info_ranges"][record_info_idx],
                                  select_dim=config['env']["record_info_input_dims"][record_info_idx],
                                  obs_dim=constraint_net.obs_dim,
-                                 acs_dim=constraint_net.acs_dim,
+                                 acs_dim=1 if is_discrete else constraint_net.acs_dim,
                                  device=constraint_net.device,
                                  save_name=os.path.join(path, "{0}_visual.png".format(record_info_name)),
                                  feature_data=plot_record_infos,
                                  feature_cost=plot_costs,
                                  feature_name=record_info_name,
-                                 empirical_input_means=np.concatenate([expert_obs, expert_acs], axis=1).mean(0))
+                                 empirical_input_means=empirical_input_means)
 
         # (2) best
         if average_true_reward > best_true_reward:

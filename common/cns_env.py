@@ -10,16 +10,16 @@ from common.cns_monitor import CNSMonitor
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.preprocessing import is_image_space
 from stable_baselines3.common.vec_env import VecEnvWrapper, VecEnv, VecNormalize, VecCostWrapper
-from utils.env_utils import CommonRoadExternalSignalsWrapper, MujocoExternalSignalWrapper, if_mujoco, if_commonroad
+from utils.env_utils import CommonRoadExternalSignalsWrapper, MujocoExternalSignalWrapper, is_mujoco, is_commonroad
 
 
 def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0):
     def _init():
         # import env
-        if if_commonroad(env_id):
+        if is_commonroad(env_id):
             # import commonroad_environment.commonroad_rl.gym_commonroad
             from commonroad_environment.commonroad_rl import gym_commonroad
-        elif if_mujoco(env_id):
+        elif is_mujoco(env_id):
             # from mujuco_environment.custom_envs.envs import half_cheetah
             import mujuco_environment.custom_envs
         env_configs_copy = copy(env_configs)
@@ -32,12 +32,12 @@ def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0)
                        **env_configs_copy)
         env.seed(seed + rank)
         del env_configs_copy
-        if if_commonroad(env_id) and 'external_reward' in env_configs:
+        if is_commonroad(env_id) and 'external_reward' in env_configs:
             print("Using external signal for env: {0}.".format(env_id), flush=True)
             env = CommonRoadExternalSignalsWrapper(env=env,
                                                    group=group,
                                                    wrapper_config=env_configs['external_reward'])
-        elif if_mujoco(env_id):
+        elif is_mujoco(env_id):
             print("Using external signal for env: {0}.".format(env_id), flush=True)
             env = MujocoExternalSignalWrapper(env=env,
                                               group=group,

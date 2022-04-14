@@ -8,7 +8,7 @@ import gym
 import numpy as np
 
 import stable_baselines3.common.monitor
-from utils.env_utils import if_commonroad, if_mujoco
+from utils.env_utils import is_commonroad, is_mujoco
 
 
 class CNSMonitor(stable_baselines3.common.monitor.Monitor):
@@ -44,7 +44,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             self.file_handler = open(filename, "wt")
             self.file_handler.write("#%s\n" % json.dumps({"t_start": self.t_start, "env_id": env.spec and env.spec.id}))
 
-            if if_mujoco(self.env.spec.id):
+            if is_mujoco(self.env.spec.id):
                 self.logger = csv.DictWriter(self.file_handler,
                                              fieldnames=("reward", "len",
                                                          "time", "constraint")
@@ -53,7 +53,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 self.event_dict = {
                     'is_constraint_break': 0
                 }
-            elif if_commonroad(self.env.spec.id):
+            elif is_commonroad(self.env.spec.id):
                 self.logger = csv.DictWriter(self.file_handler,
                                              fieldnames=("reward", "len", "time", "avg_velocity",
                                                          "is_collision", "is_off_road",
@@ -87,7 +87,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 "wrap your env with Monitor(env, path, allow_early_resets=True)"
             )
         self.rewards = []
-        if if_commonroad(self.env.spec.id):
+        if is_commonroad(self.env.spec.id):
             self.ego_velocity_game = []
         self.needs_reset = False
         for key in self.reset_keywords:
@@ -109,13 +109,13 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             if key not in info:
                 raise ValueError(f"Expected to find {key} in info dict")
             self.track[key].append(info[key])
-        if if_mujoco(self.env.spec.id) and info['lag_cost']:
+        if is_mujoco(self.env.spec.id) and info['lag_cost']:
             self.event_dict['is_constraint_break'] = 1
             # if self.env.spec.id == 'HCWithPos-v0' and info['xpos'] <= -3:
             #     self.event_dict['is_constraint_break'] = 1
             # if self.env.spec.id == 'LGW-v0' and action == 1:
             #     self.event_dict['is_constraint_break'] = 1
-        elif if_commonroad(self.env.spec.id):
+        elif is_commonroad(self.env.spec.id):
             self.ego_velocity_game.append(info["ego_velocity"])
             if info['is_collision']:
                 self.event_dict['is_collision'] = 1
@@ -136,12 +136,12 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             self.needs_reset = True
             ep_rew = sum(self.rewards)
             ep_len = len(self.rewards)
-            if if_mujoco(self.env.spec.id):
+            if is_mujoco(self.env.spec.id):
                 ep_info = {"reward": round(ep_rew, 2),
                            "len": ep_len,
                            "time": round(time.time() - self.t_start, 2),
                            'constraint': self.event_dict['is_constraint_break']}
-            elif if_commonroad(self.env.spec.id):
+            elif is_commonroad(self.env.spec.id):
                 ego_velocity_array = np.asarray(self.ego_velocity_game)
                 ego_velocity_game = np.sqrt(np.square(ego_velocity_array[:, 0]) + np.square(ego_velocity_array[:, 1]))
                 # ego_velocity_tmp = np.sqrt(np.sum(np.square(ego_velocity_array), axis=1))
@@ -172,11 +172,11 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 self.logger.writerow(ep_info)
                 self.file_handler.flush()
             info["episode"] = ep_info
-            if if_mujoco(self.env.spec.id):
+            if is_mujoco(self.env.spec.id):
                 self.event_dict = {
                     'is_constraint_break': 0
                 }
-            elif if_commonroad(self.env.spec.id):
+            elif is_commonroad(self.env.spec.id):
                 self.event_dict = {
                     'is_collision': 0,
                     'is_off_road': 0,

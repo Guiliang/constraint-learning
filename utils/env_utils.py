@@ -230,14 +230,14 @@ def get_all_env_ids(num_threads, env):
     return max_benchmark_num, env_ids, benchmark_total_nums
 
 
-def if_mujoco(env_id):
+def is_mujoco(env_id):
     if 'HC' in env_id or 'LGW' in env_id:
         return True
     else:
         return False
 
 
-def if_commonroad(env_id):
+def is_commonroad(env_id):
     if 'commonroad' in env_id:
         return True
     else:
@@ -246,7 +246,7 @@ def if_commonroad(env_id):
 
 def get_obs_feature_names(env, env_id):
     feature_names = []
-    if if_commonroad(env_id):
+    if is_commonroad(env_id):
         # try:  # we need to change this setting if you modify the number of env wrappers.
         #     observation_space_dict = env.venv.envs[0].env.env.env.observation_collector.observation_space_dict
         # except:
@@ -299,7 +299,7 @@ def get_obs_feature_names(env, env_id):
              'distance_togoal_via_referencepath_0', 'distance_togoal_via_referencepath_1',
              'distance_togoal_via_referencepath_2']
 
-    if if_mujoco(env_id):
+    if is_mujoco(env_id):
         feature_names.append('(pls visit: {0})'.format(
             'https://github.com/openai/gym/blob/master/gym/envs/mujoco/assets/half_cheetah.xml'))
     return feature_names
