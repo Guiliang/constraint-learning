@@ -160,6 +160,9 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
             info.update({'action': action})
             if action == 1:
                 lag_cost = 1
+        elif self.spec.id == 'AntWall-v0':
+            if info['x_position'] <= -3:
+                lag_cost = 1
         # if self.group == 'PPO-Lag':
         info.update({'lag_cost': lag_cost})
         return observation, reward, done, info
@@ -231,7 +234,7 @@ def get_all_env_ids(num_threads, env):
 
 
 def is_mujoco(env_id):
-    if 'HC' in env_id or 'LGW' in env_id:
+    if 'HC' in env_id or 'LGW' in env_id or 'AntWall' in env_id:
         return True
     else:
         return False

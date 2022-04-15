@@ -30,8 +30,8 @@ def plot_results(mean_results_moving_average, std_results_moving_average, ylim, 
 
 
 def generate_plots():
-    file_type = "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40"
-    env_id = 'commonroad-v1'  # 'commonroad-v1', 'HCWithPos-v0'
+    file_type = "VICRL-LapGrid_with-action"
+    env_id = 'LGW-v0'  # 'commonroad-v1', 'HCWithPos-v0'
     modes = ['train', 'test']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -257,7 +257,7 @@ def generate_plots():
                 ],
             }
         elif env_id == 'LGW-v0':
-            max_episodes = 6000
+            max_episodes = 3000
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'constraint']
@@ -268,6 +268,16 @@ def generate_plots():
                     '../save_model/PPO-Lag-LapGrid/train_ppo_lag_LGW-v0-multi_env-Apr-13-2022-13:24-seed_123/',
                     '../save_model/PPO-Lag-LapGrid/train_ppo_lag_LGW-v0-multi_env-Apr-13-2022-13:37-seed_321/',
                     '../save_model/PPO-Lag-LapGrid/train_ppo_lag_LGW-v0-multi_env-Apr-13-2022-13:50-seed_666/'
+                ],
+                'ICRL_LapGrid_with-action': [
+                    '../save_model/ICRL-LapGrid/train_ICRL_LGW-v0_with-action-multi_env-Apr-14-2022-05:18-seed_123/',
+                    '../save_model/ICRL-LapGrid/train_ICRL_LGW-v0_with-action-multi_env-Apr-14-2022-05:32-seed_321/',
+                    '../save_model/ICRL-LapGrid/train_ICRL_LGW-v0_with-action-multi_env-Apr-14-2022-05:41-seed_666/'
+                ],
+                'VICRL-LapGrid_with-action': [
+                    '../save_model/VICRL-LapGrid/train_VICRL_LGW-v0_with-action-multi_env-Apr-14-2022-05:18-seed_123/',
+                    '../save_model/VICRL-LapGrid/train_VICRL_LGW-v0_with-action-multi_env-Apr-14-2022-05:31-seed_321/',
+                    '../save_model/VICRL-LapGrid/train_VICRL_LGW-v0_with-action-multi_env-Apr-14-2022-05:40-seed_666/'
                 ],
             }
         else:
