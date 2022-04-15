@@ -25,7 +25,7 @@ from stable_baselines3.common import logger
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource
-from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names
+from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names, is_mujoco
 from utils.model_utils import get_net_arch, load_ppo_config
 
 
@@ -176,7 +176,7 @@ def train(config):
         expert_rollouts = None
     (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
         expert_path=expert_path,
-        use_pickle5=True if 'HC' in config['env']['train_env_id'] else False,  # True for the Mujoco envs
+        use_pickle5=is_mujoco(config['env']['train_env_id']),  # True for the Mujoco envs
         num_rollouts=expert_rollouts,
         store_by_game=config['running']['store_by_game'],
         add_next_step=False,

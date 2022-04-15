@@ -620,7 +620,7 @@ class ConstraintNet(nn.Module):
     def forward(self, x: th.tensor) -> th.tensor:
         return self.network(x)
 
-    def cost_function(self, obs: np.ndarray, acs: np.ndarray, mode: str) -> np.ndarray:
+    def cost_function(self, obs: np.ndarray, acs: np.ndarray, mode: str = 'mean') -> np.ndarray:
         assert obs.shape[-1] == self.obs_dim, ""
         if not self.is_discrete:
             assert acs.shape[-1] == self.acs_dim, ""
@@ -910,7 +910,6 @@ class ConstraintNet(nn.Module):
         constraint_net.network.load_state_dict(state_dict["cn_network"])
 
         return constraint_net
-
 
 # =====================================================================
 # Plotting utilities
