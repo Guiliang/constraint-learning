@@ -21,7 +21,7 @@ def plot_constraints(cost_function, feature_range, select_dim, obs_dim, acs_dim,
     with torch.no_grad():
         obs = input_all[:, :obs_dim]
         acs = input_all[:, obs_dim:]
-        preds = cost_function(obs=obs, acs=acs)
+        preds = cost_function(obs=obs, acs=acs, mode='mean')  # use the mean of a distribution for visualization
     ax[0].plot(selected_feature_generation, preds, c='r', linewidth=5)
     if feature_data is not None:
         ax[0].scatter(feature_data, feature_cost)

@@ -102,6 +102,28 @@ class VariationalConstraintNet(ConstraintNet):
         pred = torch.distributions.Beta(alpha, beta).rsample()
         return pred.unsqueeze(-1)
 
+    def cost_function(self, obs: np.ndarray, acs: np.ndarray, mode: str = 'sample') -> np.ndarray:
+        assert obs.shape[-1] == self.obs_dim, ""
+        if not self.is_discrete:
+            assert acs.shape[-1] == self.acs_dim, ""
+
+        x = self.prepare_data(obs, acs)
+        with th.no_grad():
+            if mode == 'sample':
+                out = self.__call__(x)
+            elif mode == 'mean':
+                alpha_beta = self.network(x)
+                alpha = alpha_beta[:, 0]
+                beta = alpha_beta[:, 1]
+                out = alpha / (alpha + beta)  # the mean of beta distribution
+                out = out.unsqueeze(-1)
+            elif mode == 'risk':
+                pass
+            else:
+                raise ValueError("Unknown cost mode {0}".format(mode))
+        cost = 1 - out.detach().cpu().numpy()
+        return cost.squeeze(axis=-1)
+
     def kl_regularizer_loss(self, batch_size, alpha, beta):
         # prior = (torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior).to(self.device)
         prior = torch.tensor(np.asarray(batch_size * [self.dir_prior]), dtype=torch.float32).to(self.device)
