@@ -16,7 +16,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 cd ./interface
-python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action_nit-100.yaml -n 5 -s 123 -l "$log_dir"
 process_id=$!
 wait $process_id
 #python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 321 -l "$log_dir"
