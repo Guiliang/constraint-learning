@@ -19,17 +19,17 @@ cd ./interface
 python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 123 -l "$log_dir"
 process_id=$!
 wait $process_id
-python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 321 -l "$log_dir"
-process_id=$!
-wait $process_id
-python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 456 -l "$log_dir"
-process_id=$!
-wait $process_id
-python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 654 -l "$log_dir"
-process_id=$!
-wait $process_id
-python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 666 -l "$log_dir"
-process_id=$!
-wait $process_id
+#python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 321 -l "$log_dir"
+#process_id=$!
+#wait $process_id
+#python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 456 -l "$log_dir"
+#process_id=$!
+#wait $process_id
+#python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 654 -l "$log_dir"
+#process_id=$!
+#wait $process_id
+#python train_icrl.py ../config/mujoco_AntWall-v0/train_ICRL_lag_AntWall-v0_with-action.yaml -n 5 -s 666 -l "$log_dir"
+#process_id=$!
+#wait $process_id
 echo shell finish running
 
