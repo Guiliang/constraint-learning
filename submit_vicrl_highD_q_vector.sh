@@ -13,3 +13,4 @@ source /h/galen/miniconda3/bin/activate
 conda activate galen-cr37
 cd ./interface/
 python train_icrl.py ../config/highD_velocity_constraint/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e2_fs-5k_nee-10_lr-5e-4_cnl-64-64_vm-40.yaml -s 123 -n 5 -l "$log_dir"
+#python train_icrl.py ../config/highD_velocity_constraint/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e2_fs-5k_nee-10_lr-5e-4_vm-40 -s 123 -n 5 -l "$log_dir"
