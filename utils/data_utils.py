@@ -253,7 +253,7 @@ def load_expert_data(expert_path,
     file_names = sorted(os.listdir(expert_path))
     # file_names = [i for i in range(29)]
     # sample_names = random.sample(file_names, num_rollouts)
-    expert_mean_reward = []
+    expert_sum_rewards = []
     expert_obs = []
     expert_acs = []
     expert_rs = []
@@ -324,21 +324,21 @@ def load_expert_data(expert_path,
             expert_acs.append(np.asarray(expert_acs_game))
             expert_rs.append(np.asarray(expert_rs_game))
         if use_pickle5:  # for the mujoco data, rewards are the reward_sums
-            expert_mean_reward.append(data['rewards'])
+            expert_sum_rewards.append(data['rewards'])
         else:
-            expert_mean_reward.append(data['reward_sum'])
-    expert_mean_reward = np.mean(expert_mean_reward)
+            expert_sum_rewards.append(data['reward_sum'])
+    expert_avg_sum_reward = np.mean(expert_sum_rewards)
     expert_mean_length = num_samples / len(file_names)
-    print('Expert_mean_reward: {0} and Expert_mean_length: {1}.'.format(expert_mean_reward, expert_mean_length),
+    print('Expert_mean_reward: {0} and Expert_mean_length: {1}.'.format(expert_avg_sum_reward, expert_mean_length),
           file=log_file,
           flush=True)
     if store_by_game:
-        return (expert_obs, expert_acs, expert_rs), expert_mean_reward
+        return (expert_obs, expert_acs, expert_rs), expert_avg_sum_reward
     else:
         expert_obs = np.asarray(expert_obs)
         expert_acs = np.asarray(expert_acs)
         expert_rs = np.asarray(expert_rs)
-        return (expert_obs, expert_acs, expert_rs), expert_mean_reward
+        return (expert_obs, expert_acs, expert_rs), expert_sum_rewards
 
 
 def load_ppo_model(model_path: str, iter_msg: str, log_file):

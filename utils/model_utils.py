@@ -29,7 +29,7 @@ def get_net_arch(config, log_file):
     value network and cost value network.
     """
 
-    if config['PPO']['cost_vf_layers']:
+    if 'cost_vf_layers' in config['PPO'].keys():
         separate_layers = dict(pi=config['PPO']['policy_layers'],  # Policy Layers
                                vf=config['PPO']['reward_vf_layers'],  # Value Function Layers
                                cvf=config['PPO']['cost_vf_layers'])  # Cost Value Function Layers

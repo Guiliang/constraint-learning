@@ -20,9 +20,9 @@ running:
   n_iters: 30000
   n_eval_episodes: 100
   save_every: 10
-  expert_rollouts: 'all'
+  expert_rollouts: 100
   sample_rollouts: 100
-  sample_data_num: 500000
+  store_sample_rollouts: 5000
   expert_path: '../data/expert_data/no-over_speed_train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/'
   use_buffer: True
   store_by_game: False

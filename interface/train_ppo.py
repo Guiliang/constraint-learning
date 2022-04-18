@@ -208,17 +208,17 @@ def train(args):
             ppo_agent.save(os.path.join(path, "nominal_agent"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(path, "train_env_stats.pkl"))
-
-            for record_info_name in config['env']["record_info_names"]:
-                plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
-                plot_curve(draw_keys=[record_info_name],
-                           x_dict={record_info_name: plot_record_infos},
-                           y_dict={record_info_name: plot_costs},
-                           xlabel=record_info_name,
-                           ylabel='cost',
-                           save_name=os.path.join(path, "{0}".format(record_info_name)),
-                           apply_scatter=True
-                           )
+            if costs is not None:
+                for record_info_name in config['env']["record_info_names"]:
+                    plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
+                    plot_curve(draw_keys=[record_info_name],
+                               x_dict={record_info_name: plot_record_infos},
+                               y_dict={record_info_name: plot_costs},
+                               xlabel=record_info_name,
+                               ylabel='cost',
+                               save_name=os.path.join(path, "{0}".format(record_info_name)),
+                               apply_scatter=True
+                               )
             # env_tmp = train_env
             # while isinstance(env_tmp, VecEnvWrapper):
             #     env_tmp = env_tmp.venv

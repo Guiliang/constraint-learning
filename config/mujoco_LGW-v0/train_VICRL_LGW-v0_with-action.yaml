@@ -24,8 +24,7 @@ running:
   save_every: 5
   expert_rollouts: 20
   sample_rollouts: 20
-  sample_data_num: 20000
-  store_sample_num: 200000
+  store_sample_num: null
   expert_path: '../data/expert_data/no_constraint_train_ppo_lag_LGW-v0-multi_env-Apr-13-2022-13:24-seed_123/'
   use_buffer: False
   store_by_game: False

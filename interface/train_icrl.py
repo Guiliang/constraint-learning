@@ -73,7 +73,7 @@ def train(config):
     print(json.dumps(config, indent=4), file=log_file, flush=True)
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
     if config['running']['use_buffer']:
-        sample_data_queue = IRLDataQueue(max_length=config['running']['store_sample_num'], seed=seed)
+        sample_data_queue = IRLDataQueue(max_rollouts=config['running']['store_sample_rollouts'], seed=seed)
     save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}-seed_{6}/'.format(
         config['env']['save_dir'],
         config['task'],
@@ -176,7 +176,7 @@ def train(config):
         expert_rollouts = None
     (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
         expert_path=expert_path,
-        use_pickle5=is_mujoco(config['env']['train_env_id']),  # True for the Mujoco envs
+        # use_pickle5=is_mujoco(config['env']['train_env_id']),  # True for the Mujoco envs
         num_rollouts=expert_rollouts,
         store_by_game=config['running']['store_by_game'],
         add_next_step=False,
@@ -327,14 +327,14 @@ def train(config):
                 env=sampling_env,
                 rollouts=int(config['running']['sample_rollouts']),
                 num_threads=num_threads,
-                store_by_game=config['running']['store_by_game'],
+                store_by_game=config['running']['use_buffer'],
             )
         else:
             orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
                 agent=nominal_agent,
                 env=sampling_env,
                 rollouts=int(config['running']['sample_rollouts']),
-                store_by_game=config['running']['store_by_game'],
+                store_by_game=config['running']['use_buffer'],
             )
         if config['running']['use_buffer']:
             sample_data_queue.put(obs=orig_observations,
@@ -342,8 +342,7 @@ def train(config):
                                   rs=rewards
                                   )
             sample_obs, sample_acts, sample_rs = \
-                sample_data_queue.get(sample_num=config['running']['sample_data_num'],
-                                      store_by_game=config['running']['store_by_game'],)
+                sample_data_queue.get(sample_num=config['running']['sample_rollouts'],)
         else:
             sample_obs = orig_observations
             sample_acts = actions

@@ -6,7 +6,7 @@
 #SBATCH --time=24:00:00
 #SBATCH --mem=120GB
 #SBATCH --job-name=PPO
-task_name="train-mujoco-PPO"
+task_name="train-mujoco-PPO-2"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 export PATH=/pkgs/anaconda3/bin:$PATH
@@ -16,19 +16,19 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 cd ./interface/
-python train_ppo.py ../config/mujoco_AntWall/train_ppo_lag_AntWall-v0_nit-50.yaml -n 5 -s 123 -l "$log_dir"
+python train_ppo.py ../config/mujoco_AntWall/train_ppo_AntWall-v0_nit-50.yaml -n 5 -s 123 -l "$log_dir"
 process_id=$!
 wait $process_id
-python train_ppo.py ../config/mujoco_AntWall/train_ppo_lag_AntWall-v0_nit-50.yaml -n 5 -s 321 -l "$log_dir"
+python train_ppo.py ../config/mujoco_AntWall/train_ppo_AntWall-v0_nit-50.yaml -n 5 -s 321 -l "$log_dir"
 process_id=$!
 wait $process_id
-python train_ppo.py ../config/mujoco_AntWall/train_ppo_lag_AntWall-v0_nit-50.yaml -n 5 -s 456 -l "$log_dir"
+python train_ppo.py ../config/mujoco_AntWall/train_ppo_AntWall-v0_nit-50.yaml -n 5 -s 456 -l "$log_dir"
 process_id=$!
 wait $process_id
-python train_ppo.py ../config/mujoco_AntWall/train_ppo_lag_AntWall-v0_nit-50.yaml -n 5 -s 654 -l "$log_dir"
+python train_ppo.py ../config/mujoco_AntWall/train_ppo_AntWall-v0_nit-50.yaml -n 5 -s 654 -l "$log_dir"
 process_id=$!
 wait $process_id
-python train_ppo.py ../config/mujoco_AntWall/train_ppo_lag_AntWall-v0_nit-50.yaml -n 5 -s 666 -l "$log_dir"
+python train_ppo.py ../config/mujoco_AntWall/train_ppo_AntWall-v0_nit-50.yaml -n 5 -s 666 -l "$log_dir"
 process_id=$!
 wait $process_id
 echo shell finish running
