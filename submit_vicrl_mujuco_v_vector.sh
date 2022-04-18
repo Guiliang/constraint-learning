@@ -3,9 +3,9 @@
 #SBATCH --partition=t4v1,t4v2,p100
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --time=24:00:00
+#SBATCH --time=36:00:00
 #SBATCH --mem=24GB
-#SBATCH --job-name=Mojuco
+#SBATCH --job-name=VICRL
 task_name="train-Mojuco-VICRL_1"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
