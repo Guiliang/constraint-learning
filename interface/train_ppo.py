@@ -38,8 +38,8 @@ def train(args):
     debug_msg = ''
     if debug_mode:
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 100  # 2000
-        config['PPO']['n_steps'] = 200
+        # config['PPO']['forward_timesteps'] = 5000  # 2000
+        # config['PPO']['n_steps'] = 200
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
         debug_msg = 'debug-'
@@ -170,7 +170,7 @@ def train(args):
         # Update agent
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
             if config['group'] == 'PPO':
-                ppo_agent.learn(total_timesteps=config['PPO']['warmup_timesteps'],
+                ppo_agent.learn(total_timesteps=config['PPO']['forward_timesteps'],
                                 callback=callback)
             elif config['group'] == 'PPO-Lag':
                 ppo_agent.learn(

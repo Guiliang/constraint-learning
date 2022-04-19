@@ -7,10 +7,10 @@ env:
   train_env_id : 'AntWall-v0'
   eval_env_id: 'AntWall-v0'  # 'HCWithPosTest-v0'
   save_dir: '../save_model'
-  cost_info_str: 'cost'
-  use_cost: True
+  cost_info_str: null
+  use_cost: False
   reward_gamma: 0.99
-  cost_gamma: 0.99  # no cost
+  cost_gamma: null  # no cost
   dont_normalize_obs: False
   dont_normalize_reward: False
   dont_normalize_cost: False  # cost
