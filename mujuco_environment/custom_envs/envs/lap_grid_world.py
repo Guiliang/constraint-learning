@@ -7,7 +7,7 @@ from gym.envs.mujoco import mujoco_env
 from collections import namedtuple
 
 # from custom_envs.envs.utils import *
-from mujuco_environment.custom_envs.envs.utils import figure_to_array
+# from mujuco_environment.custom_envs.envs.utils import figure_to_array
 
 LG_LAP_SIZE = 11
 
@@ -132,6 +132,7 @@ class LapGridWorld(mujoco_env.MujocoEnv):
 
     def render(self, mode=None, camera_id=None):
         agent_position = self.current_pos
+        from mujuco_environment.custom_envs.envs.utils import figure_to_array
         return figure_to_array(self.plot(agent_position))
 
     def plot(self, agent_position, save_name=None):

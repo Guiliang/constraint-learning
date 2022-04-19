@@ -246,7 +246,7 @@ def train(config):
         'task': config['task'],
     }
 
-    if 'ICRL' == config['group']:
+    if 'ICRL' == config['group'] or 'Binary' == config['group']:
         constraint_net = ConstraintNet(**cn_parameters)
     elif 'VICRL' == config['group']:
         cn_parameters.update({'di_prior': config['CN']['di_prior'], })

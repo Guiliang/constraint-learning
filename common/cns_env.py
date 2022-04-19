@@ -83,10 +83,10 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     #     raise ValueError("Unknown env id {0}".format(env_id))
 
     if use_cost:
-        if group == 'ICRL' or group == 'VICRL' or group == 'SEVICRL':
-            env = vec_env.VecCostWrapper(env, kwargs['cost_info_str'])  # external cost
-        elif group == 'PPO-Lag':
+        if group == 'PPO-Lag':
             env = InternalVecCostWrapper(env, kwargs['cost_info_str'])  # internal cost
+        else:
+            env = vec_env.VecCostWrapper(env, kwargs['cost_info_str'])  # external cost
     # if normalize_reward and normalize_cost:
     #     assert (all(key in kwargs for key in ['cost_info_str', 'reward_gamma', 'cost_gamma']))
     #     env = vec_env.VecNormalizeWithCost(
@@ -98,7 +98,15 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     #         reward_gamma=kwargs['reward_gamma'],
     #         cost_gamma=kwargs['cost_gamma'])
     # else:
-    if 'ICRL' in group or "Lag" in group:  # ICRL or PPO-Lag
+    if group == 'PPO':
+        assert (all(key in kwargs for key in ['reward_gamma']))
+        env = vec_env.VecNormalize(
+            env,
+            training=True,
+            norm_obs=normalize_obs,
+            norm_reward=normalize_reward,
+            gamma=kwargs['reward_gamma'])
+    else:
         assert (all(key in kwargs for key in ['cost_info_str', 'reward_gamma', 'cost_gamma']))
         env = vec_env.VecNormalizeWithCost(
             env, training=True,
@@ -108,14 +116,6 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
             cost_info_str=kwargs['cost_info_str'],
             reward_gamma=kwargs['reward_gamma'],
             cost_gamma=kwargs['cost_gamma'])
-    else:  # PPO
-        assert (all(key in kwargs for key in ['reward_gamma']))
-        env = vec_env.VecNormalize(
-            env,
-            training=True,
-            norm_obs=normalize_obs,
-            norm_reward=normalize_reward,
-            gamma=kwargs['reward_gamma'])
     # else:
     #     if use_cost:
     #         env = vec_env.VecNormalizeWithCost(
@@ -159,16 +159,16 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
     # else:
     #     raise ValueError("Unknown env id {0}".format(env_id))
     if use_cost:
-        if group == 'ICRL' or group == 'VICRL' or group == 'SEVICRL':
-            env = vec_env.VecCostWrapper(env, cost_info_str)  # external cost
-        elif group == 'PPO-Lag':
-            env = InternalVecCostWrapper(env, cost_info_str)  # internal cost
+        if group == 'PPO-Lag':
+            env = InternalVecCostWrapper(env, cost_info_str)  # internal cost, use environment knowledge
+        else:
+            env = vec_env.VecCostWrapper(env, cost_info_str)  # external cost, must be learned
     # print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
-    if 'ICRL' in group or "Lag" in group:
+    if group == 'PPO':
+        env = vec_env.VecNormalize(env, training=False, norm_obs=normalize_obs, norm_reward=False)
+    else:
         env = vec_env.VecNormalizeWithCost(env, training=False, norm_obs=normalize_obs,
                                            norm_reward=False, norm_cost=False)
-    else:
-        env = vec_env.VecNormalize(env, training=False, norm_obs=normalize_obs, norm_reward=False)
 
     # if is_image_space(env.observation_space) and not isinstance(env, vec_env.VecTransposeImage):
     #     print("Wrapping eval env in a VecTransposeImage.")

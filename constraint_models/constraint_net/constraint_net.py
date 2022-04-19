@@ -693,8 +693,8 @@ class ConstraintNet(nn.Module):
 
                 # Calculate loss
                 if self.train_gail_lambda:
-                    nominal_loss = self.criterion(nominal_preds, th.zeros(*nominal_preds.size()))
-                    expert_loss = self.criterion(expert_preds, th.ones(*expert_preds.size()))
+                    nominal_loss = self.criterion(nominal_preds, th.zeros(*nominal_preds.size()).to(self.device))
+                    expert_loss = self.criterion(expert_preds, th.ones(*expert_preds.size()).to(self.device))
                     regularizer_loss = th.tensor(0)
                     loss = nominal_loss + expert_loss
                 else:

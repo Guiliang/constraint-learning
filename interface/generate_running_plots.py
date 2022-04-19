@@ -30,7 +30,7 @@ def plot_results(mean_results_moving_average, std_results_moving_average, ylim, 
 
 
 def generate_plots():
-    file_type = "VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9-1"
+    file_type = "ICRL_lag_AntWall_with-action_nit-50"
     env_id = 'AntWall-V0'  # 'commonroad-v1', 'HCWithPos-v0', 'LGW-v0', 'AntWall-V0'
     modes = ['train', 'test']
     for mode in modes:
@@ -337,6 +337,13 @@ def generate_plots():
                     '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-16:53-seed_456/',
                     '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-19:26-seed_654/',
                     '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-21:58-seed_666/',
+                ],
+                'ICRL_lag_AntWall_with-action_nit-50': [
+                    '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-00:12-seed_123/',
+                    '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-06:46-seed_321/',
+                    '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-12:27-seed_456/',
+                    '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-19:00-seed_654/',
+                    '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-17-2022-09:53-seed_123/',
                 ],
                 'VICRL_lag_AntWall-v0_with-action_no_is_nit-100': [
                     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-100-multi_env-Apr-16-2022-00:52-seed_123/'
