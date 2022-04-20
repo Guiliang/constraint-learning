@@ -30,8 +30,8 @@ def plot_results(mean_results_moving_average, std_results_moving_average, ylim, 
 
 
 def generate_plots():
-    file_type = "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40"
-    env_id = 'commonroad-v1'  # 'commonroad-v1', 'HCWithPos-v0', 'LGW-v0', 'AntWall-V0'
+    file_type = "Binary_HCWithPos-v0_with-action"
+    env_id = 'HCWithPos-v0'  # 'commonroad-v1', 'HCWithPos-v0', 'LGW-v0', 'AntWall-V0'
     modes = ['train', 'test']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -287,6 +287,13 @@ def generate_plots():
                     '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_bs-64-1e3_no_is-multi_env-Apr-11-2022-11:17-seed_123/',
                     '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_bs-64-1e3_no_is-multi_env-Apr-11-2022-11:18-seed_321/',
                     '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_bs-64-1e3_no_is-multi_env-Apr-11-2022-11:21-seed_666/'
+                ],
+                "Binary_HCWithPos-v0_with-action": [
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-01:41-seed_123/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-03:47-seed_321/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-05:53-seed_456/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-08:13-seed_654/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-10:11-seed_666/'
                 ],
             }
         elif env_id == 'LGW-v0':
