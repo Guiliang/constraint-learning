@@ -121,3 +121,4 @@ def pngs2gif(png_dir):
 
 # if __name__ == "__main__":
 #     pngs2gif('../evaluate_model/PPO-highD/train_ppo_highD-Jan-27-2022-05:04/img/DEU_LocationBLower-3_1_T-1')
+

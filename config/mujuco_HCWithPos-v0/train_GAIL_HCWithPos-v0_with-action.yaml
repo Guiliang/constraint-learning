@@ -40,15 +40,22 @@ PPO:
   policy_layers: [64, 64]
   reward_vf_layers: [64, 64]
   batch_size: 64
-  eval_every: 2048
+#  eval_every: 2048
   timesteps: 4000000
 
 DISC:
-  disc_acs_select_dim: null
   disc_batch_size: null
   disc_eps: 1e-05
   disc_layers: [ 30 ]
   disc_learning_rate: 0.003
   disc_normalize": false
-  disc_obs_select_dim": null
-  disc_plot_every": 1
+  disc_obs_select_dim: null
+  disc_acs_select_dim: null  # null means all
+  disc_plot_every: 1
+  clip_obs: 20
+  num_spurious_features: null
+  freeze_gail_weights: false
+  use_cost_net: false
+  learn_cost: true
+  gail_path: null
+  use_cost_shaping_callback: false

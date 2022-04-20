@@ -187,7 +187,7 @@ def load_ppo_config(config, train_env, seed, log_file):
         "device": config['device'],
         "policy_kwargs": dict(net_arch=get_net_arch(config, log_file))
     }
-    if config["group"] == "PPO":
+    if config["group"] == "PPO" or config["group"] == "GAIL":
         ppo_parameters.update({
             "gamma": config['PPO']['reward_gamma'],
             "gae_lambda": config['PPO']['reward_gae_lambda'],
@@ -215,5 +215,7 @@ def load_ppo_config(config, train_env, seed, log_file):
                                delta_p_ema_alpha=config['PPO']['proportional_cost_ema_alpha'],
                                delta_d_ema_alpha=config['PPO']['derivative_cost_ema_alpha'], ),
         })
+    else:
+        raise ValueError("Unknown Group {0}".format(config['group']))
 
     return ppo_parameters

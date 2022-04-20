@@ -5,6 +5,7 @@ import numpy as np
 import gym
 import stable_baselines3.common.vec_env as vec_env
 from stable_baselines3.common.callbacks import BaseCallback
+from utils.true_constraint_functions import get_true_cost_function
 
 
 def get_benchmark_ids(num_threads, benchmark_idx, benchmark_total_nums, env_ids):
@@ -150,7 +151,9 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         self.group = group
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
-        observation, reward, done, info = self.env.step(action)
+        obs, reward, done, info = self.env.step(action)
+        ture_cost_function = get_true_cost_function(env_id=self.spec.id)
+        lag_cost_ture = int(ture_cost_function(obs, action) == True)
         lag_cost = 0
         if self.spec.id == 'HCWithPos-v0':
             if info['xpos'] <= -3:
@@ -164,8 +167,10 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
             if info['x_position'] <= -3:
                 lag_cost = 1
         # if self.group == 'PPO-Lag':
+        # print(lag_cost)
+        assert lag_cost_ture == lag_cost
         info.update({'lag_cost': lag_cost})
-        return observation, reward, done, info
+        return obs, reward, done, info
 
 
 class CommonRoadExternalSignalsWrapper(gym.Wrapper):

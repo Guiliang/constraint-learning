@@ -113,7 +113,7 @@ class GailDiscriminator(nn.Module):
             nn.Sigmoid()
         )
         print(self.device)
-        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         self.network.to(self.device)
 
         # Build optimizer
@@ -153,9 +153,11 @@ class GailDiscriminator(nn.Module):
         x, orig_shape = self.prepare_nominal_data(obs, acs)
         reward = np.reshape(self.predict(x), orig_shape)
         if apply_log:
-            return np.squeeze(np.log(reward + self.eps))
+            # return np.squeeze(np.log(reward + self.eps))
+            return np.log(reward + self.eps)
         else:
-            return np.squeeze(reward)
+            # return np.squeeze(reward)
+            return reward
 
     def call_forward(self, x: np.ndarray):
         with th.no_grad():
@@ -195,8 +197,8 @@ class GailDiscriminator(nn.Module):
                 expert_preds = self.__call__(expert_batch)
 
                 # Calculate loss
-                nominal_loss = self.loss_fn(nominal_preds, th.zeros(*nominal_preds.size()))
-                expert_loss = self.loss_fn(expert_preds, th.ones(*expert_preds.size()))
+                nominal_loss = self.loss_fn(nominal_preds, th.zeros(*nominal_preds.size()).to(self.device))
+                expert_loss = self.loss_fn(expert_preds, th.ones(*expert_preds.size()).to(self.device))
                 loss = nominal_loss + expert_loss
 
                 # Update
@@ -554,6 +556,11 @@ class GailCallback(callbacks.BaseCallback):
         # Log cost on true cost function
         obs_dim = unnormalized_obs.shape[-1]
         acs_dim = acs.shape[-1]
+        # tmp1 = self.true_cost_function(
+        #     unnormalized_obs.reshape((-1, obs_dim)),
+        #     acs.reshape((-1, acs_dim))
+        # )
+        # tmp2 = unnormalized_obs.reshape((-1, obs_dim))
         true_average_cost = np.mean(self.true_cost_function(
             unnormalized_obs.reshape((-1, obs_dim)),
             acs.reshape((-1, acs_dim))

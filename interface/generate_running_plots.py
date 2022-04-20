@@ -30,13 +30,13 @@ def plot_results(mean_results_moving_average, std_results_moving_average, ylim, 
 
 
 def generate_plots():
-    file_type = "ICRL_lag_AntWall_with-action_nit-50"
-    env_id = 'AntWall-V0'  # 'commonroad-v1', 'HCWithPos-v0', 'LGW-v0', 'AntWall-V0'
+    file_type = "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40"
+    env_id = 'commonroad-v1'  # 'commonroad-v1', 'HCWithPos-v0', 'LGW-v0', 'AntWall-V0'
     modes = ['train', 'test']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
         if env_id == 'commonroad-v1':
-            max_episodes = 10000
+            max_episodes = 5000
             max_reward = 50
             min_reward = -50
             plot_key = ['reward', 'is_collision', 'is_off_road',

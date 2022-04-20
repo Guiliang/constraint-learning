@@ -4,11 +4,23 @@ import os
 import sys
 import time
 
+import gym
 import yaml
 
-from common.cns_env import make_train_env, make_eval_env
+from common.cns_env import make_train_env, make_eval_env, SaveEnvStatsCallback
+from common.cns_evaluation import CNSEvalCallback
+from common.cns_save_callbacks import CNSCheckpointCallback
+from common.cns_visualization import PlotCallback
+from constraint_models.constraint_net.gail_net import GailDiscriminator, GailCallback
+from exploration.exploration import CostShapingCallback
+from stable_baselines3 import PPO
 from stable_baselines3.common import logger
-from utils.data_utils import read_args, load_config, process_memory, load_expert_data
+from stable_baselines3.common.utils import get_schedule_fn
+from stable_baselines3.common.vec_env import VecNormalize
+from utils.data_utils import read_args, load_config, process_memory, load_expert_data, print_resource
+from utils.model_utils import load_ppo_config
+from utils.true_constraint_functions import get_true_cost_function
+import stable_baselines3.common.callbacks as callbacks
 
 
 def train(args):
@@ -28,6 +40,7 @@ def train(args):
     if debug_mode:
         # config['device'] = 'cpu'
         # config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
+        config['running']['save_every'] = 2048
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
@@ -60,37 +73,65 @@ def train(args):
     mem_prev = process_memory()
     time_prev = time.time()
     # Create the vectorized environments
-    train_env = make_train_env(env_id=config.train_env_id,
-                                     save_dir=config.save_dir,
-                                     use_cost_wrapper=False,
-                                     base_seed=config.seed,
-                                     num_threads=config.num_threads,
-                                     normalize_obs=not config.dont_normalize_obs,
-                                     normalize_reward=not config.dont_normalize_reward,
-                                     normalize_cost=False,
-                                     reward_gamma=config.reward_gamma
-                                     )
+    train_env = make_train_env(env_id=config['env']['train_env_id'],
+                               config_path=config['env']['config_path'],
+                               group=config['group'],
+                               save_dir=save_model_mother_dir,
+                               use_cost=False,
+                               base_seed=seed,
+                               num_threads=num_threads,
+                               normalize_obs=not config['env']['dont_normalize_obs'],
+                               normalize_reward=not config['env']['dont_normalize_reward'],
+                               normalize_cost=False,
+                               reward_gamma=config['env']['reward_gamma'],
+                               multi_env=multi_env,
+                               part_data=partial_data,
+                               log_file=log_file,
+                               )
+    save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
+    if not os.path.exists(save_test_mother_dir):
+        os.mkdir(save_test_mother_dir)
+    eval_env = make_eval_env(env_id=config['env']['eval_env_id'],
+                             config_path=config['env']['config_path'],
+                             save_dir=save_test_mother_dir,
+                             group=config['group'],
+                             num_threads=1,
+                             mode='test',
+                             use_cost=False,
+                             normalize_obs=not config['env']['dont_normalize_obs'],
+                             cost_info_str=config['env']['cost_info_str'],
+                             part_data=partial_data,
+                             multi_env=False,
+                             log_file=log_file)
 
-
-    eval_env = make_eval_env(env_id=config.eval_env_id,
-                                   use_cost_wrapper=False,
-                                   normalize_obs=not config.dont_normalize_obs)
+    mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                         process_name='Loading environment', log_file=log_file)
 
     # Set specs
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
     obs_dim = train_env.observation_space.shape[0]
     acs_dim = train_env.action_space.n if is_discrete else train_env.action_space.shape[0]
-
     action_low, action_high = None, None
     if isinstance(train_env.action_space, gym.spaces.Box):
         action_low, action_high = train_env.action_space.low, train_env.action_space.high
 
     # Load expert data
-    (expert_obs, expert_acs), expert_mean_reward = load_expert_data(expert_path=config.expert_path,
-                                                                    num_rollouts=config.expert_rollouts)
-    # expert_agent = PPOLagrangian.load(os.path.join(config.expert_path, "files/best_model.zip"))
+    expert_path = config['running']['expert_path']
+    if debug_mode:
+        expert_path = expert_path.replace('expert_data/', 'expert_data/debug_')
+    if 'expert_rollouts' in config['running'].keys():
+        expert_rollouts = config['running']['expert_rollouts']
+    else:
+        expert_rollouts = None
+    (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
+        expert_path=expert_path,
+        # use_pickle5=is_mujoco(config['env']['train_env_id']),  # True for the Mujoco envs
+        num_rollouts=expert_rollouts,
+        store_by_game=False,
+        add_next_step=False,
+        log_file=log_file
+    )
 
-    # Logger
     # Logger
     if log_file is None:
         gail_logger = logger.HumanOutputFormat(sys.stdout)
@@ -98,7 +139,7 @@ def train(args):
         gail_logger = logger.HumanOutputFormat(log_file)
 
     # Do we want to restore gail from a saved model?
-    if config.gail_path is not None:
+    if config['DISC']['gail_path'] is not None:
         discriminator = GailDiscriminator.load(
             config.gail_path,
             obs_dim=obs_dim,
@@ -106,119 +147,92 @@ def train(args):
             is_discrete=is_discrete,
             expert_obs=expert_obs,
             expert_acs=expert_acs,
-            obs_select_dim=config.disc_obs_select_dim,
-            acs_select_dim=config.disc_acs_select_dim,
+            obs_select_dim=config['DISC']['disc_obs_select_dim'],
+            acs_select_dim=config['DISC']['disc_acs_select_dim'],
             clip_obs=None,
             obs_mean=None,
             obs_var=None,
             action_low=action_low,
             action_high=action_high,
-            device=config.device,
+            device=config['device'],
         )
-        discriminator.freeze_weights = config.freeze_gail_weights
+        discriminator.freeze_weights = config['DISC']['freeze_gail_weights']
     else:  # Initialize GAIL and setup its callback
         discriminator = GailDiscriminator(
             obs_dim,
             acs_dim,
-            config.disc_layers,
-            config.disc_batch_size,
-            get_schedule_fn(config.disc_learning_rate),
+            config['DISC']['disc_layers'],
+            config['DISC']['disc_batch_size'],
+            get_schedule_fn(config['DISC']['disc_learning_rate']),
             expert_obs,
             expert_acs,
             is_discrete,
-            config.disc_obs_select_dim,
-            config.disc_acs_select_dim,
-            clip_obs=config.clip_obs,
+            obs_select_dim=config['DISC']['disc_obs_select_dim'],
+            acs_select_dim=config['DISC']['disc_acs_select_dim'],
+            clip_obs=config['DISC']['clip_obs'],
             initial_obs_mean=None,
             initial_obs_var=None,
             action_low=action_low,
             action_high=action_high,
-            num_spurious_features=config.num_spurious_features,
-            freeze_weights=config.freeze_gail_weights,
-            eps=config.disc_eps,
-            device=config.device
+            num_spurious_features=config['DISC']['num_spurious_features'],
+            freeze_weights=config['DISC']['freeze_gail_weights'],
+            eps=float(config['DISC']['disc_eps']),
+            device=config['device']
         )
 
-    true_cost_function = get_true_cost_function(config.eval_env_id)
+    true_cost_function = get_true_cost_function(config['env']['eval_env_id'])
 
-    if config.use_cost_shaping_callback:
+    if config['DISC']['use_cost_shaping_callback']:
         costShapingCallback = CostShapingCallback(true_cost_function,
                                                   obs_dim,
                                                   acs_dim,
-                                                  use_nn_for_shaping=config.use_cost_net)
+                                                  use_nn_for_shaping=config['DISC']['use_cost_net'])
         all_callbacks = [costShapingCallback]
     else:
-        plot_disc = True if config.train_env_id in ['DD2B-v0', 'DD3B-v0', 'CDD2B-v0', 'CDD3B-v0'] else False
-        if config.disc_obs_select_dim is not None and config.disc_acs_select_dim is not None:
-            plot_disc = True if (len(config.disc_obs_select_dim) < 3
-                                 and config.disc_acs_select_dim[0] == -1) else False
-        gail_update = GailCallback(discriminator, config.learn_cost, true_cost_function,
-                                   config.save_dir, plot_disc=plot_disc)
+        gail_update = GailCallback(discriminator=discriminator,
+                                   learn_cost=config['DISC']['learn_cost'],
+                                   true_cost_function=true_cost_function,
+                                   save_dir=save_model_mother_dir,
+                                   plot_disc=False)
         all_callbacks = [gail_update]
 
     # Define and train model
-    model = PPO(
-        policy=config.policy_name,
-        env=train_env,
-        learning_rate=config.learning_rate,
-        n_steps=config.n_steps,
-        batch_size=config.batch_size,
-        n_epochs=config.n_epochs,
-        gamma=config.reward_gamma,
-        gae_lambda=config.reward_gae_lambda,
-        clip_range=config.clip_range,
-        clip_range_vf=config.clip_range_reward_vf,
-        ent_coef=config.ent_coef,
-        vf_coef=config.reward_vf_coef,
-        max_grad_norm=config.max_grad_norm,
-        use_sde=config.use_sde,
-        sde_sample_freq=config.sde_sample_freq,
-        target_kl=config.target_kl,
-        seed=config.seed,
-        device=config.device,
-        verbose=config.verbose,
-        policy_kwargs=dict(net_arch=utils.get_net_arch(config))
-    )
+    ppo_parameters = load_ppo_config(config=config, train_env=train_env, seed=seed, log_file=log_file)
+    model = PPO(**ppo_parameters)
 
     # All callbacks
-    save_periodically = callbacks.CheckpointCallback(
-        config.save_every, os.path.join(config.save_dir, "models"),
-        verbose=0
-    )
-    save_env_stats = utils.SaveEnvStatsCallback(train_env, config.save_dir)
-    save_best = callbacks.EvalCallback(
-        eval_env, eval_freq=config.eval_every, deterministic=False,
-        best_model_save_path=config.save_dir, verbose=0,
-        callback_on_new_best=save_env_stats
-    )
-    plot_func = get_plot_func(config.train_env_id)
-    plot_callback = utils.PlotCallback(
-        plot_func, train_env_id=config.train_env_id,
-        plot_freq=config.plot_every, plot_save_dir=config.save_dir
-    )
-
+    save_periodically = CNSCheckpointCallback(
+        env=train_env,
+        save_freq=config['running']['save_every'],
+        save_path=save_model_mother_dir,
+        verbose=0)
+    save_env_stats = SaveEnvStatsCallback(train_env, save_model_mother_dir)
+    save_best = CNSEvalCallback(
+        eval_env=eval_env,
+        eval_freq=config['running']['save_every'],
+        deterministic=False,
+        best_model_save_path=save_model_mother_dir,
+        verbose=0,
+        callback_on_new_best=save_env_stats)
+    # plot_callback = PlotCallback(
+    #     train_env_id=config['env']['train_env_id'],
+    #     plot_freq=config['running']['save_every'],
+    #     plot_save_dir=save_model_mother_dir
+    # )
     # Organize all callbacks in list
-    all_callbacks.extend([save_periodically, save_best, plot_callback])
+    all_callbacks.extend([save_periodically, save_best])
 
     # Train
-    model.learn(total_timesteps=int(config.timesteps),
+    model.learn(total_timesteps=int(config['PPO']['timesteps']),
                 callback=all_callbacks)
 
     # Save final discriminator
-    if not config.freeze_gail_weights:
-        discriminator.save(os.path.join(config.save_dir, "gail_discriminator.pt"))
+    if not config['DISC']['freeze_gail_weights']:
+        discriminator.save(os.path.join(save_model_mother_dir, "gail_discriminator.pt"))
 
     # Save normalization stats
     if isinstance(train_env, VecNormalize):
-        train_env.save(os.path.join(config.save_dir, "train_env_stats.pkl"))
-
-    # Make video of final model
-    if not config.wandb_sweep:
-        sync_envs_normalization(train_env, eval_env)
-        utils.eval_and_make_video(eval_env, model, config.save_dir, "final_policy")
-
-    if config.sync_wandb:
-        utils.sync_wandb(config.save_dir, 120)
+        train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))
 
 
 if __name__ == "__main__":

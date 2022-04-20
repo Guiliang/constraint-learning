@@ -7,6 +7,7 @@ import gym
 import yaml
 import stable_baselines3.common.vec_env as vec_env
 from common.cns_monitor import CNSMonitor
+from stable_baselines3.common import callbacks
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.preprocessing import is_image_space
 from stable_baselines3.common.vec_env import VecEnvWrapper, VecEnv, VecNormalize, VecCostWrapper
@@ -98,7 +99,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     #         reward_gamma=kwargs['reward_gamma'],
     #         cost_gamma=kwargs['cost_gamma'])
     # else:
-    if group == 'PPO':
+    if group == 'PPO' or group == 'GAIL':
         assert (all(key in kwargs for key in ['reward_gamma']))
         env = vec_env.VecNormalize(
             env,
@@ -164,7 +165,7 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
         else:
             env = vec_env.VecCostWrapper(env, cost_info_str)  # external cost, must be learned
     # print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
-    if group == 'PPO':
+    if group == 'PPO' or group == 'GAIL':
         env = vec_env.VecNormalize(env, training=False, norm_obs=normalize_obs, norm_reward=False)
     else:
         env = vec_env.VecNormalizeWithCost(env, training=False, norm_obs=normalize_obs,
@@ -291,3 +292,18 @@ def sync_envs_normalization_ppo(env: "GymEnv", eval_env: "GymEnv") -> None:
         if isinstance(env_tmp, VecCostWrapper) or isinstance(env_tmp, InternalVecCostWrapper):
             env_tmp = env_tmp.venv
         eval_env_tmp = eval_env_tmp.venv
+
+
+class SaveEnvStatsCallback(callbacks.BaseCallback):
+    def __init__(
+            self,
+            env,
+            save_path
+    ):
+        super(SaveEnvStatsCallback, self).__init__()
+        self.env = env
+        self.save_path = save_path
+
+    def _on_step(self):
+        if isinstance(self.env, vec_env.VecNormalize):
+            self.env.save(os.path.join(self.save_path, "train_env_stats.pkl"))
