@@ -24,7 +24,7 @@ running:
   save_every: 5
   expert_rollouts: 10
   sample_rollouts: 10
-  store_sample_num: 500
+  store_sample_rollouts: 500
   expert_path: '../data/expert_data/HCWithPos-New/'
   use_buffer: True
   store_by_game: False

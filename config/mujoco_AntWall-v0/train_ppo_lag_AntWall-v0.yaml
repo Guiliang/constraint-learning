@@ -22,7 +22,7 @@ running:
   save_every: 10
   expert_rollouts: 50
   sample_rollouts: 50
-  store_sample_num: null
+  store_sample_rollouts: null
   expert_path: '../data/expert_data/AntWall/'
   use_buffer: False
   store_by_game: False
