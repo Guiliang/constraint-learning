@@ -902,10 +902,23 @@ class ConstraintNet(nn.Module):
         # Create network
         hidden_sizes = state_dict["hidden_sizes"]
         constraint_net = cls(
-            obs_dim, acs_dim, hidden_sizes, None, None, None, None,
-            is_discrete, None, obs_select_dim, acs_select_dim, None,
-            None, None, clip_obs, obs_mean, obs_var, action_low, action_high,
-            None, None, device
+            obs_dim=obs_dim,
+            acs_dim=acs_dim,
+            hidden_sizes=hidden_sizes,
+            batch_size=None,
+            lr_schedule=None,
+            expert_obs=None,
+            expert_acs=None,
+            optimizer_class=None,
+            is_discrete=is_discrete,
+            obs_select_dim=obs_select_dim,
+            acs_select_dim=acs_select_dim,
+            clip_obs=clip_obs,
+            initial_obs_mean=obs_mean,
+            initial_obs_var=obs_var,
+            action_low=action_low,
+            action_high=action_high,
+            device=device
         )
         constraint_net.network.load_state_dict(state_dict["cn_network"])
 

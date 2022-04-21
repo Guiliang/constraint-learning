@@ -132,7 +132,7 @@ def compute_moving_average(result_all, average_num=100):
     return np.asarray(result_moving_average_all)
 
 
-def read_running_logs(monitor_path_all, read_keys,max_reward,min_reward):
+def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward):
     read_running_logs = {}
 
     # handle the keys
@@ -172,7 +172,8 @@ def read_running_logs(monitor_path_all, read_keys,max_reward,min_reward):
             else:
                 try:
                     results = [item.replace("\n", "") for item in log_items]
-                    if float(results[key_indices['reward']]) > max_reward or float(results[key_indices['reward']]) < min_reward:
+                    if float(results[key_indices['reward']]) > max_reward or float(
+                            results[key_indices['reward']]) < min_reward:
                         # continue
                         results = old_results
                 except:
@@ -187,33 +188,43 @@ def read_running_logs(monitor_path_all, read_keys,max_reward,min_reward):
     return read_running_logs
 
 
-def save_game_record(info, file, cost=None):
-    is_collision = info["is_collision"]
-    is_time_out = info["is_time_out"]
-    is_off_road = info["is_off_road"]
-    ego_velocity_x_y = info["ego_velocity"]
-    # ego_velocity = np.sqrt(np.sum(np.square(ego_velocity_x_y)))
-    ego_velocity_x = ego_velocity_x_y[0]
-    ego_velocity_y = ego_velocity_x_y[1]
-    is_goal_reached = info["is_goal_reached"]
-    current_step = info["current_episode_time_step"]
-    if cost is None:
-        file.write("{0}, {1:.3f}, {2:.3f}, {3:.0f}, {4:.0f}, {5:.0f}, {6:.0f}\n".format(current_step,
-                                                                                        ego_velocity_x,
-                                                                                        ego_velocity_y,
-                                                                                        is_collision,
-                                                                                        is_off_road,
-                                                                                        is_goal_reached,
-                                                                                        is_time_out))
+def save_game_record(info, file, type, cost=None):
+    if type == 'commonroad':
+        is_collision = info["is_collision"]
+        is_time_out = info["is_time_out"]
+        is_off_road = info["is_off_road"]
+        ego_velocity_x_y = info["ego_velocity"]
+        # ego_velocity = np.sqrt(np.sum(np.square(ego_velocity_x_y)))
+        ego_velocity_x = ego_velocity_x_y[0]
+        ego_velocity_y = ego_velocity_x_y[1]
+        is_goal_reached = info["is_goal_reached"]
+        current_step = info["current_episode_time_step"]
+        if cost is None:
+            file.write("{0}, {1:.3f}, {2:.3f}, {3:.0f}, {4:.0f}, {5:.0f}, {6:.0f}\n".format(current_step,
+                                                                                            ego_velocity_x,
+                                                                                            ego_velocity_y,
+                                                                                            is_collision,
+                                                                                            is_off_road,
+                                                                                            is_goal_reached,
+                                                                                            is_time_out))
+        else:
+            file.write("{0}, {1:.3f}, {2:.3f}, {3:.3f}, {4:.0f}, {5:.0f}, {6:.0f}, {7:.0f}\n".format(current_step,
+                                                                                                     ego_velocity_x,
+                                                                                                     ego_velocity_y,
+                                                                                                     cost,
+                                                                                                     is_collision,
+                                                                                                     is_off_road,
+                                                                                                     is_goal_reached,
+                                                                                                     is_time_out))
+    elif type == 'mujoco':
+        x_pos = info['xpos']
+        cost = cost
+        is_break_constraint = info['lag_cost']
+        file.write("{0}, {1:.3f}, {2:.3f}\n".format(x_pos,
+                                                    cost,
+                                                    is_break_constraint))
     else:
-        file.write("{0}, {1:.3f}, {2:.3f}, {3:.3f}, {4:.0f}, {5:.0f}, {6:.0f}, {7:.0f}\n".format(current_step,
-                                                                                                 ego_velocity_x,
-                                                                                                 ego_velocity_y,
-                                                                                                 cost,
-                                                                                                 is_collision,
-                                                                                                 is_off_road,
-                                                                                                 is_goal_reached,
-                                                                                                 is_time_out))
+        raise ValueError("Unknown type {0}".format(type))
 
 
 def process_memory():
@@ -349,6 +360,7 @@ def load_ppo_model(model_path: str, iter_msg: str, log_file):
     print('Loading model from {0}'.format(model_path), flush=True, file=log_file)
     model = PPO.load(model_path)
     return model
+
 
 def get_input_features_dim(feature_select_names, all_feature_names):
     if feature_select_names is None:

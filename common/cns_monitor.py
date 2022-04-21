@@ -46,7 +46,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
 
             if is_mujoco(self.env.spec.id):
                 self.logger = csv.DictWriter(self.file_handler,
-                                             fieldnames=("reward", "len",
+                                             fieldnames=("reward", "reward_nc", "len",
                                                          "time", "constraint")
                                                         + reset_keywords + info_keywords + track_keywords,
                                              delimiter=",")
@@ -55,7 +55,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 }
             elif is_commonroad(self.env.spec.id):
                 self.logger = csv.DictWriter(self.file_handler,
-                                             fieldnames=("reward", "len", "time", "avg_velocity",
+                                             fieldnames=("reward", "reward_nc", "len", "time", "avg_velocity",
                                                          "is_collision", "is_off_road",
                                                          "is_goal_reached", "is_time_out", "is_over_speed", "env")
                                                         + reset_keywords + info_keywords + track_keywords,
@@ -87,6 +87,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 "wrap your env with Monitor(env, path, allow_early_resets=True)"
             )
         self.rewards = []
+        self.rewards_not_constraint = []  # the rewards before breaking the constraint
         if is_commonroad(self.env.spec.id):
             self.ego_velocity_game = []
         self.needs_reset = False
@@ -104,13 +105,9 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
         if self.needs_reset:
             raise RuntimeError("Tried to step environment that needs reset")
         observation, reward, done, info = self.env.step(action)
-        self.rewards.append(reward)
-        for key in self.track_keywords:
-            if key not in info:
-                raise ValueError(f"Expected to find {key} in info dict")
-            self.track[key].append(info[key])
-        if is_mujoco(self.env.spec.id) and info['lag_cost']:
-            self.event_dict['is_constraint_break'] = 1
+        if is_mujoco(self.env.spec.id):
+            if info['lag_cost']:
+                self.event_dict['is_constraint_break'] = 1
             # if self.env.spec.id == 'HCWithPos-v0' and info['xpos'] <= -3:
             #     self.event_dict['is_constraint_break'] = 1
             # if self.env.spec.id == 'LGW-v0' and action == 1:
@@ -127,6 +124,23 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 self.event_dict['is_time_out'] = 1
             if 'is_over_speed' in info.keys() and info['is_over_speed']:
                 self.event_dict['is_over_speed'] = 1
+        else:
+            raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
+        self.rewards.append(reward)
+        if is_mujoco(self.env.spec.id):
+            if not self.event_dict['is_constraint_break']:
+                self.rewards_not_constraint.append(reward)
+        elif is_commonroad(self.env.spec.id):
+            if not self.event_dict['is_collision'] and not self.event_dict['is_off_road'] \
+                    and not self.event_dict['is_time_out'] and not self.event_dict['is_over_speed']:
+                self.rewards_not_constraint.append(reward)
+        else:
+            raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
+
+        for key in self.track_keywords:
+            if key not in info:
+                raise ValueError(f"Expected to find {key} in info dict")
+            self.track[key].append(info[key])
 
         if self.info_saving_file is not None:
             info_saving_msg = ",".join([info[item] for item in self.info_saving_items])
@@ -136,8 +150,11 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             self.needs_reset = True
             ep_rew = sum(self.rewards)
             ep_len = len(self.rewards)
+            ep_rew_nc = sum(self.rewards_not_constraint)
+            assert len(self.rewards_not_constraint) <= len(self.rewards)
             if is_mujoco(self.env.spec.id):
                 ep_info = {"reward": round(ep_rew, 2),
+                           "reward_nc": round(ep_rew_nc, 2),
                            "len": ep_len,
                            "time": round(time.time() - self.t_start, 2),
                            'constraint': self.event_dict['is_constraint_break']}
@@ -147,6 +164,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 # ego_velocity_tmp = np.sqrt(np.sum(np.square(ego_velocity_array), axis=1))
                 ep_info = {
                     "reward": round(ep_rew, 2),
+                    "reward_nc": round(ep_rew_nc, 2),
                     "len": ep_len,
                     "time": round(time.time() - self.t_start, 2),
                     "avg_velocity": round(float(ego_velocity_game.mean()), 2),

@@ -30,7 +30,7 @@ def plot_results(mean_results_moving_average, std_results_moving_average, ylim, 
 
 
 def generate_plots():
-    file_type = "Binary_HCWithPos-v0_with-action"
+    file_type = "GAIL_HCWithPos-v0_with-action"
     env_id = 'HCWithPos-v0'  # 'commonroad-v1', 'HCWithPos-v0', 'LGW-v0', 'AntWall-V0'
     modes = ['train', 'test']
     for mode in modes:
@@ -289,11 +289,18 @@ def generate_plots():
                     '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_bs-64-1e3_no_is-multi_env-Apr-11-2022-11:21-seed_666/'
                 ],
                 "Binary_HCWithPos-v0_with-action": [
-                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-01:41-seed_123/',
-                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-03:47-seed_321/',
-                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-05:53-seed_456/',
-                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-08:13-seed_654/',
-                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-10:11-seed_666/'
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-11:19-seed_123/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-12:56-seed_321/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-14:35-seed_456/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-14:35-seed_456/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-17:55-seed_666/'
+                ],
+                "GAIL_HCWithPos-v0_with-action": [
+                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-07:27-seed_123/',
+                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-08:16-seed_321/',
+                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-09:03-seed_456/',
+                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-09:50-seed_654/',
+                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-10:37-seed_666/'
                 ],
             }
         elif env_id == 'LGW-v0':
