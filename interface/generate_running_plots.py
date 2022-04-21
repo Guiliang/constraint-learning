@@ -4,19 +4,15 @@ from utils.data_utils import read_running_logs, compute_moving_average, mean_std
 from utils.plot_utils import plot_curve, plot_shadow_curve
 
 
-def plot_results(mean_results_moving_average, std_results_moving_average, ylim, label, method_name, save_label):
-    plot_x_dict = {method_name: [i for i in range(len(mean_results_moving_average))]}
-    plot_mean_y_dict = {method_name: mean_results_moving_average}
-    plot_std_y_dict = {method_name: std_results_moving_average}
-    # plot_curve(draw_keys=[method_name],
-    #            x_dict=plot_x_dict,
-    #            y_dict=plot_y_dict,
-    #            ylim=ylim,
-    #            xlabel='Episode',
-    #            ylabel=label,
-    #            title='{0}'.format(save_label),
-    #            plot_name='./plot_results/{0}'.format(save_label))
-    plot_shadow_curve(draw_keys=[method_name],
+def plot_results(mean_results_moving_avg_dict, std_results_moving_avg_dict, ylim, label, method_names, save_label):
+    plot_mean_y_dict = {}
+    plot_std_y_dict = {}
+    plot_x_dict = {}
+    for method_name in method_names:
+        plot_x_dict.update({method_name: [i for i in range(len(mean_results_moving_avg_dict[method_name]))]})
+        plot_mean_y_dict.update({method_name: mean_results_moving_avg_dict[method_name]})
+        plot_std_y_dict.update({method_name: std_results_moving_avg_dict[method_name]})
+    plot_shadow_curve(draw_keys=method_names,
                       x_dict_mean=plot_x_dict,
                       y_dict_mean=plot_mean_y_dict,
                       x_dict_std=plot_x_dict,
@@ -30,7 +26,7 @@ def plot_results(mean_results_moving_average, std_results_moving_average, ylim, 
 
 
 def generate_plots():
-    file_type = "GAIL_HCWithPos-v0_with-action"
+    method_names = ["GAIL_HCWithPos-v0_with-action", "Binary_HCWithPos-v0_with-action"]
     env_id = 'HCWithPos-v0'  # 'commonroad-v1', 'HCWithPos-v0', 'LGW-v0', 'AntWall-V0'
     modes = ['train', 'test']
     for mode in modes:
@@ -400,43 +396,63 @@ def generate_plots():
             }
         else:
             raise ValueError("Unknown env id {0}".format(env_id))
-        all_results = []
-        for log_path in log_path_dict[file_type]:
-            monitor_path_all = []
-            if mode == 'train':
-                run_files = os.listdir(log_path)
-                for file in run_files:
-                    if 'monitor' in file:
-                        monitor_path_all.append(log_path + file)
-            else:
-                monitor_path_all.append(log_path + 'test/test.monitor.csv')
 
-            # rewards, is_collision, is_off_road, is_goal_reached, is_time_out = read_running_logs(log_path=log_path)
-            results = read_running_logs(monitor_path_all=monitor_path_all, read_keys=plot_key,
-                                        max_reward=max_reward, min_reward=min_reward)
-            all_results.append(results)
+        all_mean_dict = {}
+        all_std_dict = {}
+        for method_name in method_names:
+            all_results = []
+            for log_path in log_path_dict[method_name]:
+                monitor_path_all = []
+                if mode == 'train':
+                    run_files = os.listdir(log_path)
+                    for file in run_files:
+                        if 'monitor' in file:
+                            monitor_path_all.append(log_path + file)
+                else:
+                    monitor_path_all.append(log_path + 'test/test.monitor.csv')
 
-        mean_results, std_results = mean_std_plot_results(all_results)
+                # rewards, is_collision, is_off_road, is_goal_reached, is_time_out = read_running_logs(log_path=log_path)
+                results = read_running_logs(monitor_path_all=monitor_path_all, read_keys=plot_key,
+                                            max_reward=max_reward, min_reward=min_reward)
+                all_results.append(results)
 
-        if not os.path.exists(os.path.join('./plot_results/', env_id)):
-            os.mkdir(os.path.join('./plot_results/', env_id))
-        if not os.path.exists(os.path.join('./plot_results/', env_id, file_type)):
-            os.mkdir(os.path.join('./plot_results/', env_id, file_type))
+            mean_dict, std_dict = mean_std_plot_results(all_results)
+            all_mean_dict.update({method_name: {}})
+            all_std_dict.update({method_name: {}})
 
+            if not os.path.exists(os.path.join('./plot_results/', env_id)):
+                os.mkdir(os.path.join('./plot_results/', env_id))
+            if not os.path.exists(os.path.join('./plot_results/', env_id, method_name)):
+                os.mkdir(os.path.join('./plot_results/', env_id, method_name))
+
+            for idx in range(len(plot_key)):
+                mean_results_moving_average = compute_moving_average(result_all=mean_dict[plot_key[idx]],
+                                                                     average_num=100)
+                all_mean_dict[method_name].update({plot_key[idx]: mean_results_moving_average})
+                std_results_moving_average = compute_moving_average(result_all=std_dict[plot_key[idx]],
+                                                                    average_num=100)
+                all_std_dict[method_name].update({plot_key[idx]: std_results_moving_average})
+                if max_episodes:
+                    mean_results_moving_average = mean_results_moving_average[:max_episodes]
+                    std_results_moving_average = std_results_moving_average[:max_episodes]
+                plot_results(mean_results_moving_avg_dict={method_name: mean_results_moving_average},
+                             std_results_moving_avg_dict={method_name: std_results_moving_average},
+                             label=plot_key[idx],
+                             method_names=[method_name],
+                             ylim=plot_y_lim_dict[plot_key[idx]],
+                             save_label=os.path.join(env_id, method_name, plot_key[idx] + '_' + mode))
         for idx in range(len(plot_key)):
-            mean_results_moving_average = compute_moving_average(result_all=mean_results[plot_key[idx]],
-                                                                 average_num=100)
-            std_results_moving_average = compute_moving_average(result_all=std_results[plot_key[idx]],
-                                                                average_num=100)
-            if max_episodes:
-                mean_results_moving_average = mean_results_moving_average[:max_episodes]
-                std_results_moving_average = std_results_moving_average[:max_episodes]
-            plot_results(mean_results_moving_average,
-                         std_results_moving_average,
+            mean_results_moving_avg_dict = {}
+            std_results_moving_avg_dict = {}
+            for method_name in method_names:
+                mean_results_moving_avg_dict.update({method_name: all_mean_dict[method_name][plot_key[idx]]})
+                std_results_moving_avg_dict.update({method_name: all_std_dict[method_name][plot_key[idx]]})
+            plot_results(mean_results_moving_avg_dict=mean_results_moving_avg_dict,
+                         std_results_moving_avg_dict=std_results_moving_avg_dict,
                          label=plot_key[idx],
-                         method_name=file_type,
+                         method_names=method_names,
                          ylim=plot_y_lim_dict[plot_key[idx]],
-                         save_label=os.path.join(env_id, file_type, plot_key[idx] + '_' + mode))
+                         save_label=os.path.join(env_id, plot_key[idx] + '_' + mode))
 
 
 if __name__ == "__main__":

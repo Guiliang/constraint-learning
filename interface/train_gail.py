@@ -42,6 +42,7 @@ def train(args):
         # config['device'] = 'cpu'
         # config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['running']['save_every'] = 2048
+        config['running']['eval_every'] = 1024
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
@@ -210,7 +211,7 @@ def train(args):
     save_env_stats = SaveEnvStatsCallback(train_env, save_model_mother_dir)
     save_best = CNSEvalCallback(
         eval_env=eval_env,
-        eval_freq=config['running']['save_every'],
+        eval_freq=config['running']['eval_every'],
         deterministic=False,
         best_model_save_path=save_model_mother_dir,
         verbose=0,
