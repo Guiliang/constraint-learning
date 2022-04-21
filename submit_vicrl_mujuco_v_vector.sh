@@ -16,19 +16,19 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 cd ./interface
-python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 123 -l "$log_dir"
 process_id=$!
 wait $process_id
-python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 321 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 321 -l "$log_dir"
 process_id=$!
 wait $process_id
-python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 456 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 456 -l "$log_dir"
 process_id=$!
 wait $process_id
-python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 654 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 654 -l "$log_dir"
 process_id=$!
 wait $process_id
-python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 666 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 666 -l "$log_dir"
 process_id=$!
 wait $process_id
 echo shell finish running
