@@ -4,7 +4,11 @@ from utils.data_utils import read_running_logs, compute_moving_average, mean_std
 from utils.plot_utils import plot_curve, plot_shadow_curve
 
 
-def plot_results(mean_results_moving_avg_dict, std_results_moving_avg_dict, ylim, label, method_names, save_label):
+def plot_results(mean_results_moving_avg_dict,
+                 std_results_moving_avg_dict,
+                 ylim, label, method_names,
+                 save_label,
+                 legend_dict=None, legend_size=None):
     plot_mean_y_dict = {}
     plot_std_y_dict = {}
     plot_x_dict = {}
@@ -21,12 +25,20 @@ def plot_results(mean_results_moving_avg_dict, std_results_moving_avg_dict, ylim
                       title='{0}'.format(save_label),
                       xlabel='Episode',
                       ylabel=label,
-                      legend_size=None,
+                      legend_dict=legend_dict,
+                      legend_size=legend_size,
                       plot_name='./plot_results/{0}'.format(save_label), )
 
 
 def generate_plots():
-    method_names = ["GAIL_HCWithPos-v0_with-action", "Binary_HCWithPos-v0_with-action"]
+    method_names_labels_dict = {
+        # "PPO_Pos": 'PPO',
+        "PPO_lag_Pos": 'PPO_lag',
+        "GAIL_HCWithPos-v0_with-action": 'GAIL',
+        "Binary_HCWithPos-v0_with-action": 'BInary',
+        "ICRL_Pos_with-action_crl-5e-3": 'ICRL',
+        "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
+        }
     env_id = 'HCWithPos-v0'  # 'commonroad-v1', 'HCWithPos-v0', 'LGW-v0', 'AntWall-V0'
     modes = ['train', 'test']
     for mode in modes:
@@ -170,11 +182,12 @@ def generate_plots():
                 ],
             }
         elif env_id == 'HCWithPos-v0':
-            max_episodes = 10000
+            max_episodes = 6000
             max_reward = 10000
             min_reward = -10000
-            plot_key = ['reward', 'constraint']
+            plot_key = ['reward', 'reward_nc', 'constraint']
             plot_y_lim_dict = {'reward': (0, 6000),
+                               'reward_nc': (0, 6000),
                                'constraint': (0, 1)}
             log_path_dict = {
                 "PPO_Pos": [
@@ -183,9 +196,14 @@ def generate_plots():
                     '../save_model/PPO-HC/train_ppo_HCWithPos-v0-multi_env-Apr-07-2022-05:13-seed_666/'
                 ],
                 "PPO_lag_Pos": [
-                    '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-11-2022-07:16-seed_123/',
-                    '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-11-2022-07:18-seed_321/',
-                    '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-11-2022-07:18-seed_666/'
+                    # '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-11-2022-07:16-seed_123/',
+                    # '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-11-2022-07:18-seed_321/',
+                    # '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-11-2022-07:18-seed_666/'
+                    '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-21-2022-04:49-seed_123/',
+                    '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-21-2022-06:27-seed_321/',
+                    '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-21-2022-08:05-seed_456/',
+                    '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-21-2022-09:42-seed_654/',
+                    '../save_model/PPO-Lag-HC/train_ppo_lag_HCWithPos-v0-multi_env-Apr-21-2022-11:18-seed_666/'
                 ],
                 "ICRL_Pos": [
                     # '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0-Apr-06-2022-10:56-seed_123/',
@@ -224,9 +242,14 @@ def generate_plots():
                     '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action-Apr-06-2022-10:59-seed_666/',
                 ],
                 "ICRL_Pos_with-action_crl-5e-3": [
-                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-12-2022-12:43-seed_123/',
-                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-12-2022-12:49-seed_321/',
-                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-12-2022-13:02-seed_666/',
+                    # '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-12-2022-12:43-seed_123/',
+                    # '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-12-2022-12:49-seed_321/',
+                    # '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-12-2022-13:02-seed_666/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-21-2022-04:49-seed_123/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-21-2022-06:42-seed_321/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-21-2022-08:34-seed_456/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-21-2022-10:26-seed_654/',
+                    '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_crl-5e-3-multi_env-Apr-21-2022-12:18-seed_666/'
                 ],
                 "VICRL_Pos": [
                     '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_p-1-1_no_is-multi_env-Apr-07-2022-10:23-seed_123/',
@@ -275,9 +298,14 @@ def generate_plots():
                     '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_no_is-multi_env-Apr-11-2022-11:21-seed_666/'
                 ],
                 "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": [
-                    '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-11-2022-11:22-seed_123/',
-                    '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-11-2022-11:18-seed_321/',
-                    '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-11-2022-11:21-seed_666/'
+                    '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-21-2022-05:00-seed_123/',
+                    '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-21-2022-06:42-seed_321/',
+                    '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-21-2022-08:25-seed_456/',
+                    '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-21-2022-10:08-seed_654/',
+                    '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-21-2022-11:52-seed_666/',
+                    # '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-11-2022-11:22-seed_123/',
+                    # '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-11-2022-11:18-seed_321/',
+                    # '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is-multi_env-Apr-11-2022-11:21-seed_666/',
                 ],
                 "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3_bs-64-1e3": [
                     '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_bs-64-1e3_no_is-multi_env-Apr-11-2022-11:17-seed_123/',
@@ -285,18 +313,28 @@ def generate_plots():
                     '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_bs-64-1e3_no_is-multi_env-Apr-11-2022-11:21-seed_666/'
                 ],
                 "Binary_HCWithPos-v0_with-action": [
-                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-11:19-seed_123/',
-                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-12:56-seed_321/',
-                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-14:35-seed_456/',
-                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-14:35-seed_456/',
-                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-17:55-seed_666/'
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-21-2022-04:49-seed_123/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-21-2022-06:27-seed_321/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-21-2022-08:05-seed_456/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-21-2022-09:43-seed_654/',
+                    '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-21-2022-11:20-seed_666/',
+                    # '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-11:19-seed_123/',
+                    # '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-12:56-seed_321/',
+                    # '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-14:35-seed_456/',
+                    # '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-14:35-seed_456/',
+                    # '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-17:55-seed_666/',
                 ],
                 "GAIL_HCWithPos-v0_with-action": [
-                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-07:27-seed_123/',
-                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-08:16-seed_321/',
-                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-09:03-seed_456/',
-                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-09:50-seed_654/',
-                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-10:37-seed_666/'
+                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-21-2022-05:55-seed_123/',
+                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-21-2022-07:32-seed_321/',
+                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-21-2022-09:18-seed_456/',
+                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-21-2022-11:02-seed_654/',
+                    '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-21-2022-12:45-seed_666/'
+                    # '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-07:27-seed_123/',
+                    # '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-08:16-seed_321/',
+                    # '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-09:03-seed_456/',
+                    # '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-09:50-seed_654/',
+                    # '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-10:37-seed_666/'
                 ],
             }
         elif env_id == 'LGW-v0':
@@ -399,7 +437,7 @@ def generate_plots():
 
         all_mean_dict = {}
         all_std_dict = {}
-        for method_name in method_names:
+        for method_name in method_names_labels_dict.keys():
             all_results = []
             for log_path in log_path_dict[method_name]:
                 monitor_path_all = []
@@ -428,13 +466,13 @@ def generate_plots():
             for idx in range(len(plot_key)):
                 mean_results_moving_average = compute_moving_average(result_all=mean_dict[plot_key[idx]],
                                                                      average_num=100)
-                all_mean_dict[method_name].update({plot_key[idx]: mean_results_moving_average})
                 std_results_moving_average = compute_moving_average(result_all=std_dict[plot_key[idx]],
                                                                     average_num=100)
-                all_std_dict[method_name].update({plot_key[idx]: std_results_moving_average})
                 if max_episodes:
                     mean_results_moving_average = mean_results_moving_average[:max_episodes]
                     std_results_moving_average = std_results_moving_average[:max_episodes]
+                all_mean_dict[method_name].update({plot_key[idx]: mean_results_moving_average})
+                all_std_dict[method_name].update({plot_key[idx]: std_results_moving_average})
                 plot_results(mean_results_moving_avg_dict={method_name: mean_results_moving_average},
                              std_results_moving_avg_dict={method_name: std_results_moving_average},
                              label=plot_key[idx],
@@ -444,15 +482,17 @@ def generate_plots():
         for idx in range(len(plot_key)):
             mean_results_moving_avg_dict = {}
             std_results_moving_avg_dict = {}
-            for method_name in method_names:
+            for method_name in method_names_labels_dict.keys():
                 mean_results_moving_avg_dict.update({method_name: all_mean_dict[method_name][plot_key[idx]]})
                 std_results_moving_avg_dict.update({method_name: all_std_dict[method_name][plot_key[idx]]})
             plot_results(mean_results_moving_avg_dict=mean_results_moving_avg_dict,
                          std_results_moving_avg_dict=std_results_moving_avg_dict,
                          label=plot_key[idx],
-                         method_names=method_names,
+                         method_names=list(method_names_labels_dict.keys()),
                          ylim=plot_y_lim_dict[plot_key[idx]],
-                         save_label=os.path.join(env_id, plot_key[idx] + '_' + mode))
+                         save_label=os.path.join(env_id, plot_key[idx] + '_' + mode),
+                         legend_size=15,
+                         legend_dict=method_names_labels_dict)
 
 
 if __name__ == "__main__":

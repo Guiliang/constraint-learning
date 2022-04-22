@@ -4,11 +4,14 @@ import os
 import pickle
 import time
 from typing import Union, Callable
+
+import gym
 import numpy as np
 import yaml
 from gym import Env
 
 from common.cns_env import make_env
+from common.cns_visualization import plot_constraints
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3 import PPOLagrangian
 from constraint_models.constraint_net.constraint_net import ConstraintNet
@@ -159,9 +162,6 @@ def evaluate():
     num_threads = 1
     if_testing_env = False
 
-    # load_model_name = 'train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-00:37'
-    # load_model_name = 'train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-08:02'
-    # load_model_name = 'train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-08:02'
     load_model_name = 'train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-01:41-seed_123'
     task_name = 'Binary-HC'
     iteration_msg = 'best'
@@ -200,6 +200,7 @@ def evaluate():
                               env_kwargs=env_configs,
                               testing_env=if_testing_env,
                               part_data=debug_mode)
+    is_discrete = isinstance(env.action_space, gym.spaces.Discrete)
 
     # mean, var = None, None
     # if config['CN']['cn_normalize']:
@@ -214,11 +215,18 @@ def evaluate():
         max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)
         # num_collisions, num_off_road, num_goal_reaching, num_timeout = 0, 0, 0, 0
     elif is_mujoco(env_id=config['env']['train_env_id']):
-        max_benchmark_num = 50 / num_threads  # max number of expert traj is 50 for mujoco
+        max_benchmark_num = 10 / num_threads  # max number of expert traj is 50 for mujoco
     else:
         raise ValueError("Unknown env_id: {0}".format(config['env']['train_env_id']))
 
+    record_infos = {}
+    costs = []
+    for record_info_name in config['env']["record_info_names"]:
+        record_infos.update({record_info_name: []})
+
     success = 0
+    eval_obs_all = []
+    eval_acs_all = []
     while benchmark_idx < max_benchmark_num:
         if is_commonroad(env_id=config['env']['train_env_id']):
             benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
@@ -245,11 +253,23 @@ def evaluate():
                 'current_step, x_position, cost, is_break_constraint\n')
         reward_sum = 0
         running_step = 0
-        done, state = False, None
+        done, state, info = False, None, None
+        print("Running on the file {0}".format(benchmark_ids[0]), file=log_file, flush=True)
         while not done:
             action, state = ppo_model.predict(obs, state=state, deterministic=False)
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
             cost = cns_model.cost_function(obs=original_obs, acs=action)
+            if info is not None:
+                for record_info_name in config['env']["record_info_names"]:
+                    if record_info_name == 'ego_velocity_x':
+                        record_infos[record_info_name].append(np.mean(info[0]['ego_velocity'][0]))
+                    elif record_info_name == 'ego_velocity_y':
+                        record_infos[record_info_name].append(np.mean(info[0]['ego_velocity'][1]))
+                    else:
+                        record_infos[record_info_name].append(np.mean(info[0][record_info_name]))
+                costs.append(cost)
+                eval_obs_all.append(obs[0])
+                eval_acs_all.append(action[0])
             new_obs, reward, done, info = env.step(action)
             reward_sum += reward
             save_game_record(info=info[0],
@@ -293,7 +313,27 @@ def evaluate():
             success += 1
         benchmark_idx += 1
 
+    eval_obs_all = np.asarray(eval_obs_all)
+    eval_acs_all = np.asarray(eval_acs_all)
     print('total', total_scenarios, 'success', success, file=log_file, flush=True)
+    for record_info_idx in range(len(config['env']["record_info_names"])):
+        record_info_name = config['env']["record_info_names"][record_info_idx]
+        plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
+        if len(eval_acs_all.shape) == 1:
+            empirical_input_means = np.concatenate([eval_obs_all, np.expand_dims(eval_acs_all, 1)], axis=1).mean(0)
+        else:
+            empirical_input_means = np.concatenate([eval_obs_all, eval_acs_all], axis=1).mean(0)
+        plot_constraints(cost_function=cns_model.cost_function,
+                         feature_range=config['env']["visualize_info_ranges"][record_info_idx],
+                         select_dim=config['env']["record_info_input_dims"][record_info_idx],
+                         obs_dim=cns_model.obs_dim,
+                         acs_dim=1 if is_discrete else cns_model.acs_dim,
+                         device=cns_model.device,
+                         save_name=os.path.join(evaluation_path, "{0}_visual.png".format(record_info_name)),
+                         feature_data=plot_record_infos,
+                         feature_cost=plot_costs,
+                         feature_name=record_info_name,
+                         empirical_input_means=empirical_input_means)
 
 
 if __name__ == '__main__':
