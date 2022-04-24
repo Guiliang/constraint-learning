@@ -154,22 +154,22 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         obs, reward, done, info = self.env.step(action)
         ture_cost_function = get_true_cost_function(env_id=self.spec.id)
         lag_cost_ture = int(ture_cost_function(obs, action) == True)
-        lag_cost = 0
-        if self.spec.id == 'HCWithPos-v0':
-            if info['xpos'] <= -3:
-                lag_cost = 1
-        elif self.spec.id == 'LGW-v0':
-            # print(action)
-            info.update({'action': action})
-            if action == 1:
-                lag_cost = 1
-        elif self.spec.id == 'AntWall-v0':
-            if info['x_position'] <= -3:
-                lag_cost = 1
-        # if self.group == 'PPO-Lag':
-        # print(lag_cost)
-        assert lag_cost_ture == lag_cost
-        info.update({'lag_cost': lag_cost})
+        # lag_cost = 0
+        # if self.spec.id == 'HCWithPos-v0':
+        #     if info['xpos'] <= -3:
+        #         lag_cost = 1
+        # elif self.spec.id == 'LGW-v0':
+        #     # print(action)
+        #     info.update({'action': action})
+        #     if action == 1:
+        #         lag_cost = 1
+        # elif self.spec.id == 'AntWall-v0':
+        #     if info['x_position'] <= -3:
+        #         lag_cost = 1
+        # # if self.group == 'PPO-Lag':
+        # # print(lag_cost)
+        # assert lag_cost_ture == lag_cost
+        info.update({'lag_cost': lag_cost_ture})
         return obs, reward, done, info
 
 
