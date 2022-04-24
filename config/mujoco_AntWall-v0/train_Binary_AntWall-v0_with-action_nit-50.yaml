@@ -1,4 +1,4 @@
-task: 'Binary-HC'
+task: 'Binary-AntWall'
 group: 'Binary'
 device: 'cuda'
 verbose: 2

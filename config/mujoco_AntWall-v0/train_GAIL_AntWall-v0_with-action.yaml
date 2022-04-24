@@ -1,4 +1,4 @@
-task: 'GAIL-HC'
+task: 'GAIL-AntWall'
 group: 'GAIL'
 device: 'cuda'
 verbose: 2
