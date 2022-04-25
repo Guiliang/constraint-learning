@@ -8,7 +8,7 @@ env:
   eval_env_id: 'AntWall-v0'  # 'HCWithPosTest-v0'
   save_dir: '../save_model'
   cost_info_str: 'cost'
-  use_cost: True
+  use_cost: False
   reward_gamma: 0.99
   dont_normalize_obs: False
   dont_normalize_reward: False

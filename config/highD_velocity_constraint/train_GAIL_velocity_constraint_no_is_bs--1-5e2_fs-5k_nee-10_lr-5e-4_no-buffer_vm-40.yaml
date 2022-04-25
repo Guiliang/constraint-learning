@@ -1,11 +1,11 @@
-task: 'GAIL-HC'
+task: 'GAIL-highD'
 group: 'GAIL'
 device: 'cuda'
 verbose: 2
 env:
-  config_path: null
-  train_env_id : 'HCWithPos-v0'
-  eval_env_id: 'HCWithPos-v0'  # 'HCWithPosTest-v0'
+  config_path: "../config/highD_velocity_constraint/highD_environment_configurations_no_velocity_penalty-40.yaml"
+  train_env_id : 'commonroad-v1'
+  eval_env_id: 'commonroad-v1'
   save_dir: '../save_model'
   cost_info_str: 'cost'
   use_cost: False
@@ -13,15 +13,15 @@ env:
   cost_gamma: 0.99  # no cost
   dont_normalize_obs: False
   dont_normalize_reward: False
-  record_info_names: ["xpos"]
-  record_info_input_dims: [0] # the dim of record info in inputs=(obs, action)
-  visualize_info_ranges: [[-30, 30]]
+  record_info_names: ["ego_velocity_x", "ego_velocity_y"]
+  record_info_input_dims: [ 6, 7 ] # the dim of record info in inputs=(obs, action)
+  visualize_info_ranges: [ [ 20, 50 ], [ -10, 10 ] ]
 
 running:
   save_every: 500000
   eval_every: 200000
   expert_rollouts: 10
-  expert_path: '../data/expert_data/HCWithPos-New/'
+  expert_path: '../data/expert_data/no-over_speed_train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:29-seed_123/'
 
 PPO:
   policy_name: 'MlpPolicy'
@@ -42,7 +42,7 @@ PPO:
   reward_vf_layers: [64, 64]
   batch_size: 64
 #  eval_every: 2048
-  timesteps: 8000000
+  timesteps: 2500000
 
 DISC:
   disc_batch_size: null
