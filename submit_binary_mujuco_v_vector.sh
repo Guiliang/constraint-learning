@@ -1,7 +1,5 @@
 #!/bin/bash
 #SBATCH -N 1
-#SBATCH --account=galen
-#SBATCH --qos=deadline
 #SBATCH --partition=t4v1,t4v2,p100
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
