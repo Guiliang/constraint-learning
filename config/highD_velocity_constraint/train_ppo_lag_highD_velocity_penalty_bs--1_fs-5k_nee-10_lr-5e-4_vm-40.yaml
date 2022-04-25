@@ -51,8 +51,8 @@ PPO:
   warmup_timesteps: False
   reset_policy: False
   forward_timesteps: 5000
-  clip_range_reward_vf: False
-  clip_range_cost_vf: False
+  clip_range_reward_vf: null
+  clip_range_cost_vf: null
   penalty_initial_value: 1
   penalty_learning_rate: 0.1
   budget: 0

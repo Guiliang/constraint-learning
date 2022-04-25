@@ -36,19 +36,28 @@ def generate_plots():
     #     # "PPO_Pos": 'PPO',
     #     "PPO_lag_Pos": 'PPO_lag',
     #     "GAIL_HCWithPos-v0_with-action": 'GAIL',
-    #     "Binary_HCWithPos-v0_with-action": 'BInary',
+    #     "Binary_HCWithPos-v0_with-action": 'Binary',
     #     "ICRL_Pos_with-action": 'ICRL',
     #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
     #     }
-    env_id = 'AntWall-V0'
+    # env_id = 'AntWall-V0'
+    # method_names_labels_dict = {
+    #     # "PPO_Pos": 'PPO',
+    #     "PPO-Lag-AntWall": 'PPO_lag',
+    #     "GAIL_AntWall-v0_with-action": 'GAIL',
+    #     # "Binary_HCWithPos-v0_with-action": 'Binary',
+    #     "ICRL_AntWall_with-action_nit-50": 'ICRL',
+    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",
+    # }
+    env_id = 'commonroad-v1'
     method_names_labels_dict = {
         # "PPO_Pos": 'PPO',
-        # "PPO_lag_Pos": 'PPO_lag',
-        "GAIL_AntWall-v0_with-action": 'GAIL',
-        # "Binary_HCWithPos-v0_with-action": 'BInary',
-        # "ICRL_Pos_with-action": 'ICRL',
-        # "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
-        }
+        # "PPO-Lag-AntWall": 'PPO_lag',
+        # "GAIL_AntWall-v0_with-action": 'GAIL',
+        # "Binary_HCWithPos-v0_with-action": 'Binary',
+        "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'ICRL',
+        "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VICRL",
+    }
     modes = ['train', 'test']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -58,6 +67,8 @@ def generate_plots():
             min_reward = -50
             plot_key = ['reward', 'is_collision', 'is_off_road',
                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
+            label_key = ['reward', 'is_collision', 'is_off_road',
+                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
             plot_y_lim_dict = {'reward': (-50, 50),
                                'is_collision': (0, 1),
                                'is_off_road': (0, 1),
@@ -145,10 +156,12 @@ def generate_plots():
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2-multi_env-Apr-13-2022-10:20-seed_123/'
                 ],
                 'ICRL_highD_velocity_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40': [
-                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-13-2022-12:42-seed_123/'
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-13-2022-12:42-seed_123/',
                 ],
                 'ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40': [
-                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-13-2022-12:41-seed_123/'
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-19-2022-07:07-seed_123/',
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-19-2022-07:07-seed_321/',
+                    '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-19-2022-07:07-seed_666/',
                 ],
                 'ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2': [
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2-multi_env-Apr-11-2022-04:12-seed_123/',
@@ -166,13 +179,16 @@ def generate_plots():
                     '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-14-2022-07:10-seed_123/'
                 ],
                 "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": [
-                    '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-14-2022-07:10-seed_123/'
+                    # '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-14-2022-07:10-seed_123/',
+                    '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-18-2022-13:04-seed_123/',
+                    '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-18-2022-13:04-seed_321/',
+                    '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-18-2022-13:04-seed_666/',
                 ],
                 "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": [
-                    '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-15-2022-04:42-seed_123/'
+                    '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-15-2022-04:42-seed_123/',
                 ],
                 "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_vm-40": [
-                    '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-15-2022-04:43-seed_123/'
+                    '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-15-2022-04:43-seed_123/',
                 ],
                 "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_cnl-64-64_vm-40": [
                     '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_cnl-64-64_vm-40-multi_env-Apr-15-2022-04:43-seed_123/'
@@ -195,6 +211,7 @@ def generate_plots():
             max_reward = 10000
             min_reward = -10000
             plot_key = ['reward', 'reward_nc', 'constraint']
+            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
             plot_y_lim_dict = {'reward': (0, 6000),
                                'reward_nc': (0, 6000),
                                'constraint': (0, 1)}
@@ -355,7 +372,7 @@ def generate_plots():
             max_episodes = 3000
             max_reward = float('inf')
             min_reward = -float('inf')
-            plot_key = ['reward', 'constraint']
+            plot_key = ['reward', 'reward_nc', 'constraint']
             plot_y_lim_dict = {'reward': (0, 60),
                                'constraint': (0, 1)}
             log_path_dict = {
@@ -379,16 +396,23 @@ def generate_plots():
             max_episodes = 20000
             max_reward = float('inf')
             min_reward = -float('inf')
-            plot_key = ['reward', 'constraint']
+            plot_key = ['reward', 'reward_nc', 'constraint']
+            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
             plot_y_lim_dict = {'reward': (0, 30000),
+                               'reward_nc': (0, 30000),
                                'constraint': (0, 1)}
             log_path_dict = {
                 'PPO-Lag-AntWall': [
-                    '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-multi_env-Apr-15-2022-00:48-seed_123/',
-                    '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-multi_env-Apr-15-2022-02:57-seed_321/',
-                    '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-multi_env-Apr-15-2022-05:05-seed_456/',
-                    '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-multi_env-Apr-15-2022-07:11-seed_654/',
-                    '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-multi_env-Apr-15-2022-09:15-seed_666/',
+                    '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-v0_nit-50-multi_env-Apr-24-2022-12:21-seed_123/',
+                    '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-v0_nit-50-multi_env-Apr-24-2022-17:08-seed_321/',
+                    '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-v0_nit-50-multi_env-Apr-24-2022-21:50-seed_456/',
+                    '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-v0_nit-50-multi_env-Apr-25-2022-02:29-seed_654/',
+                    '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-v0_nit-50-multi_env-Apr-25-2022-03:04-seed_123/',
+                    # '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-multi_env-Apr-15-2022-00:48-seed_123/',
+                    # '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-multi_env-Apr-15-2022-02:57-seed_321/',
+                    # '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-multi_env-Apr-15-2022-05:05-seed_456/',
+                    # '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-multi_env-Apr-15-2022-07:11-seed_654/',
+                    # '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-multi_env-Apr-15-2022-09:15-seed_666/',
                 ],
                 'ICRL_AntWall-v0_with-action_no_is_nit-100': [
                     '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-100-multi_env-Apr-16-2022-00:51-seed_123/'
@@ -401,11 +425,15 @@ def generate_plots():
                     '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-21:58-seed_666/',
                 ],
                 'ICRL_AntWall_with-action_nit-50': [
-                    '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-00:12-seed_123/',
-                    '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-06:46-seed_321/',
-                    '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-12:27-seed_456/',
-                    '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-19:00-seed_654/',
-                    '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-17-2022-09:53-seed_123/',
+                    '../save_model/ICRL-AntWall/train_ICRL_AntWall-v0_with-action_nit-50-multi_env-Apr-25-2022-03:01-seed_123/',
+                    '../save_model/ICRL-AntWall/train_ICRL_AntWall-v0_with-action_nit-50-multi_env-Apr-24-2022-17:30-seed_321/',
+                    '../save_model/ICRL-AntWall/train_ICRL_AntWall-v0_with-action_nit-50-multi_env-Apr-24-2022-22:46-seed_456/',
+                    '../save_model/ICRL-AntWall/train_ICRL_AntWall-v0_with-action_nit-50-multi_env-Apr-25-2022-03:01-seed_123/',
+                    # '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-00:12-seed_123/',
+                    # '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-06:46-seed_321/',
+                    # '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-12:27-seed_456/',
+                    # '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-18-2022-19:00-seed_654/',
+                    # '../save_model/ICRL-AntWall/train_ICRL_lag_AntWall-v0_with-action_nit-50-multi_env-Apr-17-2022-09:53-seed_123/',
                 ],
                 'VICRL_AntWall-v0_with-action_no_is_nit-100': [
                     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-100-multi_env-Apr-16-2022-00:52-seed_123/'
@@ -432,11 +460,15 @@ def generate_plots():
                     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1-multi_env-Apr-18-2022-08:05-seed_666/',
                 ],
                 'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2': [
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-17-2022-09:53-seed_123/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-17-2022-15:19-seed_321/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-17-2022-20:53-seed_456/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-18-2022-02:17-seed_654/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-18-2022-07:36-seed_666/',
+                    # '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-17-2022-09:53-seed_123/',
+                    # '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-17-2022-15:19-seed_321/',
+                    # '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-17-2022-20:53-seed_456/',
+                    # '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-18-2022-02:17-seed_654/',
+                    # '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-18-2022-07:36-seed_666/',
+                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-24-2022-12:21-seed_123/',
+                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-24-2022-17:28-seed_321/',
+                    # '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-24-2022-22:43-seed_456/',
+                    # '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-25-2022-02:58-seed_123/',
                 ],
                 'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1': [
                     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9-1-multi_env-Apr-18-2022-00:12-seed_123/',
@@ -508,7 +540,7 @@ def generate_plots():
                 std_results_moving_avg_dict.update({method_name: all_std_dict[method_name][plot_key[idx]]})
             plot_results(mean_results_moving_avg_dict=mean_results_moving_avg_dict,
                          std_results_moving_avg_dict=std_results_moving_avg_dict,
-                         label=plot_key[idx],
+                         label=label_key[idx],
                          method_names=list(method_names_labels_dict.keys()),
                          ylim=plot_y_lim_dict[plot_key[idx]],
                          save_label=os.path.join(env_id, plot_key[idx] + '_' + mode),
