@@ -308,6 +308,6 @@ def get_obs_feature_names(env, env_id):
              'distance_togoal_via_referencepath_2']
 
     if is_mujoco(env_id):
-        feature_names.append('(pls visit: {0})'.format(
-            'https://github.com/openai/gym/blob/master/gym/envs/mujoco/assets/half_cheetah.xml'))
+        feature_names.append('(pls visit mujoco xml settings at: {0})'.format(
+            'https://github.com/openai/gym/blob/master/gym/envs/mujoco/assets'))
     return feature_names

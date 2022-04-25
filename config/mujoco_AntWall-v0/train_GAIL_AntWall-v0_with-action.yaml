@@ -41,7 +41,7 @@ PPO:
   reward_vf_layers: [64, 64]
   batch_size: 128
 #  eval_every: 2048
-  timesteps: 4000000
+  timesteps: 12000000
 
 DISC:
   disc_batch_size: null

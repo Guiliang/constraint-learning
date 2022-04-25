@@ -27,7 +27,8 @@ from utils.data_utils import read_args, load_config, ProgressBarManager, del_and
     get_input_features_dim, process_memory, print_resource
 from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names, is_mujoco
 from utils.model_utils import get_net_arch, load_ppo_config
-
+import warnings
+warnings.filterwarnings("ignore")
 
 def null_cost(x, *args):
     # Zero cost everywhere
@@ -49,7 +50,7 @@ def train(config):
         log_file = None
     debug_msg = ''
     if debug_mode:
-        config['device'] = 'cpu'
+        # config['device'] = 'cpu'
         # config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         # config['PPO']['forward_timesteps'] = 2000  # 2000
         # config['PPO']['n_steps'] = 32
@@ -215,10 +216,7 @@ def train(config):
           file=log_file, flush=True)
     cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
                                                all_feature_names=['a_ego_0', 'a_ego_1'])
-    # if config['CN']['cn_batch_size'] == -1:
-    #     cn_batch_size = None
-    # else:
-    #     cn_batch_size = config['CN']['cn_batch_size']
+
     cn_parameters = {
         'obs_dim': obs_dim,
         'acs_dim': acs_dim,
@@ -264,11 +262,7 @@ def train(config):
     # Pass constraint net cost function to cost wrapper (train env)
     train_env.set_cost_function(constraint_net.cost_function)
 
-    # Initialize agent
-    # if config['PPO']['batch_size'] == -1:
-    #     ppo_batch_size = None  # config['PPO']['n_steps'] * num_threads
-    # else:
-    #     ppo_batch_size = config['PPO']['batch_size']
+    # Init ppo agent
     ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
     create_nominal_agent = lambda: PPOLagrangian(**ppo_parameters)
     nominal_agent = create_nominal_agent()
@@ -300,7 +294,6 @@ def train(config):
     best_true_reward, best_true_cost, best_forward_kl, best_reverse_kl = -np.inf, np.inf, np.inf, np.inf
     for itr in range(config['running']['n_iters']):
         if config['PPO']['reset_policy'] and itr != 0:
-            # print(utils.colorize("Resetting agent", color="green", bold=True), flush=True)
             print("\nResetting agent", file=log_file, flush=True)
             nominal_agent = create_nominal_agent()
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
