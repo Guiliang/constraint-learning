@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --time=48:00:00
 #SBATCH --mem=200GB
-#SBATCH --job-name=ICRL
+#SBATCH --job-name=Binary
 task_name="train-highD-Binary"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
