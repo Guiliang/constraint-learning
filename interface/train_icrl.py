@@ -98,6 +98,7 @@ def train(config):
         os.mkdir('{0}/{1}/'.format(config['env']['save_dir'], config['task']))
     if not os.path.exists(save_model_mother_dir):
         os.mkdir(save_model_mother_dir)
+    print("Saving to the file: {0}".format(save_model_mother_dir), file=log_file, flush=True)
 
     with open(os.path.join(save_model_mother_dir, "model_hyperparameters.yaml"), "w") as hyperparam_file:
         yaml.dump(config, hyperparam_file)

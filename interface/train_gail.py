@@ -6,6 +6,9 @@ import time
 
 import gym
 import yaml
+
+from utils.env_utils import check_if_duplicate_seed
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_env import make_train_env, make_eval_env, SaveEnvStatsCallback
@@ -64,10 +67,19 @@ def train(args):
         seed
     )
 
+    skip_running = check_if_duplicate_seed(seed=seed,
+                                           config=config,
+                                           current_time_date=current_time_date,
+                                           save_model_mother_dir=save_model_mother_dir,
+                                           log_file=log_file)
+    if skip_running:
+        return
+
     if not os.path.exists('{0}/{1}/'.format(config['env']['save_dir'], config['task'])):
         os.mkdir('{0}/{1}/'.format(config['env']['save_dir'], config['task']))
     if not os.path.exists(save_model_mother_dir):
         os.mkdir(save_model_mother_dir)
+    print("Saving to the file: {0}".format(save_model_mother_dir), file=log_file, flush=True)
 
     with open(os.path.join(save_model_mother_dir, "model_hyperparameters.yaml"), "w") as hyperparam_file:
         yaml.dump(config, hyperparam_file)
