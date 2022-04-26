@@ -25,7 +25,8 @@ from stable_baselines3.common import logger
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource
-from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names, is_mujoco
+from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names, is_mujoco, \
+    check_if_duplicate_seed
 from utils.model_utils import get_net_arch, load_ppo_config
 import warnings
 warnings.filterwarnings("ignore")
@@ -84,6 +85,14 @@ def train(config):
         debug_msg,
         seed
     )
+
+    skip_running = check_if_duplicate_seed(seed=seed,
+                                           config=config,
+                                           current_time_date=current_time_date,
+                                           save_model_mother_dir=save_model_mother_dir,
+                                           log_file=log_file)
+    if skip_running:
+        return
 
     if not os.path.exists('{0}/{1}/'.format(config['env']['save_dir'], config['task'])):
         os.mkdir('{0}/{1}/'.format(config['env']['save_dir'], config['task']))
