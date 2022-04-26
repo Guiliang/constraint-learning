@@ -7,10 +7,9 @@ import time
 import gym
 import yaml
 
-from utils.env_utils import check_if_duplicate_seed
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+from utils.env_utils import check_if_duplicate_seed
 from common.cns_env import make_train_env, make_eval_env, SaveEnvStatsCallback
 from common.cns_evaluation import CNSEvalCallback
 from common.cns_save_callbacks import CNSCheckpointCallback
