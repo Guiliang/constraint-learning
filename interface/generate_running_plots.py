@@ -52,11 +52,11 @@ def generate_plots():
     env_id = 'commonroad-v1'
     method_names_labels_dict = {
         # "PPO_Pos": 'PPO',
-        # "PPO-Lag-AntWall": 'PPO_lag',
+        "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
         # "GAIL_AntWall-v0_with-action": 'GAIL',
         # "Binary_HCWithPos-v0_with-action": 'Binary',
-        "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'ICRL',
-        "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VICRL",
+        # "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'ICRL',
+        # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VICRL",
     }
     modes = ['train', 'test']
     for mode in modes:
@@ -65,11 +65,12 @@ def generate_plots():
             max_episodes = 5000
             max_reward = 50
             min_reward = -50
-            plot_key = ['reward', 'is_collision', 'is_off_road',
+            plot_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
-            label_key = ['reward', 'is_collision', 'is_off_road',
+            label_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
                          'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
             plot_y_lim_dict = {'reward': (-50, 50),
+                               'reward_nc': (0, 50),
                                'is_collision': (0, 1),
                                'is_off_road': (0, 1),
                                'is_goal_reached': (0, 1),
@@ -125,7 +126,10 @@ def generate_plots():
                     '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-50_gamma-9e-1-multi_env-Apr-06-2022-06:11-seed_123/'
                 ],
                 'PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40': [
-                    '../save_model/PPO-Lag-highD/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-10-2022-12:45-seed_123/'
+                    # '../save_model/PPO-Lag-highD/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-10-2022-12:45-seed_123/',
+                    '../save_model/PPO-Lag-highD/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-25-2022-13:34-seed_123/',
+                    '../save_model/PPO-Lag-highD/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-25-2022-13:35-seed_321/',
+                    '../save_model/PPO-Lag-highD/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-25-2022-13:46-seed_666/',
                 ],
                 "ICRL_highD_velocity-dim2": [
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_dim-2-multi_env-Mar-26-2022-00:37/',

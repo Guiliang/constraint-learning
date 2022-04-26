@@ -154,6 +154,9 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         obs, reward, done, info = self.env.step(action)
         ture_cost_function = get_true_cost_function(env_id=self.spec.id)
         lag_cost_ture = int(ture_cost_function(obs, action) == True)
+        # print(info)
+        # if lag_cost_ture == 1:
+        #     print("abc")
         # lag_cost = 0
         # if self.spec.id == 'HCWithPos-v0':
         #     if info['xpos'] <= -3:
@@ -239,7 +242,7 @@ def get_all_env_ids(num_threads, env):
 
 
 def is_mujoco(env_id):
-    if 'HC' in env_id or 'LGW' in env_id or 'AntWall' in env_id:
+    if 'HC' in env_id or 'LGW' in env_id or 'AntWall' in env_id or 'Pendulum' in env_id:
         return True
     else:
         return False
@@ -317,31 +320,34 @@ def check_if_duplicate_seed(seed, config, current_time_date, save_model_mother_d
     from datetime import datetime as dt
     if is_mujoco(env_id=config['env']['train_env_id']):
         task_saving_path = '{0}/{1}/'.format(config['env']['save_dir'], config['task'])
-        all_candidate_seeds = [123, 321, 456, 654, 666]
-        current_save_date = dt.strptime(current_time_date, "%b-%d-%Y-%H:%M")
-        exist_seeds = set()
-        assert seed in all_candidate_seeds
-        for save_file_name in os.listdir(task_saving_path):
-            task_mother_dir = task_saving_path + save_file_name
-            # tmp = save_model_mother_dir.split('-seed_')[0].replace(current_time_date, '')
-            if save_model_mother_dir.split('-seed_')[0].replace(current_time_date, '') in task_mother_dir:
-                file_seed = int(save_file_name.split('-seed_')[1])
-                file_date = task_mother_dir.replace(save_model_mother_dir.split('-seed_')[0].replace(current_time_date, ''), '').split('-seed_')[0]
-                assert file_seed in all_candidate_seeds
-                try:
-                    pass_save_date = dt.strptime(file_date, "%b-%d-%Y-%H:%M")
-                    diff_date = current_save_date - pass_save_date
-                    if diff_date.days <= max_endure_date:
-                        exist_seeds.add(file_seed)
-                except Exception as e:
-                    print(e)
-        exist_seeds = sorted(list(exist_seeds))
-        print("existing running seeds are : {0}".format(exist_seeds), flush=True, file=log_file)
-        if seed in exist_seeds and exist_seeds.index(seed) < len(exist_seeds) - 1:
-            skip_running = True
-            print("Skipping running for seed {0}".format(seed), flush=True, file=log_file)
-        else:
+        if not os.path.exists(task_saving_path):
             skip_running = False
+        else:
+            all_candidate_seeds = [123, 321, 456, 654, 666]
+            current_save_date = dt.strptime(current_time_date, "%b-%d-%Y-%H:%M")
+            exist_seeds = set()
+            assert seed in all_candidate_seeds
+            for save_file_name in os.listdir(task_saving_path):
+                task_mother_dir = task_saving_path + save_file_name
+                # tmp = save_model_mother_dir.split('-seed_')[0].replace(current_time_date, '')
+                if save_model_mother_dir.split('-seed_')[0].replace(current_time_date, '') in task_mother_dir:
+                    file_seed = int(save_file_name.split('-seed_')[1])
+                    file_date = task_mother_dir.replace(save_model_mother_dir.split('-seed_')[0].replace(current_time_date, ''), '').split('-seed_')[0]
+                    assert file_seed in all_candidate_seeds
+                    try:
+                        pass_save_date = dt.strptime(file_date, "%b-%d-%Y-%H:%M")
+                        diff_date = current_save_date - pass_save_date
+                        if diff_date.days <= max_endure_date:
+                            exist_seeds.add(file_seed)
+                    except Exception as e:
+                        print(e)
+            exist_seeds = sorted(list(exist_seeds))
+            print("existing running seeds are : {0}".format(exist_seeds), flush=True, file=log_file)
+            if seed in exist_seeds and exist_seeds.index(seed) < len(exist_seeds) - 1:
+                skip_running = True
+                print("Skipping running for seed {0}".format(seed), flush=True, file=log_file)
+            else:
+                skip_running = False
     else:
         skip_running = False
     return skip_running

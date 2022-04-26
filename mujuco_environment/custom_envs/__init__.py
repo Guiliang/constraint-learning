@@ -3,6 +3,20 @@ from gym.envs.registration import register
 ABS_PATH = "custom_envs.envs"
 
 # =========================================================================== #
+#                              Inverted Pendulum                              #
+# =========================================================================== #
+
+PENDULUM_LEN = 1000
+
+register(
+    id="InvertedPendulumWall-v0",
+    entry_point=ABS_PATH+".inverted_pendulum:InvertedPendulumWall",
+    max_episode_steps=PENDULUM_LEN,
+    reward_threshold=None,
+    nondeterministic=False,
+)
+
+# =========================================================================== #
 #                                   Cheetah                                   #
 # =========================================================================== #
 

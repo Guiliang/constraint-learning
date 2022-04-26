@@ -6,8 +6,6 @@ from gym import utils
 from gym.envs.mujoco import mujoco_env
 from gym.envs.mujoco.half_cheetah import HalfCheetahEnv
 
-
-
 # ========================================================================== #
 # CHEETAH WITH TORQUE CONSTRAINT
 # ========================================================================== #
@@ -15,14 +13,15 @@ from gym.envs.mujoco.half_cheetah import HalfCheetahEnv
 ACTION_TORQUE_THRESHOLD = 0.5
 VIOLATIONS_ALLOWED = 100
 
+
 class HalfCheetahTest(HalfCheetahEnv):
-   def reset(self):
+    def reset(self):
         ob = super().reset()
         self.current_timestep = 0
         self.violations = 0
         return ob
 
-   def step(self, action):
+    def step(self, action):
         next_ob, reward, done, info = super().step(action)
         # This is to handle the edge case where mujoco_env calls
         # step in __init__ without calling reset with a random
@@ -30,7 +29,7 @@ class HalfCheetahTest(HalfCheetahEnv):
         try:
             self.current_timestep += 1
             if np.any(np.abs(action) > ACTION_TORQUE_THRESHOLD):
-                 self.violations += 1
+                self.violations += 1
             if self.violations > VIOLATIONS_ALLOWED:
                 done = True
                 reward = 0
@@ -42,9 +41,10 @@ class HalfCheetahTest(HalfCheetahEnv):
 # ========================================================================== #
 # ========================================================================== #
 
-REWARD_TYPE = 'old'         # Which reward to use, traditional or new one?
+REWARD_TYPE = 'old'  # Which reward to use, traditional or new one?
 
 ABS_PATH = os.path.abspath(os.path.dirname(__file__))
+
 
 # =========================================================================== #
 #                           Cheetah With Wall Infront                         #
@@ -52,13 +52,14 @@ ABS_PATH = os.path.abspath(os.path.dirname(__file__))
 
 class HalfCheetahWithObstacle(HalfCheetahEnv):
     """Variant of half-cheetah that includes an obstacle."""
-    def __init__(self, xml_file=ABS_PATH+"/xmls/half_cheetah_obstacle.xml"):
+
+    def __init__(self, xml_file=ABS_PATH + "/xmls/half_cheetah_obstacle.xml"):
         mujoco_env.MujocoEnv.__init__(self, xml_file, 5)
         utils.EzPickle.__init__(self)
         self.observation_space = gym.spaces.Box(
-                low=self.observation_space.low,
-                high=self.observation_space.high,
-                dtype=np.float32
+            low=self.observation_space.low,
+            high=self.observation_space.high,
+            dtype=np.float32
         )
 
     def step(self, action):
@@ -71,7 +72,7 @@ class HalfCheetahWithObstacle(HalfCheetahEnv):
         reward = reward_ctrl + reward_run
         done = False
         return ob, reward, done, dict(
-                reward_run=reward_run, reward_ctrl=reward_ctrl)
+            reward_run=reward_run, reward_ctrl=reward_ctrl)
 
     def camera_setup(self):
         super(HalfCheetahDirectionEnv, self).camera_setup()
@@ -83,12 +84,14 @@ class HalfCheetahWithObstacle(HalfCheetahEnv):
             self.sim.data.qvel.flat,
         ])
 
+
 # =========================================================================== #
 #            Cheetah With Equal Reward of Moving Forwards and Backwards       #
 # =========================================================================== #
 
 class HalfCheetahEqual(HalfCheetahEnv):
     """Also returns the `global' position in HalfCheetah."""
+
     def _get_obs(self):
         return np.concatenate([
             self.sim.data.qpos.flat,
@@ -105,7 +108,8 @@ class HalfCheetahEqual(HalfCheetahEnv):
         reward = reward_ctrl + reward_run
         done = False
         return ob, reward, done, dict(
-                reward_run=reward_run, reward_ctrl=reward_ctrl)
+            reward_run=reward_run, reward_ctrl=reward_ctrl)
+
 
 # =========================================================================== #
 #                               Cheetah Backward                              #
@@ -113,6 +117,7 @@ class HalfCheetahEqual(HalfCheetahEnv):
 
 class HalfCheetahBackward(HalfCheetahEnv):
     """Also returns the `global' position in HalfCheetah."""
+
     def _get_obs(self):
         return np.concatenate([
             self.sim.data.qpos.flat,
@@ -129,7 +134,8 @@ class HalfCheetahBackward(HalfCheetahEnv):
         reward = reward_ctrl + reward_run
         done = False
         return ob, reward, done, dict(
-                reward_run=reward_run, reward_ctrl=reward_ctrl)
+            reward_run=reward_run, reward_ctrl=reward_ctrl)
+
 
 # =========================================================================== #
 #                   Cheetah With Global Postion Coordinates                   #
@@ -137,6 +143,7 @@ class HalfCheetahBackward(HalfCheetahEnv):
 
 class HalfCheetahWithPos(HalfCheetahEnv):
     """Also returns the `global' position in HalfCheetah."""
+
     def _get_obs(self):
         return np.concatenate([
             self.sim.data.qpos.flat,
@@ -155,25 +162,25 @@ class HalfCheetahWithPos(HalfCheetahEnv):
         reward = reward_ctrl + reward_run
 
         info = dict(
-                reward_run=reward_run,
-                reward_ctrl=reward_ctrl,
-                xpos=xposafter
-                )
+            reward_run=reward_run,
+            reward_ctrl=reward_ctrl,
+            xpos=xposafter
+        )
 
         return reward, info
 
     def new_reward(self, xposbefore, xposafter, action):
         reward_ctrl = -0.1 * np.square(action).sum()
         reward_dist = abs(xposafter)
-        reward_run  = reward_dist / self.dt
+        reward_run = reward_dist / self.dt
 
         reward = reward_dist + reward_ctrl
         info = dict(
-                reward_run=reward_run,
-                reward_ctrl=reward_ctrl,
-                reward_dist=reward_dist,
-                xpos=xposafter
-                )
+            reward_run=reward_run,
+            reward_ctrl=reward_ctrl,
+            reward_dist=reward_dist,
+            xpos=xposafter
+        )
 
         return reward, info
 

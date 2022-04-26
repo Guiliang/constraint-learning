@@ -140,8 +140,8 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward):
         running_logs = file.readlines()
     key_indices = {}
     record_keys = running_logs[1].replace('\n', '').split(',')
-    if len(record_keys) > 10:
-        raise ValueError("Something wrong with the file {0}".format(monitor_path_all[0]))
+    # if len(record_keys) > 10:
+    #     raise ValueError("Something wrong with the file {0}".format(monitor_path_all[0]))
     for key in read_keys:
         key_idx = record_keys.index(key)
         key_indices.update({key: key_idx})

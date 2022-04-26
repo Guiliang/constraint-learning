@@ -1,11 +1,11 @@
-task: 'PPO-AntWall'
+task: 'PPO-InvertedPendulumWall'
 group: 'PPO'
 device: 'cuda'
 verbose: 2
 env:
   config_path: null
-  train_env_id : 'AntWall-v0'
-  eval_env_id: 'AntWall-v0'  # 'HCWithPosTest-v0'
+  train_env_id : 'InvertedPendulumWall-v0'
+  eval_env_id: 'InvertedPendulumWall-v0'
   save_dir: '../save_model'
   cost_info_str: null
   use_cost: False
@@ -43,5 +43,5 @@ PPO:
   use_curiosity_driven_exploration: False
   warmup_timesteps: False
   reset_policy: False
-  forward_timesteps: 200000
+  forward_timesteps: 5000
   clip_range_reward_vf: null
