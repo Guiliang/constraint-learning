@@ -17,7 +17,7 @@ env:
   record_info_names: ['x_position']
 
 running:
-  n_iters: 50
+  n_iters: 500
   n_eval_episodes: 10
   save_every: 10
 

@@ -18,7 +18,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 cd ./interface/
-python train_ppo.py ../config/mujoco_InvertedPendulumWall-v0/train_ppo_InvertedPendulumWall-v0.yaml -n 5 -s 123 -l "$log_dir"
+python train_ppo.py ../config/mujoco_InvertedPendulumWall-v0/train_ppo_lag_InvertedPendulumWall-v0.yaml -n 5 -s 123 -l "$log_dir"
 process_id=$!
 wait $process_id
 #python train_ppo.py ../config/mujoco_AntWall-v0/train_ppo_lag_AntWall-v0_nit-50.yaml -n 5 -s 321 -l "$log_dir"
