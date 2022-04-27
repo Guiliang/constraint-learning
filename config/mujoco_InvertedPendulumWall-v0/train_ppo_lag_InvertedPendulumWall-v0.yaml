@@ -47,7 +47,7 @@ PPO:
   use_curiosity_driven_exploration: False
   warmup_timesteps: False
   reset_policy: False
-  forward_timesteps: 5000
+  forward_timesteps: 20000
   clip_range_reward_vf: null
   clip_range_cost_vf: null
   penalty_initial_value: 0.1

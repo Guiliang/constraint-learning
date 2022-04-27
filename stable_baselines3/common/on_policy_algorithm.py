@@ -396,6 +396,7 @@ class OnPolicyWithCostAlgorithm(BaseAlgorithm):
                     orig_costs = env.get_original_cost()
                 else:
                     orig_costs = costs
+                print(orig_costs)
             else:
                 costs = cost_function(orig_obs.copy(), clipped_actions)
                 orig_costs = costs

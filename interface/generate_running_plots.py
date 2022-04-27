@@ -40,24 +40,24 @@ def generate_plots():
     #     "ICRL_Pos_with-action": 'ICRL',
     #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
     #     }
-    # env_id = 'AntWall-V0'
-    # method_names_labels_dict = {
-    #     # "PPO_Pos": 'PPO',
-    #     "PPO-Lag-AntWall": 'PPO_lag',
-    #     "GAIL_AntWall-v0_with-action": 'GAIL',
-    #     # "Binary_HCWithPos-v0_with-action": 'Binary',
-    #     "ICRL_AntWall_with-action_nit-50": 'ICRL',
-    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",
-    # }
-    env_id = 'commonroad-v1'
+    env_id = 'AntWall-V0'
     method_names_labels_dict = {
         # "PPO_Pos": 'PPO',
-        "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
-        # "GAIL_AntWall-v0_with-action": 'GAIL',
+        "PPO-Lag-AntWall": 'PPO_lag',
+        "GAIL_AntWall-v0_with-action": 'GAIL',
         # "Binary_HCWithPos-v0_with-action": 'Binary',
-        # "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'ICRL',
-        # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VICRL",
+        "ICRL_AntWall_with-action_nit-50": 'ICRL',
+        "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",
     }
+    # env_id = 'commonroad-v1'
+    # method_names_labels_dict = {
+    #     # "PPO_Pos": 'PPO',
+    #     "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
+    #     "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GAIL',
+    #     "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'Binary',
+    #     # "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'ICRL',
+    #     # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VICRL",
+    # }
     modes = ['train', 'test']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -208,6 +208,12 @@ def generate_plots():
                 ],
                 "VICRL_highD_velocity_constraint_p-9e-2-1e-2_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": [
                     '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-2-1e-2_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-17-2022-11:32-seed_123/'
+                ],
+                "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": [
+                    '../save_model/Binary-highD/train_Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-25-2022-13:29-seed_123/'
+                ],
+                "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": [
+                    '../save_model/GAIL-highD/train_GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-26-2022-00:30-seed_123/'
                 ],
             }
         elif env_id == 'HCWithPos-v0':
