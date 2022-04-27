@@ -81,7 +81,7 @@ CN:
   cn_normalize: False
   cn_target_kl_old_new: 10
   cn_target_kl_new_old: 2.5
-  train_gail_lambda: False
+  train_gail_lambda: True
   cn_eps: 0.00001
   backward_iters: 5
   anneal_clr_by_factor: 0.9
