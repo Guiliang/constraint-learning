@@ -49,14 +49,19 @@ def generate_plots():
     #     "ICRL_AntWall_with-action_nit-50": 'ICRL',
     #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",
     # }
-    env_id = 'commonroad-v1'
+    # env_id = 'commonroad-v1'
+    # method_names_labels_dict = {
+    #     # "PPO_highD_no-velocity": 'PPO',
+    #     "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
+    #     "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GAIL',
+    #     "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'Binary',
+    #     "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'ICRL',
+    #     # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VICRL",
+    # }
+    env_id = 'InvertedPendulumWall-v0'
     method_names_labels_dict = {
-        # "PPO_Pos": 'PPO',
-        "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
-        "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GAIL',
-        "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'Binary',
-        "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'ICRL',
-        # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VICRL",
+        "PPO_Pendulum": 'PPO',
+        "PPO_lag_Pendulum": 'PPO_lag',
     }
     modes = ['train', 'test']
     for mode in modes:
@@ -499,11 +504,33 @@ def generate_plots():
                     '../save_model/GAIL-AntWall/train_GAIL_AntWall-v0_with-action-multi_env-Apr-26-2022-21:51-seed_666/',
                 ],
                 'Binary_AntWall-v0_with-action_nit-50': [
-                    '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-25-2022-05:37-seed_123/',
-                    '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-26-2022-05:52-seed_321/',
-                    '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-26-2022-16:17-seed_456/',
-                    '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-26-2022-21:21-seed_654/',
-                    '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-27-2022-02:33-seed_666/',
+                    # '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-25-2022-05:37-seed_123/',
+                    # '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-26-2022-05:52-seed_321/',
+                    # '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-26-2022-16:17-seed_456/',
+                    # '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-26-2022-21:21-seed_654/',
+                    # '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-27-2022-02:33-seed_666/',
+                    '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-27-2022-12:09-seed_123/',
+                    '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-27-2022-17:30-seed_321/',
+                    '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-27-2022-22:42-seed_456/',
+                    '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-28-2022-03:58-seed_654/',
+                    '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-28-2022-09:09-seed_666/',
+                ],
+            }
+        elif env_id == 'InvertedPendulumWall-v0':
+            max_episodes = 100000
+            max_reward = float('inf')
+            min_reward = -float('inf')
+            plot_key = ['reward', 'reward_nc', 'constraint']
+            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
+            plot_y_lim_dict = {'reward': (0, 100),
+                               'reward_nc': (0, 100),
+                               'constraint': (0, 1)}
+            log_path_dict = {
+                'PPO_Pendulum': [
+                    '../save_model/PPO-InvertedPendulumWall/debug-part-train_ppo_InvertedPendulumWall-v0-multi_env-Apr-28-2022-20:09-seed_123/',
+                ],
+                'PPO_lag_Pendulum': [
+                    '../save_model/PPO-Lag-InvertedPendulumWall/debug-part-train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-28-2022-21:45-seed_123/',
                 ],
             }
         else:

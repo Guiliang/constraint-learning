@@ -193,8 +193,8 @@ def load_ppo_config(config, train_env, seed, log_file):
             "gae_lambda": config['PPO']['reward_gae_lambda'],
             "vf_coef": config['PPO']['reward_vf_coef'],
         })
-    # elif config['group'] == "PPO-Lag" or config['group'] == "Binary" or config['group'] == "ICRL" or config['group'] == "VICRL":
-    elif config['group'] == "PPO-Lag":
+    elif config['group'] == "PPO-Lag" or config['group'] == "Binary" or config['group'] == "ICRL" or config['group'] == "VICRL":
+    # elif config['group'] == "PPO-Lag":
         ppo_parameters.update({
             "reward_gamma": config['PPO']['reward_gamma'],
             "reward_gae_lambda": config['PPO']['reward_gae_lambda'],
@@ -216,7 +216,7 @@ def load_ppo_config(config, train_env, seed, log_file):
                                delta_p_ema_alpha=config['PPO']['proportional_cost_ema_alpha'],
                                delta_d_ema_alpha=config['PPO']['derivative_cost_ema_alpha'], ),
         })
-    # else:
-    #     raise ValueError("Unknown Group {0}".format(config['group']))
+    else:
+        raise ValueError("Unknown Group {0}".format(config['group']))
 
     return ppo_parameters
