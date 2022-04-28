@@ -47,11 +47,11 @@ def get_true_cost_function(env_id):
 # ============================================================================
 
 def wall_behind(pos, obs, acs):
-    return (obs[..., 0] <= pos)
+    return (obs[..., 0] < pos)
 
 
 def wall_infront(pos, obs, acs):
-    return (obs[..., 0] >= pos)
+    return (obs[..., 0] > pos)
 
 
 def wall_behind_and_infront(pos_back, pos_front, obs, acs):
