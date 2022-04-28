@@ -24,7 +24,7 @@ python -m commonroad_rl.tools.visualize_cr ./environment/commonroad_rl/tutorials
 
 # git set remote
 git remote add origin https://git.uwaterloo.ca/ppoupart/constraint-learning.git
-git remote set-url origin https://g233liu:1Taylor2.@git.uwaterloo.ca/ppoupart/constraint-learning.git
+git remote set-url origin https://git.uwaterloo.ca/ppoupart/constraint-learning.git
 
 # git push
 git push --set-upstream https://git.uwaterloo.ca/ppoupart/constraint-learning.git galen
