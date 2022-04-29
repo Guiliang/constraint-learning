@@ -1,5 +1,5 @@
-task: 'PPO-Lag-InvertedPendulumWall'
-group: 'PPO-Lag'
+task: 'PPO-InvertedPendulumWall'
+group: 'PPO'
 device: 'cuda'
 verbose: 2
 env:
@@ -7,10 +7,10 @@ env:
   train_env_id : 'InvertedPendulumWall-v0'
   eval_env_id: 'InvertedPendulumWall-v0'
   save_dir: '../save_model'
-  cost_info_str: 'cost'
-  use_cost: True
+  cost_info_str: null
+  use_cost: False
   reward_gamma: 0.99
-  cost_gamma: 0.99  # no cost
+  cost_gamma: null  # no cost
   dont_normalize_obs: False
   dont_normalize_reward: False
   dont_normalize_cost: False  # cost
@@ -22,18 +22,15 @@ running:
   save_every: 100
 
 PPO:
-  policy_name: 'TwoCriticsMlpPolicy'
+  policy_name: 'MlpPolicy'
   learning_rate: 0.0001
-  n_steps: 2048
+  n_steps: 200
   n_epochs: 20
   reward_gamma: 0.99
   reward_gae_lambda: 0.9
-  cost_gamma: 0.99
-  cost_gae_lambda: 0.9
   clip_range: 0.4
   ent_coef: 0.0
   reward_vf_coef: 0.5
-  cost_vf_coef: 0.5
   max_grad_norm: 0.5
   use_sde: False
   sde_sample_freq: -1
@@ -41,7 +38,6 @@ PPO:
   shared_layers: null
   policy_layers: [64, 64]
   reward_vf_layers: [64, 64]
-  cost_vf_layers: [64, 64]
   batch_size: 128
   eval_every: 2048
   use_curiosity_driven_exploration: False
@@ -49,13 +45,3 @@ PPO:
   reset_policy: False
   forward_timesteps: 20000
   clip_range_reward_vf: null
-  clip_range_cost_vf: null
-  penalty_initial_value: 0.1
-  penalty_learning_rate: 0.05
-  budget: 0
-  proportional_control_coeff: 10
-  integral_control_coeff: 0.0001
-  derivative_control_coeff: 0
-  pid_delay: 1
-  proportional_cost_ema_alpha: 0.5
-  derivative_cost_ema_alpha: 0.5
