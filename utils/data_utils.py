@@ -341,8 +341,7 @@ def load_expert_data(expert_path,
     expert_avg_sum_reward = np.mean(expert_sum_rewards)
     expert_mean_length = num_samples / len(file_names)
     print('Expert_mean_reward: {0} and Expert_mean_length: {1}.'.format(expert_avg_sum_reward, expert_mean_length),
-          file=log_file,
-          flush=True)
+          file=log_file, flush=True)
     if store_by_game:
         return (expert_obs, expert_acs, expert_rs), expert_avg_sum_reward
     else:
