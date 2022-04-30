@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --time=24:00:00
 #SBATCH --mem=120GB
-#SBATCH --job-name=PPO
+#SBATCH --job-name=LAG
 task_name="train-highD-PPO_2"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
