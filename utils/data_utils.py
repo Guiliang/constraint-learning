@@ -132,7 +132,7 @@ def compute_moving_average(result_all, average_num=100):
     return np.asarray(result_moving_average_all)
 
 
-def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward):
+def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_episodes):
     read_running_logs = {}
 
     # handle the keys
@@ -156,7 +156,7 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward):
         running_logs_all.append(running_logs[2:])
         if len(running_logs[2:]) > max_len:
             max_len = len(running_logs[2:])
-
+    max_len = min(float(max_episodes/len(monitor_path_all)), max_len)
     # iteratively read the logs
     line_num = 0
     while line_num < max_len:

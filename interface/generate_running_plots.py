@@ -68,6 +68,7 @@ def generate_plots():
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
         if env_id == 'commonroad-v1':
             max_episodes = 5000
+            average_num = 100
             max_reward = 50
             min_reward = -50
             plot_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
@@ -226,6 +227,7 @@ def generate_plots():
             }
         elif env_id == 'HCWithPos-v0':
             max_episodes = 6000
+            average_num = 100
             max_reward = 10000
             min_reward = -10000
             plot_key = ['reward', 'reward_nc', 'constraint']
@@ -388,6 +390,7 @@ def generate_plots():
             }
         elif env_id == 'LGW-v0':
             max_episodes = 3000
+            average_num = 100
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
@@ -412,6 +415,7 @@ def generate_plots():
             }
         elif env_id == 'AntWall-V0':
             max_episodes = 20000
+            average_num = 100
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
@@ -517,7 +521,8 @@ def generate_plots():
                 ],
             }
         elif env_id == 'InvertedPendulumWall-v0':
-            max_episodes = 100000
+            max_episodes = 50000
+            average_num = 5000
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
@@ -530,7 +535,7 @@ def generate_plots():
                     '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-28-2022-13:01-seed_123/',
                 ],
                 'PPO_lag_Pendulum': [
-                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-28-2022-13:01-seed_123/',
+                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-29-2022-05:41-seed_123/',
                 ],
             }
         else:
@@ -552,7 +557,7 @@ def generate_plots():
 
                 # rewards, is_collision, is_off_road, is_goal_reached, is_time_out = read_running_logs(log_path=log_path)
                 results = read_running_logs(monitor_path_all=monitor_path_all, read_keys=plot_key,
-                                            max_reward=max_reward, min_reward=min_reward)
+                                            max_reward=max_reward, min_reward=min_reward, max_episodes=max_episodes)
                 all_results.append(results)
 
             mean_dict, std_dict = mean_std_plot_results(all_results)
@@ -566,9 +571,9 @@ def generate_plots():
 
             for idx in range(len(plot_key)):
                 mean_results_moving_average = compute_moving_average(result_all=mean_dict[plot_key[idx]],
-                                                                     average_num=100)
+                                                                     average_num=average_num)
                 std_results_moving_average = compute_moving_average(result_all=std_dict[plot_key[idx]],
-                                                                    average_num=100)
+                                                                    average_num=average_num)
                 if max_episodes:
                     mean_results_moving_average = mean_results_moving_average[:max_episodes]
                     std_results_moving_average = std_results_moving_average[:max_episodes]

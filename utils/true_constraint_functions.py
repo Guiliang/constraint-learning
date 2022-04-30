@@ -21,7 +21,7 @@ def get_true_cost_function(env_id):
                   ]:
         return partial(wall_behind, -3)
     elif env_id in ["InvertedPendulumWall-v0"]:
-        return partial(wall_behind, -0.01)
+        return partial(wall_behind, -0.015)
     # elif env_id == "AntWallTest-v0":
     #     return partial(wall_behind, -3)
     # elif env_id == "AntWallBrokenTest-v0":
