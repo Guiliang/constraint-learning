@@ -145,10 +145,10 @@ def run():
     # load_model_name = 'train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:29-seed_123'
     # task_name = 'PPO-highD'
     # data_generate_type = 'no-over_speed'
-    iteration_msg = 'best'
+    iteration_msg = 300 # 'best'
     if_testing_env = False
     if debug_mode:
-        num_scenarios = 30
+        pass
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
     with open(os.path.join(model_loading_path, 'model_hyperparameters.yaml')) as reader:

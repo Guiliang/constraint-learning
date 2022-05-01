@@ -267,7 +267,7 @@ def train(config):
                               })
         constraint_net = SelfExplainableVariationalConstraintNet(**cn_parameters)
     else:
-        raise ValueError("Unknown constraint model {0}".format(config['task']))
+        raise ValueError("Unknown group: {0}".format(config['group']))
 
     # Pass constraint net cost function to cost wrapper (train env)
     train_env.set_cost_function(constraint_net.cost_function)
@@ -377,7 +377,7 @@ def train(config):
         # Evaluate:
         # reward on true environment
         sync_envs_normalization(train_env, eval_env)
-        average_true_reward, std_true_reward, record_infos, costs = \
+        mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
             evaluate_icrl_policy(nominal_agent, eval_env,
                                  record_info_names=config['env']["record_info_names"],
                                  n_eval_episodes=config['running']['n_eval_episodes'],
@@ -422,7 +422,7 @@ def train(config):
                                  empirical_input_means=empirical_input_means)
 
         # (2) best
-        if average_true_reward > best_true_reward:
+        if mean_nc_reward > best_true_reward:
             # print(utils.colorize("Saving new best model", color="green", bold=True), flush=True)
             print("Saving new best model", file=log_file, flush=True)
             nominal_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
@@ -431,16 +431,18 @@ def train(config):
                 train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))
 
         # Update best metrics
-        if average_true_reward > best_true_reward:
-            best_true_reward = average_true_reward
+        if mean_nc_reward > best_true_reward:
+            best_true_reward = mean_nc_reward
 
         # Collect metrics
         metrics = {
             "time(m)": (time.time() - start_time) / 60,
-            "iteration": itr,
+            "run_iter": itr,
             "timesteps": timesteps,
-            "true/reward": average_true_reward,
-            "true/reward_std": std_true_reward,
+            "true/mean_nc_reward": mean_nc_reward,
+            "true/std_nc_reward": std_nc_reward,
+            "true/mean_reward": mean_reward,
+            "true/std_reward": std_reward,
             "best_true/best_reward": best_true_reward
         }
 

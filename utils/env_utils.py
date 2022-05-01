@@ -206,8 +206,8 @@ class CommonRoadExternalSignalsWrapper(gym.Wrapper):
             else:
                 raise ValueError("Unknown reward features: {0}".format(reward_feature))
         # print(ego_velocity, lag_cost)
-        if self.group == 'PPO-Lag':
-            info.update({'lag_cost': lag_cost})
+        # if self.group == 'PPO-Lag':
+        info.update({'lag_cost': lag_cost})
         return observation, reward, done, info
 
 

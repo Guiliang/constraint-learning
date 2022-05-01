@@ -42,7 +42,7 @@ def evaluate_icrl_policy(
     if isinstance(env, VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
 
-    episode_rewards, episode_lengths = [], []
+    episode_rewards, episode_nc_rewards, episode_lengths = [], [], []
     costs = []
     record_infos = {}
     for record_info_name in record_info_names:
@@ -52,12 +52,14 @@ def evaluate_icrl_policy(
         if not isinstance(env, VecEnv) or i == 0:
             obs = env.reset()
         done, state = False, None
-        episode_reward = 0.0
+        episode_reward = np.asarray([0.0]*env.num_envs)
+        episode_nc_reward = np.asarray([0.0]*env.num_envs)
+        is_constraint = [False for i in range(env.num_envs)]
         episode_length = 0
         while not done:
             action, state = model.predict(obs, state=state, deterministic=deterministic)
             obs, reward, done, _info = env.step(action)
-            for i in range(len(_info)):
+            for i in range(env.num_envs):
                 if 'cost' in _info[i].keys():
                     costs.append(_info[i]['cost'])
                 else:
@@ -69,21 +71,29 @@ def evaluate_icrl_policy(
                         record_infos[record_info_name].append(np.mean(_info[i]['ego_velocity'][1]))
                     else:
                         record_infos[record_info_name].append(np.mean(_info[i][record_info_name]))
-            episode_reward += reward
+                if not is_constraint[i]:
+                    if _info[i]['lag_cost']:
+                        is_constraint[i] = True
+                    else:
+                        episode_nc_reward[i] += reward[i]
+                episode_reward[i] += reward[i]
             if callback is not None:
                 callback(locals(), globals())
             episode_length += 1
             if render:
                 env.render()
         episode_rewards.append(episode_reward)
+        episode_nc_rewards.append(episode_nc_reward)
         episode_lengths.append(episode_length)
     mean_reward = np.mean(episode_rewards)
     std_reward = np.std(episode_rewards)
+    mean_nc_reward = np.mean(episode_nc_rewards)
+    std_nc_reward = np.std(episode_nc_rewards)
     if reward_threshold is not None:
         assert mean_reward > reward_threshold, "Mean reward below threshold: " f"{mean_reward:.2f} < {reward_threshold:.2f}"
     if return_episode_rewards:
         return episode_rewards, episode_lengths
-    return mean_reward, std_reward, record_infos, costs
+    return mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs
 
 
 class CNSEvalCallback(EventCallback):

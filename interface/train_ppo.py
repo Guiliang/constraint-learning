@@ -39,7 +39,7 @@ def train(args):
     debug_msg = ''
     if debug_mode:
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 20000  # 2000
+        config['PPO']['forward_timesteps'] = 2000  # 2000
         config['PPO']['n_steps'] = 200
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
@@ -204,7 +204,7 @@ def train(args):
         # Evaluate:
         # reward on true environment
         sync_envs_normalization_ppo(train_env, eval_env)
-        average_true_reward, std_true_reward, record_infos, costs = \
+        mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
             evaluate_icrl_policy(model=ppo_agent,
                                  env=eval_env,
                                  record_info_names=config['env']["record_info_names"],
@@ -239,7 +239,7 @@ def train(args):
             #     env_tmp.envs[i].info_saving_items = ['ego_velocity', 'cost']
 
         # (2) best
-        if average_true_reward > best_true_reward:
+        if mean_nc_reward > best_true_reward:
             # print(colorize("Saving new best model", color="green", bold=True), flush=True, file=log_file)
             print("Saving new best model", flush=True, file=log_file)
             ppo_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
@@ -247,16 +247,18 @@ def train(args):
                 train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))
 
         # Update best metrics
-        if average_true_reward > best_true_reward:
-            best_true_reward = average_true_reward
+        if mean_nc_reward > best_true_reward:
+            best_true_reward = mean_nc_reward
 
         # Collect metrics
         metrics = {
             "time(m)": (time.time() - start_time) / 60,
             "run_iter": itr,
             "timesteps": timesteps,
-            "true/reward": average_true_reward,
-            "true/reward_std": std_true_reward,
+            "true/mean_nc_reward": mean_nc_reward,
+            "true/std_nc_reward": std_nc_reward,
+            "true/mean_reward": mean_reward,
+            "true/std_reward": std_reward,
             "best_true/best_reward": best_true_reward
         }
 
