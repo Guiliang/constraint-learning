@@ -20,7 +20,7 @@ env:
 running:
   save_every: 500000
   eval_every: 200000
-  expert_rollouts: 10
+  expert_rollouts: 100
   expert_path: '../data/expert_data/no-over_speed_train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:29-seed_123/'
 
 PPO:
