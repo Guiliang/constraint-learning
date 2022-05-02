@@ -242,7 +242,7 @@ def get_all_env_ids(num_threads, env):
 
 
 def is_mujoco(env_id):
-    if 'HC' in env_id or 'LGW' in env_id or 'AntWall' in env_id or 'Pendulum' in env_id:
+    if 'HC' in env_id or 'LGW' in env_id or 'AntWall' in env_id or 'Pendulum' in env_id or 'Walker' in env_id:
         return True
     else:
         return False

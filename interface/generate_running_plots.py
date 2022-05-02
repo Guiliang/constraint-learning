@@ -72,6 +72,7 @@ def generate_plots():
             average_num = 100
             max_reward = 50
             min_reward = -50
+            gap = 1
             plot_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
             label_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
@@ -238,6 +239,7 @@ def generate_plots():
             average_num = 100
             max_reward = 10000
             min_reward = -10000
+            gap = 1
             plot_key = ['reward', 'reward_nc', 'constraint']
             label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
             plot_y_lim_dict = {'reward': (0, 6000),
@@ -399,6 +401,7 @@ def generate_plots():
         elif env_id == 'LGW-v0':
             max_episodes = 3000
             average_num = 100
+            gap = 1
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
@@ -424,6 +427,7 @@ def generate_plots():
         elif env_id == 'AntWall-V0':
             max_episodes = 20000
             average_num = 100
+            gap = 1
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
@@ -531,6 +535,7 @@ def generate_plots():
         elif env_id == 'InvertedPendulumWall-v0':
             max_episodes = 100000
             average_num = 5000
+            gap = 1000
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
@@ -543,8 +548,8 @@ def generate_plots():
                     '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-28-2022-13:01-seed_123/',
                 ],
                 'PPO_lag_Pendulum': [
-                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:20-seed_123/',
-                    # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-29-2022-05:41-seed_123/',
+                    # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:20-seed_123/',
+                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-29-2022-05:41-seed_123/',
                 ],
                 'ICRL_Pendulum': [
                     '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0-multi_env-May-01-2022-06:09-seed_123/'

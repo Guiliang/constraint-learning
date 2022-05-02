@@ -120,16 +120,26 @@ def del_and_make(d):
     os.makedirs(d)
 
 
+# def compute_moving_average(result_all, average_num=100):
+#     result_moving_average_all = []
+#     moving_values = deque([], maxlen=average_num)
+#     for result in result_all:
+#         moving_values.append(result)
+#         if len(moving_values) < average_num:  # this is to average the results in the beginning
+#             result_moving_average_all.append(np.mean(result_all[:100]))
+#         else:
+#             result_moving_average_all.append(np.mean(moving_values))
+#     return np.asarray(result_moving_average_all)
+
+
 def compute_moving_average(result_all, average_num=100):
-    result_moving_average_all = []
-    moving_values = deque([], maxlen=average_num)
-    for result in result_all:
-        moving_values.append(result)
-        if len(moving_values) < average_num:  # this is to average the results in the beginning
-            result_moving_average_all.append(np.mean(result_all[:100]))
-        else:
-            result_moving_average_all.append(np.mean(moving_values))
-    return np.asarray(result_moving_average_all)
+    result_moving_all = []
+    for i in range(average_num):
+        # tmp = result_all[len(result_all)-i:]
+        filling_in_values = np.random.choice(result_all[-i:], i)
+        result_moving_all.append(np.concatenate([result_all[i:], filling_in_values]))
+    result_moving_all = np.mean(result_moving_all, axis=0)
+    return result_moving_all
 
 
 def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_episodes):
@@ -156,7 +166,7 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
         running_logs_all.append(running_logs[2:])
         if len(running_logs[2:]) > max_len:
             max_len = len(running_logs[2:])
-    max_len = min(float(max_episodes/len(monitor_path_all)), max_len)
+    max_len = min(float(max_episodes / len(monitor_path_all)), max_len)
     # iteratively read the logs
     line_num = 0
     while line_num < max_len:
@@ -381,21 +391,30 @@ def mean_std_plot_results(all_results):
     for key in all_results[0]:
         all_plot_values = []
         max_len = 0
+        min_len = float('inf')
         for results in all_results:
             plot_values = results[key]
             if len(plot_values) > max_len:
                 max_len = len(plot_values)
+            if len(plot_values) < min_len:
+                min_len = len(plot_values)
             all_plot_values.append(plot_values)
-        # max_len = 1000
-        mean_plot_values = []
-        std_plot_values = []
-        for i in range(max_len):
+
+        plot_value_all = []
+        for plot_values in all_plot_values:
+            plot_value_all.append(plot_values[:min_len])
+        for i in range(min_len, max_len):
             plot_value_t = []
             for plot_values in all_plot_values:
                 if len(plot_values) > i:
                     plot_value_t.append(plot_values[i])
-            mean_plot_values.append(np.mean(plot_value_t))
-            std_plot_values.append(np.std(plot_value_t))
+
+            if 0 < len(plot_value_t) < len(all_plot_values):
+                for j in range(len(all_plot_values) - len(plot_value_t)):
+                    plot_value_t.append(plot_value_t[j % len(plot_value_t)])  # filling in values
+            plot_value_all.append(plot_value_t)
+        mean_plot_values = np.mean(np.asarray(plot_value_all), axis=0)
+        std_plot_values = np.std(np.asarray(plot_value_all), axis=0)
         mean_results.update({key: mean_plot_values})
         std_results.update({key: std_plot_values})
 
