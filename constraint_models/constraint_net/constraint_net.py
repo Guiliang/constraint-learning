@@ -620,7 +620,7 @@ class ConstraintNet(nn.Module):
     def forward(self, x: th.tensor) -> th.tensor:
         return self.network(x)
 
-    def cost_function(self, obs: np.ndarray, acs: np.ndarray) -> np.ndarray:
+    def cost_function(self, obs: np.ndarray, acs: np.ndarray, force_mode: str = None) -> np.ndarray:
         assert obs.shape[-1] == self.obs_dim, ""
         if not self.is_discrete:
             assert acs.shape[-1] == self.acs_dim, ""

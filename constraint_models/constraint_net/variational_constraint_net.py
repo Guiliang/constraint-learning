@@ -104,22 +104,25 @@ class VariationalConstraintNet(ConstraintNet):
         pred = torch.distributions.Beta(alpha, beta).rsample()
         return pred.unsqueeze(-1)
 
-    def cost_function(self, obs: np.ndarray, acs: np.ndarray) -> np.ndarray:
+    def cost_function(self, obs: np.ndarray, acs: np.ndarray, force_mode: str = None) -> np.ndarray:
         assert obs.shape[-1] == self.obs_dim, ""
         if not self.is_discrete:
             assert acs.shape[-1] == self.acs_dim, ""
-
+        if force_mode is None:
+            mode = self.mode
+        else:
+            mode = force_mode
         x = self.prepare_data(obs, acs)
         with th.no_grad():
-            if self.mode == 'sample':
+            if mode == 'sample':
                 out = self.__call__(x)
-            elif self.mode == 'mean':
+            elif mode == 'mean':
                 alpha_beta = self.network(x)
                 alpha = alpha_beta[:, 0]
                 beta = alpha_beta[:, 1]
                 out = alpha / (alpha + beta)  # the mean of beta distribution
                 out = out.unsqueeze(-1)
-            elif self.mode == 'risk':
+            elif mode == 'risk':
                 pass
             else:
                 raise ValueError("Unknown cost mode {0}".format(mode))

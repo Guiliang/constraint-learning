@@ -154,7 +154,7 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         obs, reward, done, info = self.env.step(action)
         ture_cost_function = get_true_cost_function(env_id=self.spec.id)
         lag_cost_ture = int(ture_cost_function(obs, action) == True)
-        print(obs[0])
+        # print(obs[0])
         # print(obs)
         # if lag_cost_ture == 1:
         #     print("abc")
