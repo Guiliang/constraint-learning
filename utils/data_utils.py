@@ -412,7 +412,8 @@ def mean_std_plot_results(all_results):
             if 0 < len(plot_value_t) < len(all_plot_values):
                 for j in range(len(all_plot_values) - len(plot_value_t)):
                     plot_value_t.append(plot_value_t[j % len(plot_value_t)])  # filling in values
-            plot_value_all.append(plot_value_t)
+            for j in range(len(plot_value_t)):
+                plot_value_all[j].append(plot_value_t[j])
         mean_plot_values = np.mean(np.asarray(plot_value_all), axis=0)
         std_plot_values = np.std(np.asarray(plot_value_all), axis=0)
         mean_results.update({key: mean_plot_values})
