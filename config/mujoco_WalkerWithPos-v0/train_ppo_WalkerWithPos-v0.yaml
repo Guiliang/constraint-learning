@@ -1,4 +1,4 @@
-task: 'PPO-InvertedPendulumWall'
+task: 'PPO-Walker'
 group: 'PPO'
 device: 'cuda'
 verbose: 2

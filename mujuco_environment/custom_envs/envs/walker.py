@@ -55,7 +55,7 @@ class WalkerWithPos(walker2d.Walker2dEnv):
         info = dict(
                 reward_run=reward_run,
                 reward_ctrl=reward_ctrl,
-                xpos=xposafter
+                x_position=xposafter
                 )
 
         return reward, info
@@ -70,7 +70,7 @@ class WalkerWithPos(walker2d.Walker2dEnv):
                 reward_run=reward_run,
                 reward_ctrl=reward_ctrl,
                 reward_dist=reward_dist,
-                xpos=xposafter
+                x_position=xposafter
                 )
 
         return reward, info

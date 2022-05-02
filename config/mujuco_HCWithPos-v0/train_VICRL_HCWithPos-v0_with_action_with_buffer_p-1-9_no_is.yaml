@@ -88,4 +88,5 @@ CN:
   backward_iters: 10
   anneal_clr_by_factor: 0.9
   di_prior: [1, 9]
+  mode: 'sample'
 

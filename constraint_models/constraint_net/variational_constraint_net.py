@@ -46,6 +46,7 @@ class VariationalConstraintNet(ConstraintNet):
             eps: float = 1e-5,
             device: str = "cpu",
             di_prior: list = [1, 1],
+            mode: str = 'sample',
             log_file=None,
     ):
         assert 'VICRL' in task
@@ -78,6 +79,7 @@ class VariationalConstraintNet(ConstraintNet):
                          log_file=log_file,
                          )
         self.dir_prior = di_prior
+        self.mode = mode
         assert 'VICRL' in self.task
         # self._build()
 
@@ -102,22 +104,22 @@ class VariationalConstraintNet(ConstraintNet):
         pred = torch.distributions.Beta(alpha, beta).rsample()
         return pred.unsqueeze(-1)
 
-    def cost_function(self, obs: np.ndarray, acs: np.ndarray, mode: str = 'sample') -> np.ndarray:
+    def cost_function(self, obs: np.ndarray, acs: np.ndarray) -> np.ndarray:
         assert obs.shape[-1] == self.obs_dim, ""
         if not self.is_discrete:
             assert acs.shape[-1] == self.acs_dim, ""
 
         x = self.prepare_data(obs, acs)
         with th.no_grad():
-            if mode == 'sample':
+            if self.mode == 'sample':
                 out = self.__call__(x)
-            elif mode == 'mean':
+            elif self.mode == 'mean':
                 alpha_beta = self.network(x)
                 alpha = alpha_beta[:, 0]
                 beta = alpha_beta[:, 1]
                 out = alpha / (alpha + beta)  # the mean of beta distribution
                 out = out.unsqueeze(-1)
-            elif mode == 'risk':
+            elif self.mode == 'risk':
                 pass
             else:
                 raise ValueError("Unknown cost mode {0}".format(mode))
