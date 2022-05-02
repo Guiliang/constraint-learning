@@ -6,7 +6,7 @@ ABS_PATH = "custom_envs.envs"
 #                              Inverted Pendulum                              #
 # =========================================================================== #
 
-PENDULUM_LEN = 100
+PENDULUM_LEN = 1000
 
 register(
     id="InvertedPendulumWall-v0",

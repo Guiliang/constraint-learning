@@ -62,6 +62,7 @@ def generate_plots():
     method_names_labels_dict = {
         # "PPO_Pendulum": 'PPO',
         "PPO_lag_Pendulum": 'PPO_lag',
+        "ICRL_Pendulum": 'ICRL'
     }
     modes = ['train', 'test']
     for mode in modes:
@@ -542,9 +543,12 @@ def generate_plots():
                     '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-28-2022-13:01-seed_123/',
                 ],
                 'PPO_lag_Pendulum': [
-                    # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:20-seed_123/',
-                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-29-2022-05:41-seed_123/',
+                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:20-seed_123/',
+                    # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-29-2022-05:41-seed_123/',
                 ],
+                'ICRL_Pendulum': [
+                    '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0-multi_env-May-01-2022-06:09-seed_123/'
+                ]
             }
         else:
             raise ValueError("Unknown env id {0}".format(env_id))
