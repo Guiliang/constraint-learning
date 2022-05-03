@@ -311,11 +311,20 @@ def run():
                     'reward': np.asarray(reward_all[i]),
                     'reward_sum': reward_sums[i]
                 }
-                with open(os.path.join(save_expert_data_path,
-                                       'scene-{0}_len-{1}.pkl'.format(benchmark_ids[i],
-                                                                      running_steps[i])), 'wb') as file:
-                    # A new file will be created
-                    pickle.dump(saving_expert_data, file)
+                if is_commonroad(env_id=config['env']['train_env_id']):
+                    with open(os.path.join(save_expert_data_path,
+                                           'scene-{0}_len-{1}.pkl'.format(benchmark_ids[i],
+                                                                          running_steps[i])), 'wb') as file:
+                        # A new file will be created
+                        pickle.dump(saving_expert_data, file)
+                elif is_mujoco(env_id=config['env']['train_env_id']):
+                    with open(os.path.join(save_expert_data_path,
+                                           'scene-{0}_len-{1}.pkl'.format(success,
+                                                                          running_steps[i])), 'wb') as file:
+                        # A new file will be created
+                        pickle.dump(saving_expert_data, file)
+                else:
+                    raise ValueError("Unknown env :{0}".format(config['env']['train_env_id']))
             else:
                 print('Deleting expert data for game {0} with terminal reason: {1}'.format(benchmark_ids[i],
                                                                                            termination_reasons),
@@ -324,7 +333,7 @@ def run():
             if is_commonroad(config['env']['train_env_id']) and "goal_reached" in termination_reasons:
                 print('{0}: goal reached'.format(benchmark_ids[i]), file=log_file, flush=True)
                 success += 1
-            elif is_mujoco(config['env']['train_env_id']):
+            elif is_mujoco(config['env']['train_env_id']) and save_constraint_expert:
                 success += 1
             # if not info["out_of_scenarios"]:
             #     out_of_scenarios = False
