@@ -133,7 +133,10 @@ def del_and_make(d):
 
 
 def compute_moving_average(result_all, average_num=100):
+    if len(result_all) <= average_num:
+        average_num = len(result_all)
     result_moving_all = []
+
     for i in range(average_num):
         # tmp = result_all[len(result_all)-i:]
         filling_in_values = np.random.choice(result_all[-i:], i)
