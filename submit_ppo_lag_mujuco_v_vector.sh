@@ -19,7 +19,7 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface/
-python train_ppo.py ../config/mujoco_InvertedPendulumWall-v0/train_ppo_lag_InvertedPendulumWall-v0.yaml -n 5 -s 123 -l "$log_dir"
+python train_ppo.py ../config/mujoco_WalkerWithPos-v0/train_ppo_lag_WalkerWithPos-v0.yaml -n 5 -s 123 -l "$log_dir"
 process_id=$!
 wait $process_id
 echo shell finish running
