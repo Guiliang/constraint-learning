@@ -58,21 +58,22 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VICRL",
     # }
-    env_id = 'highD_velocity_constraint_dim2'
-    method_names_labels_dict = {
-        # "PPO_highD_no-velocity": 'PPO',
-        "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
-        # "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GAIL',
-        # "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'Binary',
-        "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
-        "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
-    }
-    # env_id = 'InvertedPendulumWall-v0'
+    # env_id = 'highD_velocity_constraint_dim2'
     # method_names_labels_dict = {
-    #     # "PPO_Pendulum": 'PPO',
-    #     "PPO_lag_Pendulum": 'PPO_lag',
-    #     "ICRL_Pendulum": 'ICRL'
+    #     # "PPO_highD_no-velocity": 'PPO',
+    #     "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
+    #     # "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GAIL',
+    #     # "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'Binary',
+    #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
+    #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
+    env_id = 'InvertedPendulumWall-v0'
+    method_names_labels_dict = {
+        "PPO_Pendulum": 'PPO',
+        "PPO_lag_Pendulum": 'PPO_lag',
+        "ICRL_Pendulum": 'ICRL',
+        "VICRL-InvertedPendulumWall": 'VICRL',
+    }
     modes = ['train', 'test']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -587,14 +588,18 @@ def generate_plots():
                                'constraint': (0, 1)}
             log_path_dict = {
                 'PPO_Pendulum': [
-                    '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-28-2022-13:01-seed_123/',
+                    # '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-28-2022-13:01-seed_123/',
+                    '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:19-seed_123/',
                 ],
                 'PPO_lag_Pendulum': [
-                    # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:20-seed_123/',
-                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-29-2022-05:41-seed_123/',
+                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:20-seed_123/',
+                    # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-29-2022-05:41-seed_123/',
                 ],
                 'ICRL_Pendulum': [
                     '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0-multi_env-May-01-2022-06:09-seed_123/'
+                ],
+                'VICRL-InvertedPendulumWall': [
+                    '../save_model/ICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2-multi_env-May-03-2022-05:17-seed_123/'
                 ]
             }
         else:

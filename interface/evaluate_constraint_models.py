@@ -12,6 +12,7 @@ from gym import Env
 
 from common.cns_env import make_env
 from common.cns_visualization import plot_constraints
+from constraint_models.constraint_net.variational_constraint_net import VariationalConstraintNet
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3 import PPOLagrangian
 from constraint_models.constraint_net.constraint_net import ConstraintNet
@@ -137,7 +138,7 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
     return env
 
 
-def load_model(model_path: str, iter_msg: str, log_file, device:str):
+def load_model(model_path: str, iter_msg: str, log_file, device: str, group: str):
     if iter_msg == 'best':
         ppo_model_path = os.path.join(model_path, "best_nominal_model")
         cns_model_path = os.path.join(model_path, "best_constraint_net_model")
@@ -147,7 +148,14 @@ def load_model(model_path: str, iter_msg: str, log_file, device:str):
     print('Loading ppo model from {0}'.format(ppo_model_path), flush=True, file=log_file)
     print('Loading cns model from {0}'.format(cns_model_path), flush=True, file=log_file)
     ppo_model = PPOLagrangian.load(ppo_model_path, device=device)
-    cns_model = ConstraintNet.load(cns_model_path, device=device)
+    if group == 'ICRL' or group == 'Binary':
+        cns_model = ConstraintNet.load(cns_model_path, device=device)
+    elif group == 'VICRL':
+        cns_model = VariationalConstraintNet.load(cns_model_path, device=device)
+    elif group == 'PPO' or group == 'PPO-Lag':
+        cns_model = None
+    else:
+        raise ValueError("Unknown group: {0}".format(group))
     return ppo_model, cns_model
 
 
@@ -162,8 +170,8 @@ def evaluate():
     num_threads = 1
     if_testing_env = False
 
-    load_model_name = 'train_Binary_HCWithPos-v0_with-action-multi_env-Apr-19-2022-01:41-seed_123'
-    task_name = 'Binary-HC'
+    load_model_name = 'train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2-multi_env-May-03-2022-05:17-seed_123'
+    task_name = 'VICRL-InvertedPendulumWall'
     iteration_msg = 'best'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
@@ -208,14 +216,18 @@ def evaluate():
 
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
-    ppo_model, cns_model = load_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file, device=config["device"])
+    ppo_model, cns_model = load_model(model_loading_path,
+                                      iter_msg=iteration_msg,
+                                      log_file=log_file,
+                                      device=config["device"],
+                                      group=config["group"])
 
     total_scenarios, benchmark_idx = 0, 0
     if is_commonroad(env_id=config['env']['train_env_id']):
         max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)
         # num_collisions, num_off_road, num_goal_reaching, num_timeout = 0, 0, 0, 0
     elif is_mujoco(env_id=config['env']['train_env_id']):
-        max_benchmark_num = 10 / num_threads  # max number of expert traj is 50 for mujoco
+        max_benchmark_num = 50 / num_threads  # max number of expert traj is 50 for mujoco
     else:
         raise ValueError("Unknown env_id: {0}".format(config['env']['train_env_id']))
 
@@ -244,13 +256,13 @@ def evaluate():
         # env.render()
         if not os.path.exists(os.path.join(viz_path, benchmark_ids[0])):
             os.mkdir(os.path.join(viz_path, benchmark_ids[0]))
-        game_info_file = open(os.path.join(viz_path, benchmark_ids[0], 'info_record.txt'), 'w')
-        if is_commonroad(env_id=config['env']['train_env_id']):
-            game_info_file.write(
-                'current_step, velocity, cost, is_collision, is_off_road, is_goal_reached, is_time_out\n')
-        elif is_mujoco(env_id=config['env']['train_env_id']):
-            game_info_file.write(
-                'current_step, x_position, cost, is_break_constraint\n')
+        # game_info_file = open(os.path.join(viz_path, benchmark_ids[0], 'info_record.txt'), 'w')
+        # if is_commonroad(env_id=config['env']['train_env_id']):
+        #     game_info_file.write(
+        #         'current_step, velocity, cost, is_collision, is_off_road, is_goal_reached, is_time_out\n')
+        # elif is_mujoco(env_id=config['env']['train_env_id']):
+        #     game_info_file.write(
+        #         'current_step, x_position, cost, is_break_constraint\n')
         reward_sum = 0
         running_step = 0
         done, state, info = False, None, None
@@ -272,14 +284,14 @@ def evaluate():
                 eval_acs_all.append(action[0])
             new_obs, reward, done, info = env.step(action)
             reward_sum += reward
-            save_game_record(info=info[0],
-                             file=game_info_file,
-                             cost=cost[0],
-                             type=record_type)
+            # save_game_record(info=info[0],
+            #                  file=game_info_file,
+            #                  cost=cost[0],
+            #                  type=record_type)
             obs = new_obs
             running_step += 1
-        game_info_file.close()
-
+        # game_info_file.close()
+        print(reward_sum)
         # pngs2gif(png_dir=os.path.join(viz_path, benchmark_ids[0]))
 
         info = info[0]
