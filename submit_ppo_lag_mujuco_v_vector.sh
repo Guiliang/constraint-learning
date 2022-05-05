@@ -21,13 +21,5 @@ pip install -e ./mujuco_environment
 cd ./interface/
 python train_ppo.py ../config/mujoco_InvertedPendulumWall-v0/train_ppo_lag_InvertedPendulumWall-v0.yaml -n 5 -s 123 -l "$log_dir"
 process_id=$!
-python train_ppo.py ../config/mujoco_InvertedPendulumWall-v0/train_ppo_lag_InvertedPendulumWall-v0.yaml -n 5 -s 321 -l "$log_dir"
-process_id=$!
-python train_ppo.py ../config/mujoco_InvertedPendulumWall-v0/train_ppo_lag_InvertedPendulumWall-v0.yaml -n 5 -s 456 -l "$log_dir"
-process_id=$!
-python train_ppo.py ../config/mujoco_InvertedPendulumWall-v0/train_ppo_lag_InvertedPendulumWall-v0.yaml -n 5 -s 654 -l "$log_dir"
-process_id=$!
-python train_ppo.py ../config/mujoco_InvertedPendulumWall-v0/train_ppo_lag_InvertedPendulumWall-v0.yaml -n 5 -s 666 -l "$log_dir"
-process_id=$!
 wait $process_id
 echo shell finish running
