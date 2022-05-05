@@ -7,6 +7,8 @@ from gym.envs.mujoco import walker2d
 
 ACTION_TORQUE_THRESHOLD = 0.5
 VIOLATIONS_ALLOWED = 100
+
+
 class Walker2dTest(walker2d.Walker2dEnv):
     def reset(self):
         ob = super().reset()
@@ -33,7 +35,8 @@ class Walker2dTest(walker2d.Walker2dEnv):
 
 ###############################################################################
 
-REWARD_TYPE = 'old'         # Which reward to use, traditional or new one?
+REWARD_TYPE = 'old'  # Which reward to use, traditional or new one?
+
 
 # =========================================================================== #
 #                    Walker With Global Postion Coordinates                   #
@@ -53,28 +56,30 @@ class WalkerWithPos(walker2d.Walker2dEnv):
         reward = reward_ctrl + reward_run + alive_bonus
 
         info = dict(
-                reward_run=reward_run,
-                reward_ctrl=reward_ctrl,
-                x_position=xposafter
-                )
+            reward_run=reward_run,
+            reward_ctrl=reward_ctrl,
+            x_position=xposafter
+        )
 
         return reward, info
 
     def new_reward(self, xposbefore, xposafter, action):
         reward_ctrl = -1e-3 * np.square(action).sum()
+        # if xposafter < 0:
+        #     reward_dist = 1.5 * abs(xposafter)
+        # else:
         reward_dist = abs(xposafter)
-        reward_run  = reward_dist / self.dt
+        reward_run = reward_dist / self.dt
 
         reward = reward_dist + reward_ctrl
         info = dict(
-                reward_run=reward_run,
-                reward_ctrl=reward_ctrl,
-                reward_dist=reward_dist,
-                x_position=xposafter
-                )
+            reward_run=reward_run,
+            reward_ctrl=reward_ctrl,
+            reward_dist=reward_dist,
+            x_position=xposafter
+        )
 
         return reward, info
-
 
     def step(self, action):
         xposbefore = self.sim.data.qpos[0]
