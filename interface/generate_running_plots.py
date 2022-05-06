@@ -40,15 +40,15 @@ def generate_plots():
     #     "ICRL_Pos_with-action": 'ICRL',
     #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
     #     }
-    # env_id = 'AntWall-V0'
-    # method_names_labels_dict = {
-    #     # "PPO_Pos": 'PPO',
-    #     "PPO-Lag-AntWall": 'PPO_lag',
-    #     "GAIL_AntWall-v0_with-action": 'GAIL',
-    #     "Binary_AntWall-v0_with-action_nit-50": 'Binary',
-    #     "ICRL_AntWall_with-action_nit-50": 'ICRL',
-    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",
-    # }
+    env_id = 'AntWall-V0'
+    method_names_labels_dict = {
+        "PPO-AntWall": 'PPO',
+        "PPO-Lag-AntWall": 'PPO_lag',
+        "GAIL_AntWall-v0_with-action": 'GAIL',
+        "Binary_AntWall-v0_with-action_nit-50": 'Binary',
+        "ICRL_AntWall_with-action_nit-50": 'ICRL',
+        "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",
+    }
     # env_id = 'highD_velocity_constraint'
     # method_names_labels_dict = {
     #     # "PPO_highD_no-velocity": 'PPO',
@@ -67,14 +67,14 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    env_id = 'InvertedPendulumWall-v0'
-    method_names_labels_dict = {
-        "PPO_Pendulum": 'PPO',
-        "PPO_lag_Pendulum": 'PPO_lag',
-        "ICRL_Pendulum": 'ICRL',
-        "VICRL-InvertedPendulumWall": 'VICRL',
-    }
-    modes = ['train', 'test']
+    # env_id = 'InvertedPendulumWall-v0'
+    # method_names_labels_dict = {
+    #     "PPO_Pendulum": 'PPO',
+    #     "PPO_lag_Pendulum": 'PPO_lag',
+    #     "ICRL_Pendulum": 'ICRL',
+    #     "VICRL-InvertedPendulumWall": 'VICRL',
+    # }
+    modes = ['train']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
         if env_id == 'highD_velocity_constraint':
@@ -479,12 +479,19 @@ def generate_plots():
             gap = 1
             max_reward = float('inf')
             min_reward = -float('inf')
-            plot_key = ['reward', 'reward_nc', 'constraint']
-            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
+            plot_key = ['reward', 'constraint']
+            label_key = ['reward', 'Constraint Breaking Rate']
             plot_y_lim_dict = {'reward': (0, 30000),
                                'reward_nc': (0, 30000),
                                'constraint': (0, 1)}
             log_path_dict = {
+                'PPO-AntWall': [
+                    '../save_model/PPO-AntWall/train_ppo_AntWall-v0_nit-50-multi_env-Apr-19-2022-04:34-seed_123/',
+                    '../save_model/PPO-AntWall/train_ppo_AntWall-v0_nit-50-multi_env-Apr-19-2022-08:24-seed_321/',
+                    '../save_model/PPO-AntWall/train_ppo_AntWall-v0_nit-50-multi_env-Apr-19-2022-12:14-seed_456/',
+                    '../save_model/PPO-AntWall/train_ppo_AntWall-v0_nit-50-multi_env-Apr-19-2022-16:02-seed_654/',
+                    '../save_model/PPO-AntWall/train_ppo_AntWall-v0_nit-50-multi_env-Apr-19-2022-19:52-seed_666/',
+                ],
                 'PPO-Lag-AntWall': [
                     '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-v0_nit-50-multi_env-Apr-24-2022-12:21-seed_123/',
                     '../save_model/PPO-Lag-AntWall/train_ppo_lag_AntWall-v0_nit-50-multi_env-Apr-24-2022-17:08-seed_321/',
@@ -647,6 +654,7 @@ def generate_plots():
                                                                      average_num=average_num)
                 std_results_moving_average = compute_moving_average(result_all=std_dict[plot_key[idx]],
                                                                     average_num=average_num)
+                print(method_name)
                 if max_episodes:
                     mean_results_moving_average = mean_results_moving_average[:max_episodes]
                     std_results_moving_average = std_results_moving_average[:max_episodes]
