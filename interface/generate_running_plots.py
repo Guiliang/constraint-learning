@@ -590,7 +590,7 @@ def generate_plots():
             }
         elif env_id == 'InvertedPendulumWall-v0':
             max_episodes = 100000
-            average_num = 5000
+            average_num = 1000
             gap = 1000
             max_reward = float('inf')
             min_reward = -float('inf')
@@ -598,14 +598,19 @@ def generate_plots():
             label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
             plot_y_lim_dict = {'reward': (0, 100),
                                'reward_nc': (0, 100),
-                               'constraint': (0, 1)}
+                               'constraint': (0, 1.1)}
             log_path_dict = {
                 'PPO_Pendulum': [
                     # '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-28-2022-13:01-seed_123/',
                     '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:19-seed_123/',
                 ],
                 'PPO_lag_Pendulum': [
-                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:20-seed_123/',
+                    # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:20-seed_123/',
+                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-May-05-2022-07:18-seed_123/',
+                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-May-05-2022-12:02-seed_321/',
+                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-May-05-2022-16:52-seed_456/',
+                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-May-05-2022-20:44-seed_654/',
+                    '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-May-06-2022-01:27-seed_666/',
                     # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-29-2022-05:41-seed_123/',
                 ],
                 'ICRL_Pendulum': [
