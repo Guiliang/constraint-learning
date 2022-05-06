@@ -31,15 +31,15 @@ def plot_results(mean_results_moving_avg_dict,
 
 
 def generate_plots():
-    env_id = 'HCWithPos-v0'
-    method_names_labels_dict = {
-        "PPO_Pos": 'PPO',
-        "PPO_lag_Pos": 'PPO_lag',
-        # "GAIL_HCWithPos-v0_with-action": 'GAIL',
-        # "Binary_HCWithPos-v0_with-action": 'Binary',
-        # "ICRL_Pos_with-action": 'ICRL',
-        # "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
-        }
+    # env_id = 'HCWithPos-v0'
+    # method_names_labels_dict = {
+    #     "PPO_Pos": 'PPO',
+    #     "PPO_lag_Pos": 'PPO_lag',
+    #     "GAIL_HCWithPos-v0_with-action": 'GAIL',
+    #     "Binary_HCWithPos-v0_with-action": 'Binary',
+    #     "ICRL_Pos_with-action": 'ICRL',
+    #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
+    # }
     # env_id = 'AntWall-V0'
     # method_names_labels_dict = {
     #     "PPO-AntWall": 'PPO',
@@ -67,13 +67,13 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    # env_id = 'InvertedPendulumWall-v0'
-    # method_names_labels_dict = {
-    #     "PPO_Pendulum": 'PPO',
-    #     "PPO_lag_Pendulum": 'PPO_lag',
-    #     "ICRL_Pendulum": 'ICRL',
-    #     "VICRL-InvertedPendulumWall": 'VICRL',
-    # }
+    env_id = 'InvertedPendulumWall-v0'
+    method_names_labels_dict = {
+        "PPO_Pendulum": 'PPO',
+        "PPO_lag_Pendulum": 'PPO_lag',
+        # "ICRL_Pendulum": 'ICRL',
+        # "VICRL-InvertedPendulumWall": 'VICRL',
+    }
     modes = ['train']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -291,9 +291,9 @@ def generate_plots():
             gap = 1
             plot_key = ['reward', 'reward_nc', 'constraint']
             label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
-            plot_y_lim_dict = {'reward': (0, 6000),
+            plot_y_lim_dict = {'reward': (0, 7000),
                                'reward_nc': (0, 6000),
-                               'constraint': (0, 1)}
+                               'constraint': (0, 1.1)}
             log_path_dict = {
                 "PPO_Pos": [
                     '../save_model/PPO-HC/train_ppo_HCWithPos-v0-multi_env-Apr-06-2022-05:18-seed_123/',
@@ -677,7 +677,7 @@ def generate_plots():
                          label=label_key[idx],
                          method_names=list(method_names_labels_dict.keys()),
                          ylim=plot_y_lim_dict[plot_key[idx]],
-                         save_label=os.path.join(env_id, plot_key[idx] + '_' + mode),
+                         save_label=os.path.join(env_id, plot_key[idx] + '_' + mode + '_' + env_id),
                          legend_size=15,
                          legend_dict=method_names_labels_dict)
 
