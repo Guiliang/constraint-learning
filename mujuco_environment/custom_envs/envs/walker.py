@@ -35,7 +35,7 @@ class Walker2dTest(walker2d.Walker2dEnv):
 
 ###############################################################################
 
-REWARD_TYPE = 'new'  # Which reward to use, traditional or new one?
+REWARD_TYPE = 'old'  # Which reward to use, traditional or new one?
 
 
 # =========================================================================== #
