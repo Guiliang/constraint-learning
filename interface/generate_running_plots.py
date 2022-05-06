@@ -31,24 +31,24 @@ def plot_results(mean_results_moving_avg_dict,
 
 
 def generate_plots():
-    # env_id = 'HCWithPos-v0'
-    # method_names_labels_dict = {
-    #     # "PPO_Pos": 'PPO',
-    #     "PPO_lag_Pos": 'PPO_lag',
-    #     "GAIL_HCWithPos-v0_with-action": 'GAIL',
-    #     "Binary_HCWithPos-v0_with-action": 'Binary',
-    #     "ICRL_Pos_with-action": 'ICRL',
-    #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
-    #     }
-    env_id = 'AntWall-V0'
+    env_id = 'HCWithPos-v0'
     method_names_labels_dict = {
-        "PPO-AntWall": 'PPO',
-        "PPO-Lag-AntWall": 'PPO_lag',
-        "GAIL_AntWall-v0_with-action": 'GAIL',
-        "Binary_AntWall-v0_with-action_nit-50": 'Binary',
-        "ICRL_AntWall_with-action_nit-50": 'ICRL',
-        "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",
-    }
+        "PPO_Pos": 'PPO',
+        "PPO_lag_Pos": 'PPO_lag',
+        # "GAIL_HCWithPos-v0_with-action": 'GAIL',
+        # "Binary_HCWithPos-v0_with-action": 'Binary',
+        # "ICRL_Pos_with-action": 'ICRL',
+        # "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
+        }
+    # env_id = 'AntWall-V0'
+    # method_names_labels_dict = {
+    #     "PPO-AntWall": 'PPO',
+    #     "PPO-Lag-AntWall": 'PPO_lag',
+    #     "GAIL_AntWall-v0_with-action": 'GAIL',
+    #     "Binary_AntWall-v0_with-action_nit-50": 'Binary',
+    #     "ICRL_AntWall_with-action_nit-50": 'ICRL',
+    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",
+    # }
     # env_id = 'highD_velocity_constraint'
     # method_names_labels_dict = {
     #     # "PPO_highD_no-velocity": 'PPO',
