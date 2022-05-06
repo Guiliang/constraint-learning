@@ -67,12 +67,17 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    env_id = 'InvertedPendulumWall-v0'
+    # env_id = 'InvertedPendulumWall-v0'
+    # method_names_labels_dict = {
+    #     "PPO_Pendulum": 'PPO',
+    #     "PPO_lag_Pendulum": 'PPO_lag',
+    #     # "ICRL_Pendulum": 'ICRL',
+    #     # "VICRL-InvertedPendulumWall": 'VICRL',
+    # }
+    env_id = 'WalkerWithPos-v0'
     method_names_labels_dict = {
-        "PPO_Pendulum": 'PPO',
-        "PPO_lag_Pendulum": 'PPO_lag',
-        # "ICRL_Pendulum": 'ICRL',
-        # "VICRL-InvertedPendulumWall": 'VICRL',
+        "PPO_Walker": 'PPO',
+        "PPO_lag_Walker": 'PPO_lag',
     }
     modes = ['train']
     for mode in modes:
@@ -622,6 +627,25 @@ def generate_plots():
                     # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2_mode-mean-multi_env-May-04-2022-05:51-seed_123/',
                     '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2-multi_env-May-04-2022-08:13-seed_123/',
                 ]
+            }
+        elif env_id == 'WalkerWithPos-v0':
+            max_episodes = 50000
+            average_num = 1000
+            gap = 1000
+            max_reward = float('inf')
+            min_reward = -float('inf')
+            plot_key = ['reward', 'reward_nc', 'constraint']
+            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
+            plot_y_lim_dict = {'reward': (0, 100),
+                               'reward_nc': (0, 100),
+                               'constraint': (0, 1.1)}
+            log_path_dict = {
+                'PPO_Walker': [
+                    '../save_model/PPO-Walker/train_ppo_WalkerWithPos-v0-multi_env-May-02-2022-10:54-seed_123/',
+                ],
+                'PPO_lag_Walker': [
+                    '../save_model/PPO-Lag-Walker/train_ppo_lag_WalkerWithPos-v0-multi_env-May-04-2022-12:26-seed_123/',
+                ],
             }
         else:
             raise ValueError("Unknown env id {0}".format(env_id))
