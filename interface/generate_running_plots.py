@@ -67,18 +67,18 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    # env_id = 'InvertedPendulumWall-v0'
-    # method_names_labels_dict = {
-    #     "PPO_Pendulum": 'PPO',
-    #     "PPO_lag_Pendulum": 'PPO_lag',
-    #     # "ICRL_Pendulum": 'ICRL',
-    #     # "VICRL-InvertedPendulumWall": 'VICRL',
-    # }
-    env_id = 'WalkerWithPos-v0'
+    env_id = 'InvertedPendulumWall-v0'
     method_names_labels_dict = {
-        "PPO_Walker": 'PPO',
-        "PPO_lag_Walker": 'PPO_lag',
+        "PPO_Pendulum": 'PPO',
+        "PPO_lag_Pendulum": 'PPO_lag',
+        # "ICRL_Pendulum": 'ICRL',
+        # "VICRL-InvertedPendulumWall": 'VICRL',
     }
+    # env_id = 'WalkerWithPos-v0'
+    # method_names_labels_dict = {
+    #     "PPO_Walker": 'PPO',
+    #     "PPO_lag_Walker": 'PPO_lag',
+    # }
     modes = ['train']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -607,7 +607,12 @@ def generate_plots():
             log_path_dict = {
                 'PPO_Pendulum': [
                     # '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-28-2022-13:01-seed_123/',
-                    '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:19-seed_123/',
+                    # '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:19-seed_123/',
+                    '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-May-06-2022-05:17-seed_123/',
+                    '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-May-06-2022-06:30-seed_321/',
+                    '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-May-06-2022-10:54-seed_456/',
+                    '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-May-06-2022-13:39-seed_654/',
+                    '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-May-06-2022-18:04-seed_666/',
                 ],
                 'PPO_lag_Pendulum': [
                     # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-30-2022-09:20-seed_123/',
@@ -636,12 +641,16 @@ def generate_plots():
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
             label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
-            plot_y_lim_dict = {'reward': (0, 100),
-                               'reward_nc': (0, 100),
+            plot_y_lim_dict = {'reward': (0, 2000),
+                               'reward_nc': (0, 2000),
                                'constraint': (0, 1.1)}
             log_path_dict = {
                 'PPO_Walker': [
-                    '../save_model/PPO-Walker/train_ppo_WalkerWithPos-v0-multi_env-May-02-2022-10:54-seed_123/',
+                    '../save_model/PPO-Walker/train_ppo_WalkerWithPos-v0-multi_env-May-06-2022-06:56-seed_123/',
+                    '../save_model/PPO-Walker/train_ppo_WalkerWithPos-v0-multi_env-May-06-2022-10:37-seed_321/',
+                    '../save_model/PPO-Walker/train_ppo_WalkerWithPos-v0-multi_env-May-06-2022-14:35-seed_456/',
+                    '../save_model/PPO-Walker/train_ppo_WalkerWithPos-v0-multi_env-May-06-2022-18:18-seed_654/',
+                    '../save_model/PPO-Walker/train_ppo_WalkerWithPos-v0-multi_env-May-06-2022-19:37-seed_666/',
                 ],
                 'PPO_lag_Walker': [
                     '../save_model/PPO-Lag-Walker/train_ppo_lag_WalkerWithPos-v0-multi_env-May-04-2022-12:26-seed_123/',
