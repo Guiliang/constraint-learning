@@ -69,9 +69,9 @@ def generate_plots():
     # }
     env_id = 'InvertedPendulumWall-v0'
     method_names_labels_dict = {
-        "PPO_Pendulum": 'PPO',
-        "PPO_lag_Pendulum": 'PPO_lag',
-        "ICRL_Pendulum": 'ICRL',
+        # "PPO_Pendulum": 'PPO',
+        # "PPO_lag_Pendulum": 'PPO_lag',
+        # "ICRL_Pendulum": 'ICRL',
         "VICRL-InvertedPendulumWall": 'VICRL',
     }
     # env_id = 'WalkerWithPos-v0'
@@ -594,7 +594,7 @@ def generate_plots():
                 ],
             }
         elif env_id == 'InvertedPendulumWall-v0':
-            max_episodes = 100000
+            max_episodes = 80000
             average_num = 1000
             gap = 1000
             max_reward = float('inf')
