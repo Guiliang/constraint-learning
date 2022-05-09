@@ -8,7 +8,7 @@
 #SBATCH --time=36:00:00
 #SBATCH --mem=24GB
 #SBATCH --job-name=VICRL
-task_name="train-Mojuco-VICRL_1"
+task_name="train-Mojuco-VICRL_2"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 export PATH=/pkgs/anaconda3/bin:$PATH
@@ -19,7 +19,19 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface
-python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-2e-5_p-9e-2-1e-2.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2.yaml -n 5 -s 123 -l "$log_dir"
+process_id=$!
+wait $process_id
+python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2.yaml -n 5 -s 321 -l "$log_dir"
+process_id=$!
+wait $process_id
+python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2.yaml -n 5 -s 456 -l "$log_dir"
+process_id=$!
+wait $process_id
+python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2.yaml -n 5 -s 654 -l "$log_dir"
+process_id=$!
+wait $process_id
+python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2.yaml -n 5 -s 666 -l "$log_dir"
 process_id=$!
 wait $process_id
 echo shell finish running
