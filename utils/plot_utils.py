@@ -51,7 +51,7 @@ def plot_shadow_curve(draw_keys,
                       y_dict_mean,
                       x_dict_std,
                       y_dict_std,
-                      ylim,
+                      ylim=None,
                       title=None,
                       xlabel=None,
                       ylabel=None,
@@ -67,9 +67,7 @@ def plot_shadow_curve(draw_keys,
     mpl.rcParams['xtick.labelsize'] = axis_size
     mpl.rcParams['ytick.labelsize'] = axis_size
     fig = plt.figure(figsize=img_size)
-    ax = fig.add_subplot(1, 1, 1)
-
-    plt.ylim(0, 1)
+    # ax = fig.add_subplot(1, 1, 1)
     # ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     # colors = ['b', 'r', 'g', 'c', 'm', 'y', 'k', 'w']
     for key_idx in range(len(draw_keys)):
@@ -88,7 +86,8 @@ def plot_shadow_curve(draw_keys,
                  linewidth=linewidth,
                  label=key if legend_dict is None else legend_dict[key],
                  linestyle='-' if linestyle_dict is None else linestyle_dict[key])
-    plt.ylim(ylim[0], ylim[1])
+    if ylim is not None:
+        plt.ylim(ylim[0], ylim[1])
     if legend_size is not None:
         plt.legend(fontsize=legend_size, loc='lower left')  # upper right, lower left
     if title is not None:

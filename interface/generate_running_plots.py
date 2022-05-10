@@ -71,8 +71,10 @@ def generate_plots():
     method_names_labels_dict = {
         # "PPO_Pendulum": 'PPO',
         # "PPO_lag_Pendulum": 'PPO_lag',
-        # "ICRL_Pendulum": 'ICRL',
-        "VICRL-InvertedPendulumWall": 'VICRL',
+        "ICRL_Pendulum": 'ICRL',
+        "VICRL_PendulumWall": 'VICRL',
+        "Binary_PendulumWall": 'Binary',
+        # "GAIL_PendulumWall": 'GAIL',
     }
     # env_id = 'WalkerWithPos-v0'
     # method_names_labels_dict = {
@@ -599,11 +601,14 @@ def generate_plots():
             gap = 1000
             max_reward = float('inf')
             min_reward = -float('inf')
-            plot_key = ['reward', 'reward_nc', 'constraint']
-            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
-            plot_y_lim_dict = {'reward': (0, 100),
-                               'reward_nc': (0, 100),
-                               'constraint': (0, 1.1)}
+            plot_key = ['constraint', 'reward', 'reward_nc']
+            label_key = ['Constraint Breaking Rate', 'reward', 'reward_nc']
+            # plot_y_lim_dict = {'reward': (0, 100),
+            #                    'reward_nc': (0, 100),
+            #                    'constraint': (0, 1.1)}
+            plot_y_lim_dict = {'reward': None,
+                               'reward_nc': None,
+                               'constraint': None}
             log_path_dict = {
                 'PPO_Pendulum': [
                     # '../save_model/PPO-InvertedPendulumWall/train_ppo_InvertedPendulumWall-v0-multi_env-Apr-28-2022-13:01-seed_123/',
@@ -626,12 +631,26 @@ def generate_plots():
                 'ICRL_Pendulum': [
                     # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0-multi_env-May-01-2022-06:09-seed_123/',
                     '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-04-2022-05:57-seed_123/',
+                    # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-14:46-seed_456/',
+                    # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-12:17-seed_456/',
+                    # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-17:48-seed_654/',
+                    # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-23:05-seed_666/'
                 ],
-                'VICRL-InvertedPendulumWall': [
+                'VICRL_PendulumWall': [
                     # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2-multi_env-May-03-2022-05:17-seed_123/',
                     # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2_mode-mean-multi_env-May-04-2022-05:51-seed_123/',
                     # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2-multi_env-May-04-2022-08:13-seed_123/',
                     '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-07-2022-01:40-seed_123/',
+                    '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-09-2022-12:09-seed_123/',
+                    '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-09-2022-16:26-seed_321/',
+                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-09-2022-20:36-seed_456/',
+                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-10-2022-01:43-seed_654/',
+                ],
+                'Binary_PendulumWall': [
+                    '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-12:25-seed_123/',
+                ],
+                'GAIL_PendulumWall': [
+                    'train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5.yaml'
                 ]
             }
         elif env_id == 'WalkerWithPos-v0':
