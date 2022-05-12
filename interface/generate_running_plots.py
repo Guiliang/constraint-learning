@@ -74,7 +74,7 @@ def generate_plots():
         "ICRL_Pendulum": 'ICRL',
         "VICRL_PendulumWall": 'VICRL',
         "Binary_PendulumWall": 'Binary',
-        # "GAIL_PendulumWall": 'GAIL',
+        "GAIL_PendulumWall": 'GAIL',
     }
     # env_id = 'WalkerWithPos-v0'
     # method_names_labels_dict = {
@@ -629,8 +629,13 @@ def generate_plots():
                     # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-29-2022-05:41-seed_123/',
                 ],
                 'ICRL_Pendulum': [
+                    '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-09:17-seed_123/',
+                    '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-14:51-seed_321/',
+                    '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-19:19-seed_456/',
+                    '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-23:49-seed_654/',
+                    '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-11-2022-04:20-seed_666/',
                     # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0-multi_env-May-01-2022-06:09-seed_123/',
-                    '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-04-2022-05:57-seed_123/',
+                    # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-04-2022-05:57-seed_123/',
                     # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-14:46-seed_456/',
                     # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-12:17-seed_456/',
                     # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-17:48-seed_654/',
@@ -647,10 +652,15 @@ def generate_plots():
                     # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-10-2022-01:43-seed_654/',
                 ],
                 'Binary_PendulumWall': [
-                    '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-12:25-seed_123/',
+                    # '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-12:25-seed_123/',
+                    '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-10:43-seed_123/',
+                    '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-17:34-seed_321/',
+                    '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-21:52-seed_456/',
+                    '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-11-2022-02:09-seed_654/',
+                    '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-11-2022-07:52-seed_666/',
                 ],
                 'GAIL_PendulumWall': [
-                    'train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5.yaml'
+                    '../save_model/GAIL-InvertedPendulumWall/train_GAIL_disclr-1e-5_InvertedPendulumWall-v0-multi_env-May-10-2022-12:55-seed_123/',
                 ]
             }
         elif env_id == 'WalkerWithPos-v0':

@@ -170,8 +170,8 @@ def evaluate():
     num_threads = 1
     if_testing_env = False
 
-    load_model_name = 'train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2-multi_env-May-03-2022-05:17-seed_123'
-    task_name = 'VICRL-InvertedPendulumWall'
+    load_model_name = 'train_ppo_lag_WalkerWithPos-v0-multi_env-May-07-2022-01:19-seed_123'
+    task_name = 'PPO-Lag-Walker'
     iteration_msg = 'best'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
