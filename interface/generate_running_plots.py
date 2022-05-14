@@ -692,7 +692,7 @@ def generate_plots():
                     '../save_model/PPO-Lag-Walker/train_ppo_lag_WalkerWithPos-v0-multi_env-May-07-2022-20:05-seed_666/',
                 ],
                 'ICRL_Walker': [
-                    '../save_model/ICRL-WalkerWithPos/train_ICRL_WalkerWithPos-v0-multi_env-May-12-2022-13:37-seed_123/',
+                    '../save_model/ICRL-WalkerWithPos/train_ICRL_WalkerWithPos-v0-multi_env-May-13-2022-11:15-seed_123/',
                 ],
             }
         else:
