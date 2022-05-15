@@ -40,15 +40,15 @@ def generate_plots():
     #     "ICRL_Pos_with-action": 'ICRL',
     #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
     # }
-    env_id = 'AntWall-V0'
-    method_names_labels_dict = {
-        # "PPO-AntWall": 'PPO',
-        "PPO-Lag-AntWall": 'PPO_lag',
-        "GAIL_AntWall-v0_with-action": 'GAIL',
-        "Binary_AntWall-v0_with-action_nit-50": 'Binary',
-        "ICRL_AntWall_with-action_nit-50": 'ICRL',
-        "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",  # VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2
-    }
+    # env_id = 'AntWall-V0'
+    # method_names_labels_dict = {
+    #     # "PPO-AntWall": 'PPO',
+    #     "PPO-Lag-AntWall": 'PPO_lag',
+    #     "GAIL_AntWall-v0_with-action": 'GAIL',
+    #     "Binary_AntWall-v0_with-action_nit-50": 'Binary',
+    #     "ICRL_AntWall_with-action_nit-50": 'ICRL',
+    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",  # VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2
+    # }
     # env_id = 'highD_velocity_constraint'
     # method_names_labels_dict = {
     #     "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO',
@@ -67,15 +67,15 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    # env_id = 'InvertedPendulumWall-v0'
-    # method_names_labels_dict = {
-    #     # "PPO_Pendulum": 'PPO',
-    #     # "PPO_lag_Pendulum": 'PPO_lag',
-    #     "ICRL_Pendulum": 'ICRL',
-    #     "VICRL_PendulumWall": 'VICRL',
-    #     "Binary_PendulumWall": 'Binary',
-    #     "GAIL_PendulumWall": 'GAIL',
-    # }
+    env_id = 'InvertedPendulumWall-v0'
+    method_names_labels_dict = {
+        # "PPO_Pendulum": 'PPO',
+        # "PPO_lag_Pendulum": 'PPO_lag',
+        "ICRL_Pendulum": 'ICRL',
+        "VICRL_PendulumWall": 'VICRL',
+        # "Binary_PendulumWall": 'Binary',
+        # "GAIL_PendulumWall": 'GAIL',
+    }
     # env_id = 'WalkerWithPos-v0'
     # method_names_labels_dict = {
     #     "PPO_Walker": 'PPO',
@@ -648,9 +648,10 @@ def generate_plots():
                     # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-23:05-seed_666/'
                 ],
                 'VICRL_PendulumWall': [
-                    '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-07-2022-01:40-seed_123/',
-                    '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-09-2022-12:09-seed_123/',
-                    '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-09-2022-16:26-seed_321/',
+                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-1e-2-9e-2-multi_env-May-07-2022-01:40-seed_123/',
+                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-1e-2-9e-2-multi_env-May-09-2022-12:09-seed_123/',
+                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-1e-2-9e-2-multi_env-May-09-2022-16:26-seed_321/',
+                    '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-15-2022-05:27-seed_123/',
                 ],
                 'Binary_PendulumWall': [
                     # '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-12:25-seed_123/',
