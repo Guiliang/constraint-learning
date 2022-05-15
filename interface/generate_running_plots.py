@@ -81,6 +81,7 @@ def generate_plots():
         "PPO_Walker": 'PPO',
         "PPO_lag_Walker": 'PPO_lag',
         "ICRL_Walker": 'ICRL',
+        "VICRL_Walker": 'VICRL'
     }
     modes = ['train']
     for mode in modes:
@@ -643,14 +644,9 @@ def generate_plots():
                     # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-23:05-seed_666/'
                 ],
                 'VICRL_PendulumWall': [
-                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2-multi_env-May-03-2022-05:17-seed_123/',
-                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2_mode-mean-multi_env-May-04-2022-05:51-seed_123/',
-                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_p-9e-2-1e-2-multi_env-May-04-2022-08:13-seed_123/',
                     '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-07-2022-01:40-seed_123/',
                     '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-09-2022-12:09-seed_123/',
                     '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-09-2022-16:26-seed_321/',
-                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-09-2022-20:36-seed_456/',
-                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-10-2022-01:43-seed_654/',
                 ],
                 'Binary_PendulumWall': [
                     # '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-12:25-seed_123/',
@@ -692,7 +688,12 @@ def generate_plots():
                     '../save_model/PPO-Lag-Walker/train_ppo_lag_WalkerWithPos-v0-multi_env-May-07-2022-20:05-seed_666/',
                 ],
                 'ICRL_Walker': [
+                    # '../save_model/ICRL-WalkerWithPos/train_ICRL_WalkerWithPos-v0_plr-1e-2-multi_env-May-14-2022-05:50-seed_123/',
                     '../save_model/ICRL-WalkerWithPos/train_ICRL_WalkerWithPos-v0-multi_env-May-13-2022-11:15-seed_123/',
+                ],
+                'VICRL_Walker': [
+                    # '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_plr-1e-2-multi_env-May-14-2022-04:46-seed_123/',
+                    '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0-multi_env-May-13-2022-15:14-seed_123/',
                 ],
             }
         else:
