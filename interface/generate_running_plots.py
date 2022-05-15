@@ -40,15 +40,15 @@ def generate_plots():
     #     "ICRL_Pos_with-action": 'ICRL',
     #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
     # }
-    # env_id = 'AntWall-V0'
-    # method_names_labels_dict = {
-    #     "PPO-AntWall": 'PPO',
-    #     "PPO-Lag-AntWall": 'PPO_lag',
-    #     "GAIL_AntWall-v0_with-action": 'GAIL',
-    #     "Binary_AntWall-v0_with-action_nit-50": 'Binary',
-    #     "ICRL_AntWall_with-action_nit-50": 'ICRL',
-    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",
-    # }
+    env_id = 'AntWall-V0'
+    method_names_labels_dict = {
+        # "PPO-AntWall": 'PPO',
+        "PPO-Lag-AntWall": 'PPO_lag',
+        "GAIL_AntWall-v0_with-action": 'GAIL',
+        "Binary_AntWall-v0_with-action_nit-50": 'Binary',
+        "ICRL_AntWall_with-action_nit-50": 'ICRL',
+        "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2": "VICRL",  # VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2
+    }
     # env_id = 'highD_velocity_constraint'
     # method_names_labels_dict = {
     #     "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO',
@@ -76,13 +76,13 @@ def generate_plots():
     #     "Binary_PendulumWall": 'Binary',
     #     "GAIL_PendulumWall": 'GAIL',
     # }
-    env_id = 'WalkerWithPos-v0'
-    method_names_labels_dict = {
-        "PPO_Walker": 'PPO',
-        "PPO_lag_Walker": 'PPO_lag',
-        "ICRL_Walker": 'ICRL',
-        "VICRL_Walker": 'VICRL'
-    }
+    # env_id = 'WalkerWithPos-v0'
+    # method_names_labels_dict = {
+    #     "PPO_Walker": 'PPO',
+    #     "PPO_lag_Walker": 'PPO_lag',
+    #     "ICRL_Walker": 'ICRL',
+    #     "VICRL_Walker": 'VICRL'
+    # }
     modes = ['train']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -488,8 +488,8 @@ def generate_plots():
             gap = 1
             max_reward = float('inf')
             min_reward = -float('inf')
-            plot_key = ['reward', 'constraint']
-            label_key = ['reward', 'Constraint Breaking Rate']
+            plot_key = ['reward', 'reward_nc', 'constraint']
+            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
             plot_y_lim_dict = {'reward': (0, 30000),
                                'reward_nc': (0, 30000),
                                'constraint': (0, 1)}
@@ -538,44 +538,48 @@ def generate_plots():
                 'VICRL_AntWall-v0_with-action_no_is_nit-100': [
                     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-100-multi_env-Apr-16-2022-00:52-seed_123/'
                 ],
-                'VICRL_AntWall_with-action': [
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-11:36-seed_123/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-14:27-seed_321/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-14:36-seed_456/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-15:04-seed_654/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-15:14-seed_666/',
+                # 'VICRL_AntWall_with-action': [
+                #     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-11:36-seed_123/',
+                #     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-14:27-seed_321/',
+                #     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-14:36-seed_456/',
+                #     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-15:04-seed_654/',
+                #     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action-multi_env-Apr-15-2022-15:14-seed_666/',
+                # ],
+                # 'VICRL_AntWall_with-action_no_is': [
+                #     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is-multi_env-Apr-16-2022-00:49-seed_123/',
+                #     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is-multi_env-Apr-16-2022-03:25-seed_321/',
+                #     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is-multi_env-Apr-16-2022-05:57-seed_456/',
+                #     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is-multi_env-Apr-16-2022-08:30-seed_654/',
+                #     '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is-multi_env-Apr-16-2022-11:07-seed_666/',
+                # ],
+                'VICRL_AntWall-v0_with-action_no_is_nit-50_p-1e-1-9e-1': [
+                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-1e-9-1e-1-multi_env-Apr-17-2022-09:53-seed_123/',
+                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-1e-9-1e-1-multi_env-Apr-17-2022-15:24-seed_321/',
+                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-1e-9-1e-1-multi_env-Apr-17-2022-20:47-seed_456/',
+                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-1e-9-1e-1-multi_env-Apr-18-2022-02:19-seed_654/',
+                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-1e-9-1e-1-multi_env-Apr-18-2022-08:05-seed_666/',
                 ],
-                'VICRL_AntWall_with-action_no_is': [
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is-multi_env-Apr-16-2022-00:49-seed_123/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is-multi_env-Apr-16-2022-03:25-seed_321/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is-multi_env-Apr-16-2022-05:57-seed_456/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is-multi_env-Apr-16-2022-08:30-seed_654/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is-multi_env-Apr-16-2022-11:07-seed_666/',
+                'VICRL_AntWall-v0_with-action_no_is_nit-50_p-1e-2-9e-2': [
+                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-1e-2-9e-2-multi_env-Apr-24-2022-12:21-seed_123/',
+                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-1e-2-9e-2-multi_env-Apr-24-2022-17:28-seed_321/',
+                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-1e-2-9e-2-multi_env-Apr-26-2022-05:52-seed_456/',
+                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-1e-2-9e-2-multi_env-Apr-26-2022-15:55-seed_654/',
                 ],
-                'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1': [
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1-multi_env-Apr-17-2022-09:53-seed_123/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1-multi_env-Apr-17-2022-15:24-seed_321/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1-multi_env-Apr-17-2022-20:47-seed_456/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1-multi_env-Apr-18-2022-02:19-seed_654/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1-multi_env-Apr-18-2022-08:05-seed_666/',
-                ],
-                'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2': [
-                    # '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-17-2022-09:53-seed_123/',
-                    # '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-17-2022-15:19-seed_321/',
-                    # '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-17-2022-20:53-seed_456/',
-                    # '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-18-2022-02:17-seed_654/',
-                    # '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-18-2022-07:36-seed_666/',
-                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-24-2022-12:21-seed_123/',
-                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-24-2022-17:28-seed_321/',
-                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-26-2022-05:52-seed_456/',
-                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-Apr-26-2022-15:55-seed_654/',
+                'VICRL_AntWall-v0_with-action_no_is_nit-50_p-1-9': [
+                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-1-9-multi_env-Apr-18-2022-00:12-seed_123/',
+                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-1-9-multi_env-Apr-18-2022-06:06-seed_321/',
+                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-1-9-multi_env-Apr-18-2022-11:07-seed_456/',
+                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-1-9-multi_env-Apr-18-2022-16:44-seed_654/',
+                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-1-9-multi_env-Apr-18-2022-22:34-seed_666/',
                 ],
                 'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1': [
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9-1-multi_env-Apr-18-2022-00:12-seed_123/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9-1-multi_env-Apr-18-2022-06:06-seed_321/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9-1-multi_env-Apr-18-2022-11:07-seed_456/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9-1-multi_env-Apr-18-2022-16:44-seed_654/',
-                    '../save_model/VICRL-AntWall/train_VICRL_lag_AntWall-v0_with-action_no_is_nit-50_p-9-1-multi_env-Apr-18-2022-22:34-seed_666/',
+                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1-multi_env-May-15-2022-05:23-seed_123/',
+                ],
+                'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1': [
+                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1-multi_env-May-15-2022-05:08-seed_123/',
+                ],
+                'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2': [
+                    '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-May-15-2022-04:43-seed_123/',
                 ],
                 'GAIL_AntWall-v0_with-action': [
                     '../save_model/GAIL-AntWall/train_GAIL_AntWall-v0_with-action-multi_env-Apr-25-2022-19:22-seed_123/',
