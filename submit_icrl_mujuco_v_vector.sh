@@ -19,6 +19,6 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface
-python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_with-action-cl-64-64.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_with-action_cl-64-64_cbs-64.yaml -n 5 -s 123 -l "$log_dir"
 echo shell finish running
 
