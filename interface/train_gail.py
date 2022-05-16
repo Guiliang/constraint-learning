@@ -86,36 +86,36 @@ def train(args):
     mem_prev = process_memory()
     time_prev = time.time()
     # Create the vectorized environments
-    train_env = make_train_env(env_id=config['env']['train_env_id'],
-                               config_path=config['env']['config_path'],
-                               group=config['group'],
-                               save_dir=save_model_mother_dir,
-                               use_cost=False,
-                               base_seed=seed,
-                               num_threads=num_threads,
-                               normalize_obs=not config['env']['dont_normalize_obs'],
-                               normalize_reward=not config['env']['dont_normalize_reward'],
-                               normalize_cost=False,
-                               reward_gamma=config['env']['reward_gamma'],
-                               multi_env=multi_env,
-                               part_data=partial_data,
-                               log_file=log_file,
-                               )
+    train_env, env_configs = make_train_env(env_id=config['env']['train_env_id'],
+                                            config_path=config['env']['config_path'],
+                                            group=config['group'],
+                                            save_dir=save_model_mother_dir,
+                                            use_cost=False,
+                                            base_seed=seed,
+                                            num_threads=num_threads,
+                                            normalize_obs=not config['env']['dont_normalize_obs'],
+                                            normalize_reward=not config['env']['dont_normalize_reward'],
+                                            normalize_cost=False,
+                                            reward_gamma=config['env']['reward_gamma'],
+                                            multi_env=multi_env,
+                                            part_data=partial_data,
+                                            log_file=log_file,
+                                            )
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
         os.mkdir(save_test_mother_dir)
-    eval_env = make_eval_env(env_id=config['env']['eval_env_id'],
-                             config_path=config['env']['config_path'],
-                             save_dir=save_test_mother_dir,
-                             group=config['group'],
-                             num_threads=1,
-                             mode='test',
-                             use_cost=False,
-                             normalize_obs=not config['env']['dont_normalize_obs'],
-                             cost_info_str=config['env']['cost_info_str'],
-                             part_data=partial_data,
-                             multi_env=False,
-                             log_file=log_file)
+    eval_env, env_configs = make_eval_env(env_id=config['env']['eval_env_id'],
+                                          config_path=config['env']['config_path'],
+                                          save_dir=save_test_mother_dir,
+                                          group=config['group'],
+                                          num_threads=1,
+                                          mode='test',
+                                          use_cost=False,
+                                          normalize_obs=not config['env']['dont_normalize_obs'],
+                                          cost_info_str=config['env']['cost_info_str'],
+                                          part_data=partial_data,
+                                          multi_env=False,
+                                          log_file=log_file)
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                          process_name='Loading environment', log_file=log_file)
@@ -193,7 +193,8 @@ def train(args):
             device=config['device']
         )
     # TODO: add more config
-    true_cost_function = get_true_cost_function(config['env']['eval_env_id'])
+    true_cost_function = get_true_cost_function(env_id=config['env']['eval_env_id'],
+                                                env_configs=env_configs)
 
     if config['DISC']['use_cost_shaping_callback']:
         costShapingCallback = CostShapingCallback(true_cost_function,

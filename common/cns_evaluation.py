@@ -3,7 +3,9 @@ import warnings
 from typing import Callable, List, Optional, Tuple, Union, Dict, Any
 
 import gym
+import numpy
 import numpy as np
+import torch
 
 from stable_baselines3.common.callbacks import EventCallback, BaseCallback
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -52,8 +54,8 @@ def evaluate_icrl_policy(
         if not isinstance(env, VecEnv) or i == 0:
             obs = env.reset()
         done, state = False, None
-        episode_reward = np.asarray([0.0]*env.num_envs)
-        episode_nc_reward = np.asarray([0.0]*env.num_envs)
+        episode_reward = np.asarray([0.0] * env.num_envs)
+        episode_nc_reward = np.asarray([0.0] * env.num_envs)
         is_constraint = [False for i in range(env.num_envs)]
         episode_length = 0
         while not done:
@@ -96,6 +98,30 @@ def evaluate_icrl_policy(
     return mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs
 
 
+def evaluate_with_synthetic_data(env_id, cns_model, env_configs):
+    if env_id == 'WGW-v0':
+        map_height = int(env_configs['map_height'])
+        map_width = int(env_configs['map_width'])
+        for act in range(8):
+            pred_cost = np.zeros([map_height, map_width])
+            for i in range(map_height):
+                for j in range(map_width):
+                    # for k in range(act_dim-1):  # action
+                    input_data = cns_model.prepare_data(obs=numpy.asarray([[i, j]]),
+                                                        acs=numpy.asarray([[act]]))
+                    model_output = cns_model(input_data)
+                    pred_cost[i, j] += model_output
+            # pred_cost /= act_dim
+            import matplotlib.pyplot as plt
+            import matplotlib.cm as cm
+            fig = plt.figure()
+            shw = plt.imshow(pred_cost, cmap=cm.Greys_r)
+            bar = plt.colorbar(shw)
+            # plt.show()
+            plt.savefig('tmp_{0}.png'.format(act))
+    pass
+
+
 class CNSEvalCallback(EventCallback):
     """
     Callback for evaluating an agent.
@@ -117,17 +143,17 @@ class CNSEvalCallback(EventCallback):
     """
 
     def __init__(
-        self,
-        eval_env: Union[gym.Env, VecEnv],
-        callback_on_new_best: Optional[BaseCallback] = None,
-        n_eval_episodes: int = 5,
-        eval_freq: int = 10000,
-        log_path: str = None,
-        best_model_save_path: str = None,
-        deterministic: bool = True,
-        render: bool = False,
-        verbose: int = 1,
-        callback_for_evaluate_policy: Optional[Callable] = None
+            self,
+            eval_env: Union[gym.Env, VecEnv],
+            callback_on_new_best: Optional[BaseCallback] = None,
+            n_eval_episodes: int = 5,
+            eval_freq: int = 10000,
+            log_path: str = None,
+            best_model_save_path: str = None,
+            deterministic: bool = True,
+            render: bool = False,
+            verbose: int = 1,
+            callback_for_evaluate_policy: Optional[Callable] = None
     ):
         super(CNSEvalCallback, self).__init__(callback_on_new_best, verbose=verbose)
         self.n_eval_episodes = n_eval_episodes
@@ -197,7 +223,8 @@ class CNSEvalCallback(EventCallback):
             self.last_mean_reward = mean_reward
 
             if self.verbose > 0:
-                print(f"Eval num_timesteps={self.num_timesteps}, " f"episode_reward={mean_reward:.2f} +/- {std_reward:.2f}")
+                print(
+                    f"Eval num_timesteps={self.num_timesteps}, " f"episode_reward={mean_reward:.2f} +/- {std_reward:.2f}")
                 print(f"Episode length: {mean_ep_length:.2f} +/- {std_ep_length:.2f}")
             # Add to current Logger
             self.logger.record("eval/mean_reward", float(mean_reward))

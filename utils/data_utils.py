@@ -279,8 +279,8 @@ def load_expert_data_tmp(expert_acs):
             expert_acs += [a]
     expert_obs = np.array(expert_obs)
     expert_acs = np.array(expert_acs)
-    if len(expert_acs.shape) == 1:
-        expert_acs = np.expand_dims(expert_acs, 1)
+    # if len(expert_acs.shape) == 1:
+    #     expert_acs = np.expand_dims(expert_acs, 1)
     return expert_obs, expert_acs
 
 

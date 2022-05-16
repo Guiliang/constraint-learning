@@ -85,37 +85,37 @@ def train(args):
     mem_prev = process_memory()
     time_prev = time.time()
     # Create the vectorized environments
-    train_env = make_train_env(env_id=config['env']['train_env_id'],
-                               config_path=config['env']['config_path'],
-                               save_dir=save_model_mother_dir,
-                               base_seed=seed,
-                               group=config['group'],
-                               num_threads=num_threads,
-                               use_cost=config['env']['use_cost'],
-                               normalize_obs=not config['env']['dont_normalize_obs'],
-                               normalize_reward=not config['env']['dont_normalize_reward'],
-                               normalize_cost=not config['env']['dont_normalize_cost'],
-                               cost_info_str=config['env']['cost_info_str'],
-                               reward_gamma=config['env']['reward_gamma'],
-                               cost_gamma=config['env']['cost_gamma'],
-                               log_file=log_file,
-                               part_data=partial_data,
-                               multi_env=multi_env,
-                               )
+    train_env, env_configs = make_train_env(env_id=config['env']['train_env_id'],
+                                            config_path=config['env']['config_path'],
+                                            save_dir=save_model_mother_dir,
+                                            base_seed=seed,
+                                            group=config['group'],
+                                            num_threads=num_threads,
+                                            use_cost=config['env']['use_cost'],
+                                            normalize_obs=not config['env']['dont_normalize_obs'],
+                                            normalize_reward=not config['env']['dont_normalize_reward'],
+                                            normalize_cost=not config['env']['dont_normalize_cost'],
+                                            cost_info_str=config['env']['cost_info_str'],
+                                            reward_gamma=config['env']['reward_gamma'],
+                                            cost_gamma=config['env']['cost_gamma'],
+                                            log_file=log_file,
+                                            part_data=partial_data,
+                                            multi_env=multi_env,
+                                            )
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
         os.mkdir(save_test_mother_dir)
 
-    eval_env = make_eval_env(env_id=config['env']['eval_env_id'],
-                             config_path=config['env']['config_path'],
-                             save_dir=save_test_mother_dir,
-                             group=config['group'],
-                             use_cost=config['env']['use_cost'],
-                             normalize_obs=not config['env']['dont_normalize_obs'],
-                             cost_info_str=config['env']['cost_info_str'],
-                             log_file=log_file,
-                             part_data=partial_data)
+    eval_env, env_configs = make_eval_env(env_id=config['env']['eval_env_id'],
+                                          config_path=config['env']['config_path'],
+                                          save_dir=save_test_mother_dir,
+                                          group=config['group'],
+                                          use_cost=config['env']['use_cost'],
+                                          normalize_obs=not config['env']['dont_normalize_obs'],
+                                          cost_info_str=config['env']['cost_info_str'],
+                                          log_file=log_file,
+                                          part_data=partial_data)
 
     mem_loading_environment = process_memory()
     time_loading_environment = time.time()
@@ -147,7 +147,6 @@ def train(args):
     else:
         raise ValueError("Unknown ppo group: {0}".format(config['group']))
     ppo_agent = create_ppo_agent()
-
 
     # Callbacks
     all_callbacks = []

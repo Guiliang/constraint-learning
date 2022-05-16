@@ -9,6 +9,7 @@ import random
 import gym
 import numpy as np
 import yaml
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_evaluation import evaluate_icrl_policy
@@ -29,7 +30,9 @@ from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, 
     check_if_duplicate_seed, is_commonroad
 from utils.model_utils import get_net_arch, load_ppo_config
 import warnings
+
 warnings.filterwarnings("ignore")
+
 
 def null_cost(x, *args):
     # Zero cost everywhere
@@ -106,23 +109,23 @@ def train(config):
     mem_prev = process_memory()
     time_prev = time.time()
     # Create the vectorized environments
-    train_env = make_train_env(env_id=config['env']['train_env_id'],
-                               config_path=config['env']['config_path'],
-                               save_dir=save_model_mother_dir,
-                               group=config['group'],
-                               base_seed=seed,
-                               num_threads=num_threads,
-                               use_cost=config['env']['use_cost'],
-                               normalize_obs=not config['env']['dont_normalize_obs'],
-                               normalize_reward=not config['env']['dont_normalize_reward'],
-                               normalize_cost=not config['env']['dont_normalize_cost'],
-                               cost_info_str=config['env']['cost_info_str'],
-                               reward_gamma=config['env']['reward_gamma'],
-                               cost_gamma=config['env']['cost_gamma'],
-                               multi_env=multi_env,
-                               part_data=partial_data,
-                               log_file=log_file,
-                               )
+    train_env, env_configs = make_train_env(env_id=config['env']['train_env_id'],
+                                            config_path=config['env']['config_path'],
+                                            save_dir=save_model_mother_dir,
+                                            group=config['group'],
+                                            base_seed=seed,
+                                            num_threads=num_threads,
+                                            use_cost=config['env']['use_cost'],
+                                            normalize_obs=not config['env']['dont_normalize_obs'],
+                                            normalize_reward=not config['env']['dont_normalize_reward'],
+                                            normalize_cost=not config['env']['dont_normalize_cost'],
+                                            cost_info_str=config['env']['cost_info_str'],
+                                            reward_gamma=config['env']['reward_gamma'],
+                                            cost_gamma=config['env']['cost_gamma'],
+                                            multi_env=multi_env,
+                                            part_data=partial_data,
+                                            log_file=log_file,
+                                            )
     all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
     print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
 
@@ -137,33 +140,33 @@ def train(config):
     # TODO: multi_env sampling
     sample_num_threads = 1
     sample_multi_env = False
-    sampling_env = make_eval_env(env_id=config['env']['train_env_id'],
-                                 config_path=config['env']['config_path'],
-                                 save_dir=save_valid_mother_dir,
-                                 group=config['group'],
-                                 num_threads=sample_num_threads,
-                                 mode='sample',
-                                 use_cost=False,
-                                 normalize_obs=not config['env']['dont_normalize_obs'],
-                                 part_data=partial_data,
-                                 multi_env=sample_multi_env,
-                                 log_file=log_file)
+    sampling_env, env_configs = make_eval_env(env_id=config['env']['train_env_id'],
+                                              config_path=config['env']['config_path'],
+                                              save_dir=save_valid_mother_dir,
+                                              group=config['group'],
+                                              num_threads=sample_num_threads,
+                                              mode='sample',
+                                              use_cost=False,
+                                              normalize_obs=not config['env']['dont_normalize_obs'],
+                                              part_data=partial_data,
+                                              multi_env=sample_multi_env,
+                                              log_file=log_file)
     # We don't need cost when during evaluation
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
         os.mkdir(save_test_mother_dir)
-    eval_env = make_eval_env(env_id=config['env']['eval_env_id'],
-                             config_path=config['env']['config_path'],
-                             save_dir=save_test_mother_dir,
-                             group=config['group'],
-                             num_threads=1,
-                             mode='test',
-                             use_cost=config['env']['use_cost'],
-                             normalize_obs=not config['env']['dont_normalize_obs'],
-                             cost_info_str=config['env']['cost_info_str'],
-                             part_data=partial_data,
-                             multi_env=False,
-                             log_file=log_file)
+    eval_env, env_configs = make_eval_env(env_id=config['env']['eval_env_id'],
+                                          config_path=config['env']['config_path'],
+                                          save_dir=save_test_mother_dir,
+                                          group=config['group'],
+                                          num_threads=1,
+                                          mode='test',
+                                          use_cost=config['env']['use_cost'],
+                                          normalize_obs=not config['env']['dont_normalize_obs'],
+                                          cost_info_str=config['env']['cost_info_str'],
+                                          part_data=partial_data,
+                                          multi_env=False,
+                                          log_file=log_file)
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                          process_name='Loading environment', log_file=log_file)
@@ -350,7 +353,7 @@ def train(config):
                                   rs=rewards
                                   )
             sample_obs, sample_acts, sample_rs = \
-                sample_data_queue.get(sample_num=config['running']['sample_rollouts'],)
+                sample_data_queue.get(sample_num=config['running']['sample_rollouts'], )
         else:
             sample_obs = orig_observations
             sample_acts = actions

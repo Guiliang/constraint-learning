@@ -125,7 +125,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     #         env = vec_env.VecNormalize(
     #             env, training=True, norm_obs=normalize_obs, norm_reward=False, norm_cost=False,
     #             gamma=kwargs['reward_gamma'])
-    return env
+    return env, env_configs
 
 
 def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
@@ -175,7 +175,7 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
     #     print("Wrapping eval env in a VecTransposeImage.")
     #     env = vec_env.VecTransposeImage(env)
 
-    return env
+    return env, env_configs
 
 
 class InternalVecCostWrapper(VecEnvWrapper):
