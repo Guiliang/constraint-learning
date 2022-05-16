@@ -24,9 +24,9 @@ from stable_baselines3.common import logger
 
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
-    get_input_features_dim, process_memory, print_resource
+    get_input_features_dim, process_memory, print_resource, load_expert_data_tmp
 from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names, is_mujoco, \
-    check_if_duplicate_seed
+    check_if_duplicate_seed, is_commonroad
 from utils.model_utils import get_net_arch, load_ppo_config
 import warnings
 warnings.filterwarnings("ignore")
@@ -185,14 +185,18 @@ def train(config):
         expert_rollouts = config['running']['expert_rollouts']
     else:
         expert_rollouts = None
-    (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
-        expert_path=expert_path,
-        # use_pickle5=is_mujoco(config['env']['train_env_id']),  # True for the Mujoco envs
-        num_rollouts=expert_rollouts,
-        store_by_game=config['running']['store_by_game'],
-        add_next_step=False,
-        log_file=log_file
-    )
+
+    if expert_path.endswith('.pt'):
+        expert_obs, expert_acs = load_expert_data_tmp(expert_path)
+    else:
+        (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
+            expert_path=expert_path,
+            # use_pickle5=is_mujoco(config['env']['train_env_id']),  # True for the Mujoco envs
+            num_rollouts=expert_rollouts,
+            store_by_game=config['running']['store_by_game'],
+            add_next_step=False,
+            log_file=log_file
+        )
     if config['running']['store_by_game']:
         expert_obs_mean = np.mean(np.concatenate(expert_obs, axis=0), axis=0).tolist()
     else:
@@ -225,7 +229,7 @@ def train(config):
     print("Selecting acs features are : {0}".format(cn_acs_select_name if cn_acs_select_name is not None else 'all'),
           file=log_file, flush=True)
     cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
-                                               all_feature_names=['a_ego_0', 'a_ego_1'])
+                                               all_feature_names=['a_ego_0', 'a_ego_1'] if is_commonroad else None)
 
     cn_parameters = {
         'obs_dim': obs_dim,

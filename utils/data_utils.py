@@ -6,6 +6,7 @@ from collections import deque
 import time
 import pickle5
 import psutil
+import torch
 import yaml
 import numpy as np
 from gym.utils.colorize import color2num
@@ -265,6 +266,22 @@ def bak_load_expert_data(expert_path, num_rollouts):
     expert_mean_length = expert_obs.shape[0] / num_rollouts
 
     return (expert_obs, expert_acs), expert_mean_reward
+
+
+def load_expert_data_tmp(expert_acs):
+    expert_data = torch.load(expert_acs)
+    expert_obs = []
+    expert_acs = []
+    for S, A in expert_data:
+        for s in S:
+            expert_obs += [s]
+        for a in A:
+            expert_acs += [a]
+    expert_obs = np.array(expert_obs)
+    expert_acs = np.array(expert_acs)
+    if len(expert_acs.shape) == 1:
+        expert_acs = np.expand_dims(expert_acs, 1)
+    return expert_obs, expert_acs
 
 
 def load_expert_data(expert_path,

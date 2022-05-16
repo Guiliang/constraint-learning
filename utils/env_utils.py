@@ -3,6 +3,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import gym
+from gym.envs.mujoco import mujoco_env
+
 import stable_baselines3.common.vec_env as vec_env
 from stable_baselines3.common.callbacks import BaseCallback
 from utils.true_constraint_functions import get_true_cost_function
@@ -145,14 +147,15 @@ def sample_from_agent(agent, env, rollouts, store_by_game=False):
 
 
 class MujocoExternalSignalWrapper(gym.Wrapper):
-    def __init__(self, env: gym.Wrapper, group: str, wrapper_config: dict):
+    def __init__(self, env: gym.Wrapper, group: str, **wrapper_config):
         super(MujocoExternalSignalWrapper, self).__init__(env=env)
         self.wrapper_config = wrapper_config
         self.group = group
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
         obs, reward, done, info = self.env.step(action)
-        ture_cost_function = get_true_cost_function(env_id=self.spec.id)
+        ture_cost_function = get_true_cost_function(env_id=self.spec.id,
+                                                    env_configs=self.wrapper_config)
         lag_cost_ture = int(ture_cost_function(obs, action) == True)
         # print(obs[0])
         # print(obs)
@@ -178,18 +181,17 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
 
 
 class CommonRoadExternalSignalsWrapper(gym.Wrapper):
-    def __init__(self, env: gym.Wrapper, group: str, wrapper_config: dict):
+    def __init__(self, env: gym.Wrapper, group: str, wrapper_config):
         super(CommonRoadExternalSignalsWrapper, self).__init__(env=env)
         self.wrapper_config = wrapper_config
         self.group = group
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
         observation, reward, done, info = self.env.step(action)
-
-        reward_features = self.wrapper_config['reward_features']
-        feature_bounds = self.wrapper_config['feature_bounds']
-        feature_penalties = self.wrapper_config['feature_penalties']
-        terminates = self.wrapper_config['terminate']
+        reward_features = self.wrapper_config['external_reward']['reward_features']
+        feature_bounds = self.wrapper_config['external_reward']['feature_bounds']
+        feature_penalties = self.wrapper_config['external_reward']['feature_penalties']
+        terminates = self.wrapper_config['external_reward']['terminate']
         lag_cost = 0
         for idx in range(len(reward_features)):
             reward_feature = reward_features[idx]
@@ -243,10 +245,16 @@ def get_all_env_ids(num_threads, env):
 
 
 def is_mujoco(env_id):
-    if 'HC' in env_id or 'LGW' in env_id or 'AntWall' in env_id or 'Pendulum' in env_id or 'Walker' in env_id:
-        return True
-    else:
-        return False
+    mujoco_env_id = ['HC', 'AntWall', 'Pendulum', 'Walker', 'LGW', 'WGW']
+    # if 'HC' in env_id or 'LGW' in env_id or 'AntWall' in env_id or 'Pendulum' in env_id or 'Walker' in env_id:
+    for item in mujoco_env_id:
+        if item in env_id:
+            return True
+    return False
+    # if isinstance(env, mujoco_env.MujocoEnv):
+    #     return True
+    # else:
+    #     return False
 
 
 def is_commonroad(env_id):

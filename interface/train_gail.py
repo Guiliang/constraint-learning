@@ -192,7 +192,7 @@ def train(args):
             eps=float(config['DISC']['disc_eps']),
             device=config['device']
         )
-
+    # TODO: add more config
     true_cost_function = get_true_cost_function(config['env']['eval_env_id'])
 
     if config['DISC']['use_cost_shaping_callback']:

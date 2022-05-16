@@ -37,12 +37,12 @@ def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0)
             print("Using external signal for env: {0}.".format(env_id), flush=True)
             env = CommonRoadExternalSignalsWrapper(env=env,
                                                    group=group,
-                                                   wrapper_config=env_configs['external_reward'])
+                                                   **env_configs)  # wrapper_config=env_configs['external_reward']
         elif is_mujoco(env_id):
             print("Using external signal for env: {0}.".format(env_id), flush=True)
             env = MujocoExternalSignalWrapper(env=env,
                                               group=group,
-                                              wrapper_config={})
+                                              **env_configs)
         monitor_rank = None
         if multi_env:
             monitor_rank = rank
@@ -60,9 +60,9 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
-            if multi_env:
+            if is_commonroad(env_id) and multi_env:
                 env_configs['train_reset_config_path'] += '_split'
-            if part_data:
+            if is_commonroad(env_id) and part_data:
                 env_configs['train_reset_config_path'] += '_debug'
                 env_configs['test_reset_config_path'] += '_debug'
                 env_configs['meta_scenario_path'] += '_debug'
@@ -134,13 +134,13 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
     if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
-            if multi_env:
+            if is_commonroad(env_id) and multi_env:
                 env_configs['train_reset_config_path'] += '_split'
-            if part_data:
+            if is_commonroad(env_id) and part_data:
                 env_configs['train_reset_config_path'] += '_debug'
                 env_configs['test_reset_config_path'] += '_debug'
                 env_configs['meta_scenario_path'] += '_debug'
-        if mode == 'test':
+        if is_commonroad(env_id) and mode == 'test':
             env_configs["test_env"] = True
     else:
         env_configs = {}

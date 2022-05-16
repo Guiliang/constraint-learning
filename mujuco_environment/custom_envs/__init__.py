@@ -382,3 +382,17 @@ register(
     reward_threshold=None,
     nondeterministic=False,
 )
+
+# =========================================================================== #
+#                               Wall Grid World                               #
+# =========================================================================== #
+
+WALL_GRID_WORLD_LEN = 50  # depends on the settings in './configs/'
+
+register(
+    id="WGW-v0",
+    entry_point=ABS_PATH+".wall_gird_word:WallGridworld",
+    max_episode_steps=WALL_GRID_WORLD_LEN,
+    reward_threshold=None,
+    nondeterministic=False,
+)

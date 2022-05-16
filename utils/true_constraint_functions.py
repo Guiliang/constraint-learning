@@ -4,7 +4,7 @@ import math
 import numpy as np
 
 
-def get_true_cost_function(env_id):
+def get_true_cost_function(env_id, env_configs={}):
     """Returns the cost function correpsonding to provided env)"""
     if env_id in ["HCWithPosTest-v0",
                   "SwimmerWithPosTest-v0",
@@ -21,6 +21,9 @@ def get_true_cost_function(env_id):
     elif env_id in ["WalkerWithPos-v0",
                     "WalkerWithPosTest-v0", ]:
         return partial(wall_behind, -3)
+    elif env_id in ["WGW-v0"]:
+        unsafe_states = env_configs['unsafe_states']
+        return partial(wall_in, unsafe_states)
     # elif env_id == "AntWallTest-v0":
     #     return partial(wall_behind, -3)
     # elif env_id == "AntWallBrokenTest-v0":
@@ -51,6 +54,10 @@ def wall_behind(pos, obs, acs):
 
 def wall_infront(pos, obs, acs):
     return (obs[..., 0] > pos)
+
+
+def wall_in(unsafe_states, obs, acs):
+    return (obs in unsafe_states)
 
 
 def wall_behind_and_infront(pos_back, pos_front, obs, acs):
