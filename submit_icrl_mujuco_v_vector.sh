@@ -2,7 +2,7 @@
 #SBATCH -N 1
 #SBATCH --account=deadline
 #SBATCH --qos=deadline
-#SBATCH --partition=t4v2,p100
+#SBATCH --partition=t4v1,t4v2,p100
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
 #SBATCH --time=36:00:00

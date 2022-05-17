@@ -19,9 +19,5 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface
-python train_icrl.py ../config/mujoco_AntWall-v0/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1.yaml -n 5 -s 123 -l "$log_dir"
-python train_icrl.py ../config/mujoco_AntWall-v0/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1.yaml -n 5 -s 321 -l "$log_dir"
-python train_icrl.py ../config/mujoco_AntWall-v0/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1.yaml -n 5 -s 456 -l "$log_dir"
-python train_icrl.py ../config/mujoco_AntWall-v0/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1.yaml -n 5 -s 654 -l "$log_dir"
-python train_icrl.py ../config/mujoco_AntWall-v0/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1.yaml -n 5 -s 666 -l "$log_dir"
+python train_icrl.py ../config/mujoco_WalkerWithPos-v0/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3.yaml -n 5 -s 123 -l "$log_dir"
 echo shell finish running
