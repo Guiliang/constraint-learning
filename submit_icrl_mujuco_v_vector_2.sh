@@ -8,7 +8,7 @@
 #SBATCH --time=36:00:00
 #SBATCH --mem=24GB
 #SBATCH --job-name=ICRL
-task_name="train-Mojuco-ICRL"
+task_name="train-Mojuco-ICRL_2"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 export PATH=/pkgs/anaconda3/bin:$PATH
@@ -19,6 +19,6 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface
-python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_with_no-action.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_with_no-action_cl-64-64.yaml -n 5 -s 123 -l "$log_dir"
 echo shell finish running
 

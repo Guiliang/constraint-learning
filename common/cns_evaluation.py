@@ -98,11 +98,11 @@ def evaluate_icrl_policy(
     return mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs
 
 
-def evaluate_with_synthetic_data(env_id, cns_model, env_configs):
+def evaluate_with_synthetic_data(env_id, cns_model, env_configs, model_name):
     if env_id == 'WGW-v0':
         map_height = int(env_configs['map_height'])
         map_width = int(env_configs['map_width'])
-        for act in range(8):
+        for act in range(9):
             pred_cost = np.zeros([map_height, map_width])
             for i in range(map_height):
                 for j in range(map_width):
@@ -118,7 +118,7 @@ def evaluate_with_synthetic_data(env_id, cns_model, env_configs):
             shw = plt.imshow(pred_cost, cmap=cm.Greys_r)
             bar = plt.colorbar(shw)
             # plt.show()
-            plt.savefig('tmp_{0}.png'.format(act))
+            plt.savefig('constraint_{0}_action-{1}.png'.format(model_name, act))
     pass
 
 

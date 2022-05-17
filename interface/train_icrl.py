@@ -61,8 +61,8 @@ def train(config):
         config['PPO']['n_epochs'] = 2
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
-        config['running']['sample_rollouts'] = 10
-        config['running']['sample_data_num'] = 500
+        # config['running']['sample_rollouts'] = 10
+        # config['running']['sample_data_num'] = 500
         config['running']['store_sample_num'] = 1000
         # config['CN']['cn_batch_size'] = 3
         config['CN']['backward_iters'] = 2

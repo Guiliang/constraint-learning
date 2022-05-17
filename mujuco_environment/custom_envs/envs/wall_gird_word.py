@@ -125,7 +125,9 @@ class WallGridworld(gym.Env):
     def reset_model(self):
         pass
 
-    def __init__(self, map_height, map_width, reward_states, terminal_states, transition_prob=1.,
+    def __init__(self, map_height, map_width, reward_states, terminal_states,
+                 visualization_path='./',
+                 transition_prob=1.,
                  stay_action=True,
                  unsafe_states=[],
                  start_states=None):
@@ -165,6 +167,7 @@ class WallGridworld(gym.Env):
         self.unsafe_states = unsafe_states
         self.start_states = start_states
         self.steps = 0
+        self.visualization_path = visualization_path
 
     def get_states(self):
         """
@@ -327,7 +330,7 @@ class WallGridworld(gym.Env):
         random.seed(s)
         np.random.seed(s)
 
-    def render(self, **kwargs):
+    def render(self, mode, **kwargs):
         """
         Render the environment.
         """
@@ -343,7 +346,9 @@ class WallGridworld(gym.Env):
                 ],
             ], mode="dynamic", interval=1)
         self.plot.show(block=False)
-        if "mode" in kwargs.keys() and kwargs["mode"] == "rgb_array":
+
+        # if "mode" in kwargs.keys() and kwargs["mode"] == "rgb_array":
+        if mode == "rgb_array":
             self.plot.fig.canvas.draw()
             img = np.frombuffer(self.plot.fig.canvas.tostring_rgb(), dtype=np.uint8)
             img = img.reshape(self.plot.fig.canvas.get_width_height()[::-1] + (3,))

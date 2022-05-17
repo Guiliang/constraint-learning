@@ -4,7 +4,7 @@ import os
 import pickle
 import time
 from typing import Union, Callable
-
+from PIL import Image
 import gym
 import numpy as np
 import yaml
@@ -171,9 +171,9 @@ def evaluate():
     num_threads = 1
     if_testing_env = False
 
-    load_model_name = 'train_ICRL_WGW-v0_with-action-multi_env-May-16-2022-05:27-seed_123'
+    load_model_name = 'train_ICRL_WGW-v0_with-action_cl-64-64_cbs-64-multi_env-May-16-2022-12:27-seed_123'
     task_name = 'ICRL-WallGrid'
-    iteration_msg = 10
+    iteration_msg = 90
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
     with open(os.path.join(model_loading_path, 'model_hyperparameters.yaml')) as reader:
@@ -209,8 +209,13 @@ def evaluate():
                               env_kwargs=env_configs,
                               testing_env=if_testing_env,
                               part_data=debug_mode)
-    is_discrete = isinstance(env.action_space, gym.spaces.Discrete)
-
+    # is_discrete = isinstance(env.action_space, gym.spaces.Discrete)
+    # env.reset()
+    # img = env.render(mode="rgb_array")
+    # from PIL import Image
+    # im = Image.fromarray(img)
+    # im.show()
+    # im.save("tmp.jpeg")
     # mean, var = None, None
     # if config['CN']['cn_normalize']:
     #     mean, var = env.obs_rms.mean, env.obs_rms.var
@@ -225,114 +230,119 @@ def evaluate():
 
     evaluate_with_synthetic_data(env_id=config['env']['train_env_id'],
                                  cns_model=cns_model,
-                                 env_configs=env_configs)
+                                 env_configs=env_configs,
+                                 model_name=load_model_name)
 
-    # total_scenarios, benchmark_idx = 0, 0
-    # if is_commonroad(env_id=config['env']['train_env_id']):
-    #     max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)
-    #     # num_collisions, num_off_road, num_goal_reaching, num_timeout = 0, 0, 0, 0
-    # elif is_mujoco(env_id=config['env']['train_env_id']):
-    #     max_benchmark_num = 50 / num_threads  # max number of expert traj is 50 for mujoco
-    # else:
-    #     raise ValueError("Unknown env_id: {0}".format(config['env']['train_env_id']))
-    #
-    # record_infos = {}
-    # costs = []
-    # for record_info_name in config['env']["record_info_names"]:
-    #     record_infos.update({record_info_name: []})
-    #
-    # success = 0
-    # eval_obs_all = []
-    # eval_acs_all = []
-    # while benchmark_idx < max_benchmark_num:
-    #     if is_commonroad(env_id=config['env']['train_env_id']):
-    #         benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
-    #                                           benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
-    #         benchmark_num_per_step = len(benchmark_ids)
-    #         obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
-    #         record_type = 'commonroad'
-    #     elif is_mujoco(env_id=config['env']['train_env_id']):
-    #         benchmark_ids = [str(i) for i in range((benchmark_idx)*num_threads, (benchmark_idx+1)*num_threads)]
-    #         benchmark_num_per_step = num_threads
-    #         obs = env.reset()
-    #         record_type = 'mujoco'
-    #     else:
-    #         raise ValueError("Unknown env_id: {0}".format(config['env']['train_env_id']))
-    #     # env.render()
-    #     if not os.path.exists(os.path.join(viz_path, benchmark_ids[0])):
-    #         os.mkdir(os.path.join(viz_path, benchmark_ids[0]))
-    #     # game_info_file = open(os.path.join(viz_path, benchmark_ids[0], 'info_record.txt'), 'w')
-    #     # if is_commonroad(env_id=config['env']['train_env_id']):
-    #     #     game_info_file.write(
-    #     #         'current_step, velocity, cost, is_collision, is_off_road, is_goal_reached, is_time_out\n')
-    #     # elif is_mujoco(env_id=config['env']['train_env_id']):
-    #     #     game_info_file.write(
-    #     #         'current_step, x_position, cost, is_break_constraint\n')
-    #     reward_sum = 0
-    #     running_step = 0
-    #     done, state, info = False, None, None
-    #     print("Running on the file {0}".format(benchmark_ids[0]), file=log_file, flush=True)
-    #     while not done:
-    #         action, state = ppo_model.predict(obs, state=state, deterministic=False)
-    #         original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
-    #         cost = cns_model.cost_function(obs=original_obs, acs=action)
-    #         if info is not None:
-    #             for record_info_name in config['env']["record_info_names"]:
-    #                 if record_info_name == 'ego_velocity_x':
-    #                     record_infos[record_info_name].append(np.mean(info[0]['ego_velocity'][0]))
-    #                 elif record_info_name == 'ego_velocity_y':
-    #                     record_infos[record_info_name].append(np.mean(info[0]['ego_velocity'][1]))
-    #                 else:
-    #                     record_infos[record_info_name].append(np.mean(info[0][record_info_name]))
-    #             costs.append(cost)
-    #             eval_obs_all.append(obs[0])
-    #             eval_acs_all.append(action[0])
-    #         new_obs, reward, done, info = env.step(action)
-    #         reward_sum += reward
-    #         # save_game_record(info=info[0],
-    #         #                  file=game_info_file,
-    #         #                  cost=cost[0],
-    #         #                  type=record_type)
-    #         obs = new_obs
-    #         running_step += 1
-    #     # game_info_file.close()
-    #     print(reward_sum)
-    #     # pngs2gif(png_dir=os.path.join(viz_path, benchmark_ids[0]))
-    #
-    #     info = info[0]
-    #     total_scenarios += 1
-    #     termination_reasons = []
-    #     if is_commonroad(env_id=config['env']['train_env_id']):
-    #         if info["episode"].get("is_time_out", 0) == 1:
-    #             termination_reasons.append("time_out")
-    #         elif info["episode"].get("is_off_road", 0) == 1:
-    #             termination_reasons.append("off_road")
-    #         elif info["episode"].get("is_collision", 0) == 1:
-    #             termination_reasons.append("collision")
-    #         elif info["episode"].get("is_goal_reached", 0) == 1:
-    #             termination_reasons.append("goal_reached")
-    #         elif "is_over_speed" in info["episode"].keys() and info["episode"].get("is_over_speed", 0) == 1:
-    #             termination_reasons.append("over_speed")
-    #         # if len(termination_reasons) == 0:
-    #         #     termination_reasons = "other"
-    #         # else:
-    #         #     termination_reasons = ', '.join(termination_reasons)
-    #     elif is_mujoco(env_id=config['env']['train_env_id']):
-    #         if info["episode"].get('constraint', 0) == 1:
-    #             termination_reasons.append("constraint")
-    #         else:
-    #             termination_reasons.append("game finished")
-    #
-    #     if is_commonroad(config['env']['train_env_id']) and "goal_reached" in termination_reasons:
-    #         print('{0}: goal reached'.format(benchmark_ids[0]), file=log_file, flush=True)
-    #         success += 1
-    #     elif is_mujoco(config['env']['train_env_id']) and "game finished" in termination_reasons:
-    #         success += 1
-    #     benchmark_idx += 1
-    #
+    total_scenarios, benchmark_idx = 0, 0
+    if is_commonroad(env_id=config['env']['train_env_id']):
+        max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)
+        # num_collisions, num_off_road, num_goal_reaching, num_timeout = 0, 0, 0, 0
+    elif is_mujoco(env_id=config['env']['train_env_id']):
+        max_benchmark_num = 50 / num_threads  # max number of expert traj is 50 for mujoco
+    else:
+        raise ValueError("Unknown env_id: {0}".format(config['env']['train_env_id']))
+
+    record_infos = {}
+    costs = []
+    for record_info_name in config['env']["record_info_names"]:
+        record_infos.update({record_info_name: []})
+
+    success = 0
+    eval_obs_all = []
+    eval_acs_all = []
+    while benchmark_idx < max_benchmark_num:
+        if is_commonroad(env_id=config['env']['train_env_id']):
+            benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
+                                              benchmark_total_nums=benchmark_total_nums, env_ids=env_ids)
+            benchmark_num_per_step = len(benchmark_ids)
+            obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
+            record_type = 'commonroad'
+        elif is_mujoco(env_id=config['env']['train_env_id']):
+            benchmark_ids = [str(i) for i in range((benchmark_idx)*num_threads, (benchmark_idx+1)*num_threads)]
+            benchmark_num_per_step = num_threads
+            obs = env.reset()
+            record_type = 'mujoco'
+        else:
+            raise ValueError("Unknown env_id: {0}".format(config['env']['train_env_id']))
+        # env.render()
+        if not os.path.exists(os.path.join(viz_path, benchmark_ids[0])):
+            os.mkdir(os.path.join(viz_path, benchmark_ids[0]))
+        # game_info_file = open(os.path.join(viz_path, benchmark_ids[0], 'info_record.txt'), 'w')
+        # if is_commonroad(env_id=config['env']['train_env_id']):
+        #     game_info_file.write(
+        #         'current_step, velocity, cost, is_collision, is_off_road, is_goal_reached, is_time_out\n')
+        # elif is_mujoco(env_id=config['env']['train_env_id']):
+        #     game_info_file.write(
+        #         'current_step, x_position, cost, is_break_constraint\n')
+        reward_sum = 0
+        running_step = 0
+        done, state, info = False, None, None
+        print("Running on the file {0}".format(benchmark_ids[0]), file=log_file, flush=True)
+        # img = env.render(mode="rgb_array")
+        # im = Image.fromarray(img)
+        # im.show()
+        while not done:
+            action, state = ppo_model.predict(obs, state=state, deterministic=False)
+            original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
+            cost = cns_model.cost_function(obs=original_obs, acs=action)
+            if info is not None:
+                for record_info_name in config['env']["record_info_names"]:
+                    if record_info_name == 'ego_velocity_x':
+                        record_infos[record_info_name].append(np.mean(info[0]['ego_velocity'][0]))
+                    elif record_info_name == 'ego_velocity_y':
+                        record_infos[record_info_name].append(np.mean(info[0]['ego_velocity'][1]))
+                    else:
+                        record_infos[record_info_name].append(np.mean(info[0][record_info_name]))
+                costs.append(cost)
+                eval_obs_all.append(obs[0])
+                eval_acs_all.append(action[0])
+            new_obs, reward, done, info = env.step(action)
+            print(action, reward)
+            reward_sum += reward
+            # save_game_record(info=info[0],
+            #                  file=game_info_file,
+            #                  cost=cost[0],
+            #                  type=record_type)
+            obs = new_obs
+            running_step += 1
+        # game_info_file.close()
+        print(reward_sum, '\n')
+        # pngs2gif(png_dir=os.path.join(viz_path, benchmark_ids[0]))
+
+        info = info[0]
+        total_scenarios += 1
+        termination_reasons = []
+        if is_commonroad(env_id=config['env']['train_env_id']):
+            if info["episode"].get("is_time_out", 0) == 1:
+                termination_reasons.append("time_out")
+            elif info["episode"].get("is_off_road", 0) == 1:
+                termination_reasons.append("off_road")
+            elif info["episode"].get("is_collision", 0) == 1:
+                termination_reasons.append("collision")
+            elif info["episode"].get("is_goal_reached", 0) == 1:
+                termination_reasons.append("goal_reached")
+            elif "is_over_speed" in info["episode"].keys() and info["episode"].get("is_over_speed", 0) == 1:
+                termination_reasons.append("over_speed")
+            # if len(termination_reasons) == 0:
+            #     termination_reasons = "other"
+            # else:
+            #     termination_reasons = ', '.join(termination_reasons)
+        elif is_mujoco(env_id=config['env']['train_env_id']):
+            if info["episode"].get('constraint', 0) == 1:
+                termination_reasons.append("constraint")
+            else:
+                termination_reasons.append("game finished")
+
+        if is_commonroad(config['env']['train_env_id']) and "goal_reached" in termination_reasons:
+            print('{0}: goal reached'.format(benchmark_ids[0]), file=log_file, flush=True)
+            success += 1
+        elif is_mujoco(config['env']['train_env_id']) and "game finished" in termination_reasons:
+            success += 1
+        benchmark_idx += 1
+    print('total', total_scenarios, 'success', success, file=log_file, flush=True)
+
     # eval_obs_all = np.asarray(eval_obs_all)
     # eval_acs_all = np.asarray(eval_acs_all)
-    # print('total', total_scenarios, 'success', success, file=log_file, flush=True)
     # for record_info_idx in range(len(config['env']["record_info_names"])):
     #     record_info_name = config['env']["record_info_names"][record_info_idx]
     #     plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))

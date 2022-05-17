@@ -1,5 +1,6 @@
 import os
 import imageio
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from matplotlib.animation import FuncAnimation, ImageMagickWriter
@@ -253,7 +254,9 @@ class Plot2D:
         else:
             im, cbar = o
             im.set_data(X)
-            cbar.set_clim(np.min(X), np.max(X))
+            im.set_clim(np.min(X), np.max(X))
+            # cbar.set_clim(np.min(X), np.max(X))
+            # matplotlib.cm.ScalarMappable.set_clim
             return [im, cbar]
 
     def line(self, X, Y, loc=None, o=None, **kwargs):
