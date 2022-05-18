@@ -171,7 +171,7 @@ def evaluate():
     num_threads = 1
     if_testing_env = False
 
-    load_model_name = 'train_ICRL_WGW-v0_with-action_cl-64-64_cbs-64-multi_env-May-16-2022-12:27-seed_123'
+    load_model_name = 'train_ICRL_WGW-v0_with_no-action-multi_env-May-17-2022-02:03-seed_123'
     task_name = 'ICRL-WallGrid'
     iteration_msg = 90
 
@@ -231,7 +231,8 @@ def evaluate():
     evaluate_with_synthetic_data(env_id=config['env']['train_env_id'],
                                  cns_model=cns_model,
                                  env_configs=env_configs,
-                                 model_name=load_model_name)
+                                 model_name=load_model_name,
+                                 iteration_msg=iteration_msg)
 
     total_scenarios, benchmark_idx = 0, 0
     if is_commonroad(env_id=config['env']['train_env_id']):
@@ -250,6 +251,7 @@ def evaluate():
     success = 0
     eval_obs_all = []
     eval_acs_all = []
+    rewards_sum_all = []
     while benchmark_idx < max_benchmark_num:
         if is_commonroad(env_id=config['env']['train_env_id']):
             benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
@@ -297,7 +299,7 @@ def evaluate():
                 eval_obs_all.append(obs[0])
                 eval_acs_all.append(action[0])
             new_obs, reward, done, info = env.step(action)
-            print(action, reward)
+            print(action, reward, new_obs)
             reward_sum += reward
             # save_game_record(info=info[0],
             #                  file=game_info_file,
@@ -307,6 +309,7 @@ def evaluate():
             running_step += 1
         # game_info_file.close()
         print(reward_sum, '\n')
+        rewards_sum_all.append(reward_sum)
         # pngs2gif(png_dir=os.path.join(viz_path, benchmark_ids[0]))
 
         info = info[0]
@@ -340,6 +343,7 @@ def evaluate():
             success += 1
         benchmark_idx += 1
     print('total', total_scenarios, 'success', success, file=log_file, flush=True)
+    print(np.asarray(rewards_sum_all).mean())
 
     # eval_obs_all = np.asarray(eval_obs_all)
     # eval_acs_all = np.asarray(eval_acs_all)
