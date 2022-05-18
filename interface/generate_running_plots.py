@@ -79,7 +79,7 @@ def generate_plots():
     env_id = 'WalkerWithPos-v0'
     method_names_labels_dict = {
         # "PPO_Walker": 'PPO',
-        # "PPO_lag_Walker": 'PPO_lag',
+        "PPO_lag_Walker": 'PPO_lag',
         "ICRL_Walker": 'ICRL',
         "VICRL_Walker": 'VICRL'
     }
@@ -714,7 +714,10 @@ def generate_plots():
                     # '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_plr-1e-2_p-1e-1-9e-1-multi_env-May-14-2022-04:46-seed_123/',
                     # '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0-multi_env-May-13-2022-15:14-seed_123/',
                     # '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-1-1e-1-multi_env-May-15-2022-04:53-seed_123/',
-                    '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-2-1e-2-multi_env-May-15-2022-11:14-seed_123/',
+                    # '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-2-1e-2-multi_env-May-15-2022-11:14-seed_123/',
+                    # '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64-multi_env-May-17-2022-01:56-seed_123/',
+                    # '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3-multi_env-May-17-2022-00:25-seed_123/',
+                    '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9-1-multi_env-May-17-2022-02:26-seed_123/',
                 ],
             }
         else:
