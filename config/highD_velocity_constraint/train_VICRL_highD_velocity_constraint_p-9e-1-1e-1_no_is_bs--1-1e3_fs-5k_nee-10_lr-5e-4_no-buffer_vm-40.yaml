@@ -1,4 +1,4 @@
-task: 'VICRL-highD'
+task: 'VICRL-highD-velocity'
 group: 'VICRL'
 device: 'cuda'
 verbose: 1

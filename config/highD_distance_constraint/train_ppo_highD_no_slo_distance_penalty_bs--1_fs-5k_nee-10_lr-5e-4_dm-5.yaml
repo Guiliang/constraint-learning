@@ -1,14 +1,12 @@
-task: 'PPO-highD-velocity'
+task: 'PPO-highD-distance'
 group: 'PPO'
 device: 'cuda'
 verbose: 1
 env:
-  config_path: "../config/highD_velocity_constraint/highD_environment_configurations_no_velocity_penalty-50.yaml"
+  config_path: "../config/highD_distance_constraint/highD_environment_configurations_no_slo_distance_penalty.yaml"
   train_env_id : 'commonroad-v1'
   eval_env_id: 'commonroad-v1'
   save_dir: '../save_model'
-#  expert_path: 'expert_data'
-  expert_rollouts: 10
   cost_info_str: ''
   use_cost: False
   reward_gamma: 0.99
@@ -16,17 +14,16 @@ env:
   dont_normalize_obs: False
   dont_normalize_reward: False
   dont_normalize_cost: True  # no cost
-  record_info_names: ["ego_velocity_x", "ego_velocity_y"]
-  record_info_input_dims: [ 6, 7 ] # the dim of record info in inputs=(obs, action)
-
+  record_info_names: ['same_lane_leading_obstacle_distance',]
+  record_info_input_dims: [22]
 running:
-  n_iters: 30000
-  n_eval_episodes: 100
-  save_every: 10
+  n_iters: 2000
+  n_eval_episodes: 10
+  save_every: 100
 
 PPO:
   policy_name: 'MlpPolicy'
-  learning_rate: 0.00005 # 0.0003
+  learning_rate: 0.0005 # 0.0003
   n_steps: 1024 #2048
   n_epochs: 10
   clip_obs: 20
@@ -43,9 +40,9 @@ PPO:
   policy_layers: [64, 64]
   reward_vf_layers: [64, 64]
   cost_vf_layers: False
-  batch_size: 64
+  batch_size: null
   eval_every: 2048
   use_curiosity_driven_exploration: False
   warmup_timesteps: False
   reset_policy: False
-  forward_timesteps: 200000
+  forward_timesteps: 5000

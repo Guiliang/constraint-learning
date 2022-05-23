@@ -83,6 +83,7 @@ external_reward:
   reward_features: ['velocity']
   feature_bounds: [['-inf', 40]]
   feature_penalties: [0]
+  feature_dims: [[6, 7]]
   terminate: [False]
 surrounding_configs:
   dummy_dist: 100.0

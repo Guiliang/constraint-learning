@@ -1,4 +1,4 @@
-task: 'PPO-Lag-highD'
+task: 'PPO-Lag-highD-velocity'
 group: 'PPO-Lag'
 device: 'cuda'
 verbose: 1
@@ -17,6 +17,7 @@ env:
   dont_normalize_reward: False
   dont_normalize_cost: False  # no cost
   record_info_names: ["ego_velocity_x", "ego_velocity_y"]
+  record_info_input_dims: [ 6, 7 ] # the dim of record info in inputs=(obs, action)
 
 running:
   n_iters: 2000

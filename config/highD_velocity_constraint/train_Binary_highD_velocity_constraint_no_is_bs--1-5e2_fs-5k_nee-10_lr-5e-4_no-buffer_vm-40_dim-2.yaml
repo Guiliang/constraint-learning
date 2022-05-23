@@ -1,4 +1,4 @@
-task: 'Binary-highD'
+task: 'Binary-highD-velocity'
 group: 'Binary'
 device: 'cuda'
 verbose: 1

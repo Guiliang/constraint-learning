@@ -21,7 +21,7 @@ env:
 running:
   n_iters: 100
   n_eval_episodes: 10
-  save_every: 5
+  save_every: 10
   expert_rollouts: 20
   sample_rollouts: 20
   store_sample_num: null

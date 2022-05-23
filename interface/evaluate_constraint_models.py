@@ -171,9 +171,9 @@ def evaluate():
     num_threads = 1
     if_testing_env = False
 
-    load_model_name = 'train_ICRL_WGW-v0_with_no-action-multi_env-May-17-2022-02:03-seed_123'
-    task_name = 'ICRL-WallGrid'
-    iteration_msg = 90
+    load_model_name = 'debug-part-train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-May-23-2022-12:42-seed_123'
+    task_name = 'PPO-highD-distance'
+    iteration_msg = 'best'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
     with open(os.path.join(model_loading_path, 'model_hyperparameters.yaml')) as reader:
@@ -244,7 +244,6 @@ def evaluate():
         raise ValueError("Unknown env_id: {0}".format(config['env']['train_env_id']))
 
     record_infos = {}
-    costs = []
     for record_info_name in config['env']["record_info_names"]:
         record_infos.update({record_info_name: []})
 
@@ -252,6 +251,8 @@ def evaluate():
     eval_obs_all = []
     eval_acs_all = []
     rewards_sum_all = []
+    if cns_model is not None:
+        costs = []
     while benchmark_idx < max_benchmark_num:
         if is_commonroad(env_id=config['env']['train_env_id']):
             benchmark_ids = get_benchmark_ids(num_threads=num_threads, benchmark_idx=benchmark_idx,
@@ -269,7 +270,7 @@ def evaluate():
         # env.render()
         if not os.path.exists(os.path.join(viz_path, benchmark_ids[0])):
             os.mkdir(os.path.join(viz_path, benchmark_ids[0]))
-        # game_info_file = open(os.path.join(viz_path, benchmark_ids[0], 'info_record.txt'), 'w')
+        game_info_file = open(os.path.join(viz_path, benchmark_ids[0], 'info_record.txt'), 'w')
         # if is_commonroad(env_id=config['env']['train_env_id']):
         #     game_info_file.write(
         #         'current_step, velocity, cost, is_collision, is_off_road, is_goal_reached, is_time_out\n')
@@ -286,28 +287,35 @@ def evaluate():
         while not done:
             action, state = ppo_model.predict(obs, state=state, deterministic=False)
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
-            cost = cns_model.cost_function(obs=original_obs, acs=action)
             if info is not None:
                 for record_info_name in config['env']["record_info_names"]:
                     if record_info_name == 'ego_velocity_x':
                         record_infos[record_info_name].append(np.mean(info[0]['ego_velocity'][0]))
                     elif record_info_name == 'ego_velocity_y':
                         record_infos[record_info_name].append(np.mean(info[0]['ego_velocity'][1]))
+                    elif record_info_name == 'same_lane_leading_obstacle_distance':
+                        record_infos[record_info_name].append(np.mean(info[0]['lanebase_relative_position'][0]))
                     else:
                         record_infos[record_info_name].append(np.mean(info[0][record_info_name]))
-                costs.append(cost)
+                if cns_model is not None:
+                    cost = cns_model.cost_function(obs=original_obs, acs=action)
+                    costs.append(cost)
+                else:
+                    cost = [None]
+                if is_commonroad(env_id=config['env']['train_env_id']):
+                    save_game_record(info=info[0],
+                                     file=game_info_file,
+                                     cost=cost[0],
+                                     type=record_type)
+                    env.render()
                 eval_obs_all.append(obs[0])
                 eval_acs_all.append(action[0])
             new_obs, reward, done, info = env.step(action)
-            print(action, reward, new_obs)
+            # print(action, reward, new_obs)
             reward_sum += reward
-            # save_game_record(info=info[0],
-            #                  file=game_info_file,
-            #                  cost=cost[0],
-            #                  type=record_type)
             obs = new_obs
             running_step += 1
-        # game_info_file.close()
+        game_info_file.close()
         print(reward_sum, '\n')
         rewards_sum_all.append(reward_sum)
         # pngs2gif(png_dir=os.path.join(viz_path, benchmark_ids[0]))
@@ -326,6 +334,8 @@ def evaluate():
                 termination_reasons.append("goal_reached")
             elif "is_over_speed" in info["episode"].keys() and info["episode"].get("is_over_speed", 0) == 1:
                 termination_reasons.append("over_speed")
+            elif "is_too_closed" in info["episode"].keys() and info["episode"].get("is_too_closed", 0) == 1:
+                termination_reasons.append("too_closed")
             # if len(termination_reasons) == 0:
             #     termination_reasons = "other"
             # else:

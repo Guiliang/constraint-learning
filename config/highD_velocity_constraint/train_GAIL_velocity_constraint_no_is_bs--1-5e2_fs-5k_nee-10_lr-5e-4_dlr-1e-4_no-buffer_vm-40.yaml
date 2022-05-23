@@ -1,4 +1,4 @@
-task: 'GAIL-highD'
+task: 'GAIL-highD-velocity'
 group: 'GAIL'
 device: 'cuda'
 verbose: 2

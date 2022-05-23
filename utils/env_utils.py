@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import gym
-from gym.envs.mujoco import mujoco_env
+# from gym.envs.mujoco import mujoco_env
 
 import stable_baselines3.common.vec_env as vec_env
 from stable_baselines3.common.callbacks import BaseCallback
@@ -181,7 +181,7 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
 
 
 class CommonRoadExternalSignalsWrapper(gym.Wrapper):
-    def __init__(self, env: gym.Wrapper, group: str, wrapper_config):
+    def __init__(self, env: gym.Wrapper, group: str, **wrapper_config):
         super(CommonRoadExternalSignalsWrapper, self).__init__(env=env)
         self.wrapper_config = wrapper_config
         self.group = group
@@ -190,15 +190,18 @@ class CommonRoadExternalSignalsWrapper(gym.Wrapper):
         observation, reward, done, info = self.env.step(action)
         reward_features = self.wrapper_config['external_reward']['reward_features']
         feature_bounds = self.wrapper_config['external_reward']['feature_bounds']
+        feature_dims = self.wrapper_config['external_reward']['feature_dims']
         feature_penalties = self.wrapper_config['external_reward']['feature_penalties']
         terminates = self.wrapper_config['external_reward']['terminate']
         lag_cost = 0
         for idx in range(len(reward_features)):
             reward_feature = reward_features[idx]
             if reward_feature == 'velocity':
-                ego_velocity_x_y = info["ego_velocity"]
+                ego_velocity_x_y = [observation[feature_dims[idx][0]], observation[feature_dims[idx][1]]]
+                assert np.sum(info["ego_velocity"] - ego_velocity_x_y) == 0  # TODO: remove this line if there is an error
+                info["ego_velocity"] = ego_velocity_x_y
                 ego_velocity = np.sqrt(np.sum(np.square(ego_velocity_x_y)))
-                if ego_velocity > float(feature_bounds[idx][1]):
+                if ego_velocity < float(feature_bounds[idx][0]) or ego_velocity > float(feature_bounds[idx][1]):
                     reward += float(feature_penalties[idx])
                     lag_cost = 1
                     if terminates[idx]:
@@ -206,6 +209,36 @@ class CommonRoadExternalSignalsWrapper(gym.Wrapper):
                     info.update({'is_over_speed': 1})
                 else:
                     info.update({'is_over_speed': 0})
+            elif reward_feature == 'same_lead_obstacle_distance':
+                lanebase_relative_position = [observation[feature_dims[idx][0]]]
+                info["lanebase_relative_position"] = np.asarray(lanebase_relative_position)
+                _lanebase_relative_position = np.mean(lanebase_relative_position)
+                if _lanebase_relative_position < float(feature_bounds[idx][0]) or \
+                        _lanebase_relative_position > float(feature_bounds[idx][1]):
+                    reward += float(feature_penalties[idx])
+                    lag_cost = 1
+                    if terminates[idx]:
+                        done = True
+                    info.update({'is_too_closed': 1})
+                else:
+                    info.update({'is_too_closed': 0})
+            elif reward_feature == 'obstacle_distance':
+                lanebase_relative_positions = [observation[feature_dims[idx][0]], observation[feature_dims[idx][1]],
+                                               observation[feature_dims[idx][2]], observation[feature_dims[idx][3]],
+                                               observation[feature_dims[idx][4]], observation[feature_dims[idx][5]]]
+                # [p_rel_left_follow, p_rel_same_follow, p_rel_right_follow, p_rel_left_lead, p_rel_same_lead, p_rel_right_lead]
+
+                info["lanebase_relative_position"] = np.asarray(lanebase_relative_positions)
+                for lanebase_relative_position in lanebase_relative_positions:
+                    if lanebase_relative_position < float(feature_bounds[idx][0]) or \
+                            lanebase_relative_position > float(feature_bounds[idx][1]):
+                        reward += float(feature_penalties[idx])
+                        lag_cost = 1
+                        if terminates[idx]:
+                            done = True
+                        info.update({'is_too_closed': 1})
+                    else:
+                        info.update({'is_too_closed': 0})
             else:
                 raise ValueError("Unknown reward features: {0}".format(reward_feature))
         # print(ego_velocity, lag_cost)
@@ -341,7 +374,9 @@ def check_if_duplicate_seed(seed, config, current_time_date, save_model_mother_d
                 # tmp = save_model_mother_dir.split('-seed_')[0].replace(current_time_date, '')
                 if save_model_mother_dir.split('-seed_')[0].replace(current_time_date, '') in task_mother_dir:
                     file_seed = int(save_file_name.split('-seed_')[1])
-                    file_date = task_mother_dir.replace(save_model_mother_dir.split('-seed_')[0].replace(current_time_date, ''), '').split('-seed_')[0]
+                    file_date = \
+                    task_mother_dir.replace(save_model_mother_dir.split('-seed_')[0].replace(current_time_date, ''),
+                                            '').split('-seed_')[0]
                     assert file_seed in all_candidate_seeds
                     try:
                         pass_save_date = dt.strptime(file_date, "%b-%d-%Y-%H:%M")

@@ -71,6 +71,8 @@ def evaluate_icrl_policy(
                         record_infos[record_info_name].append(np.mean(_info[i]['ego_velocity'][0]))
                     elif record_info_name == 'ego_velocity_y':
                         record_infos[record_info_name].append(np.mean(_info[i]['ego_velocity'][1]))
+                    elif record_info_name == 'same_lane_leading_obstacle_distance':
+                        record_infos[record_info_name].append(np.mean(_info[i]['lanebase_relative_position'][0]))
                     else:
                         record_infos[record_info_name].append(np.mean(_info[i][record_info_name]))
                 if not is_constraint[i]:

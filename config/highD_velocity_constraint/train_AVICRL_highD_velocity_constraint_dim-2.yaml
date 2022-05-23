@@ -1,4 +1,4 @@
-task: 'AVICRL-highD'
+task: 'AVICRL-highD-velocity'
 group: 'AVICRL'
 device: 'cuda'
 verbose: 1

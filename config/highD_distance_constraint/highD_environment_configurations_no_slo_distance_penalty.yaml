@@ -80,11 +80,11 @@ reward_configs_sparse:
   reward_time_out: -10.
   reward_friction_violation: 0.
 external_reward:
-  reward_features: ['velocity']
-  feature_bounds: [['-inf', 50]]
-  feature_penalties: [-50]
-  feature_dims: [[6, 7]]
-  terminate: [True]
+  reward_features: ['velocity','same_lead_obstacle_distance']  # ['velocity','obstacle_distance']
+  feature_bounds: [[ '-inf', 40], [5, 100]]
+  feature_penalties: [0,0]
+  feature_dims: [[ 6, 7 ], [22]] # [[ 6, 7 ], [18, 19, 20, 21, 22, 23]]
+  terminate: [False, False]
 surrounding_configs:
   dummy_dist: 100.0
   dummy_dist_rate: 0.0

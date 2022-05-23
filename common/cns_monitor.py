@@ -55,9 +55,11 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 }
             elif is_commonroad(self.env.spec.id):
                 self.logger = csv.DictWriter(self.file_handler,
-                                             fieldnames=("reward", "reward_nc", "len", "time", "avg_velocity",
+                                             fieldnames=("reward", "reward_nc", "len", "time",
+                                                         "avg_velocity", "avg_distance",
                                                          "is_collision", "is_off_road",
-                                                         "is_goal_reached", "is_time_out", "is_over_speed", "env")
+                                                         "is_goal_reached", "is_time_out",
+                                                         "is_over_speed", "is_too_closed", "env")
                                                         + reset_keywords + info_keywords + track_keywords,
                                              delimiter=",")
                 self.event_dict = {
@@ -65,7 +67,8 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                     'is_off_road': 0,
                     'is_goal_reached': 0,
                     'is_time_out': 0,
-                    'is_over_speed': 0
+                    'is_over_speed': 0,
+                    'is_too_closed': 0
                 }
             else:
                 raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
@@ -90,6 +93,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
         self.rewards_not_constraint = []  # the rewards before breaking the constraint
         if is_commonroad(self.env.spec.id):
             self.ego_velocity_game = []
+            self.lanebase_relative_position_game = []
         self.needs_reset = False
         for key in self.reset_keywords:
             value = kwargs.get(key)
@@ -113,7 +117,10 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             # if self.env.spec.id == 'LGW-v0' and action == 1:
             #     self.event_dict['is_constraint_break'] = 1
         elif is_commonroad(self.env.spec.id):
-            self.ego_velocity_game.append(info["ego_velocity"])
+            if "ego_velocity" in info.keys():
+                self.ego_velocity_game.append(info["ego_velocity"])
+            if "lanebase_relative_position" in info.keys():
+                self.lanebase_relative_position_game.append(info["lanebase_relative_position"])
             if info['is_collision']:
                 self.event_dict['is_collision'] = 1
             if info['is_off_road']:
@@ -124,6 +131,8 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 self.event_dict['is_time_out'] = 1
             if 'is_over_speed' in info.keys() and info['is_over_speed']:
                 self.event_dict['is_over_speed'] = 1
+            if 'is_too_closed' in info.keys() and info['is_too_closed']:
+                self.event_dict['is_too_closed'] = 1
         else:
             raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
         self.rewards.append(reward)
@@ -132,7 +141,8 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 self.rewards_not_constraint.append(reward)
         elif is_commonroad(self.env.spec.id):
             if not self.event_dict['is_collision'] and not self.event_dict['is_off_road'] \
-                    and not self.event_dict['is_time_out'] and not self.event_dict['is_over_speed']:
+                    and not self.event_dict['is_time_out'] and not self.event_dict['is_over_speed'] \
+                    and not self.event_dict['is_too_closed']:
                 self.rewards_not_constraint.append(reward)
         else:
             raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
@@ -159,23 +169,36 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                            "time": round(time.time() - self.t_start, 2),
                            'constraint': self.event_dict['is_constraint_break']}
             elif is_commonroad(self.env.spec.id):
-                ego_velocity_array = np.asarray(self.ego_velocity_game)
-                ego_velocity_game = np.sqrt(np.square(ego_velocity_array[:, 0]) + np.square(ego_velocity_array[:, 1]))
+                if len(self.ego_velocity_game) > 0:
+                    ego_velocity_array = np.asarray(self.ego_velocity_game)
+                    ego_velocity_game = np.sqrt(
+                        np.square(ego_velocity_array[:, 0]) + np.square(ego_velocity_array[:, 1]))
+                    ego_velocity_game_mean = float(ego_velocity_game.mean())
+                else:
+                    ego_velocity_game_mean = -1
+                if len(self.lanebase_relative_position_game) > 0:
+                    lanebase_relative_position_array = np.asarray(self.lanebase_relative_position_game)
+                    lanebase_relative_position_game_mean = float(lanebase_relative_position_array.mean())
+                else:
+                    lanebase_relative_position_game_mean = -1
                 # ego_velocity_tmp = np.sqrt(np.sum(np.square(ego_velocity_array), axis=1))
                 ep_info = {
                     "reward": round(ep_rew, 2),
                     "reward_nc": round(ep_rew_nc, 2),
                     "len": ep_len,
                     "time": round(time.time() - self.t_start, 2),
-                    "avg_velocity": round(float(ego_velocity_game.mean()), 2),
+                    "avg_velocity": round(ego_velocity_game_mean, 2),
+                    "avg_distance": round(lanebase_relative_position_game_mean, 2),
                     "is_collision": self.event_dict['is_collision'],
                     "is_off_road": self.event_dict['is_off_road'],
                     "is_goal_reached": self.event_dict['is_goal_reached'],
                     "is_time_out": self.event_dict['is_time_out'],
-                    'is_over_speed': self.event_dict['is_over_speed'],
+                    'is_over_speed': self.event_dict['is_over_speed'] if 'is_over_speed' in info.keys() else -1,
+                    'is_too_closed': self.event_dict['is_too_closed'] if 'is_too_closed' in info.keys() else -1,
                     "env": self.env.env.benchmark_id,
                 }
                 self.ego_velocity_game = []
+                self.lanebase_relative_position_game = []
             else:
                 raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
             for key in self.info_keywords:
@@ -200,7 +223,8 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                     'is_off_road': 0,
                     'is_goal_reached': 0,
                     'is_time_out': 0,
-                    'is_over_speed': 0
+                    'is_over_speed': 0,
+                    'is_too_closed': 0
                 }
         self.total_steps += 1
         return observation, reward, done, info

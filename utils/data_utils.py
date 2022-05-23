@@ -207,29 +207,26 @@ def save_game_record(info, file, type, cost=None):
         is_collision = info["is_collision"]
         is_time_out = info["is_time_out"]
         is_off_road = info["is_off_road"]
-        ego_velocity_x_y = info["ego_velocity"]
-        # ego_velocity = np.sqrt(np.sum(np.square(ego_velocity_x_y)))
-        ego_velocity_x = ego_velocity_x_y[0]
-        ego_velocity_y = ego_velocity_x_y[1]
+        record_extra_info = []
+        if 'ego_velocity' in info.keys():
+            ego_velocity_x_y = info["ego_velocity"]
+            ego_velocity_x = ego_velocity_x_y[0]
+            ego_velocity_y = ego_velocity_x_y[1]
+            record_extra_info.append("{0:.3f}, {1:.3f}".format(ego_velocity_x, ego_velocity_y))
+        if 'lanebase_relative_position' in info.keys():
+            lanebase_relative_position = info["lanebase_relative_position"]
+            record_extra_info.append("{0:.3f}".format(lanebase_relative_position[0]))
+        record_extra_info_str = ','.join(record_extra_info)
         is_goal_reached = info["is_goal_reached"]
         current_step = info["current_episode_time_step"]
-        if cost is None:
-            file.write("{0}, {1:.3f}, {2:.3f}, {3:.0f}, {4:.0f}, {5:.0f}, {6:.0f}\n".format(current_step,
-                                                                                            ego_velocity_x,
-                                                                                            ego_velocity_y,
-                                                                                            is_collision,
-                                                                                            is_off_road,
-                                                                                            is_goal_reached,
-                                                                                            is_time_out))
-        else:
-            file.write("{0}, {1:.3f}, {2:.3f}, {3:.3f}, {4:.0f}, {5:.0f}, {6:.0f}, {7:.0f}\n".format(current_step,
-                                                                                                     ego_velocity_x,
-                                                                                                     ego_velocity_y,
-                                                                                                     cost,
-                                                                                                     is_collision,
-                                                                                                     is_off_road,
-                                                                                                     is_goal_reached,
-                                                                                                     is_time_out))
+        file.write("{0}, {1}, {2}, {3:.0f}, {4:.0f}, {5:.0f}, {6:.0f}\n".format(current_step,
+                                                                                record_extra_info_str,
+                                                                                cost,
+                                                                                is_collision,
+                                                                                is_off_road,
+                                                                                is_goal_reached,
+                                                                                is_time_out))
+
     elif type == 'mujoco':
         x_pos = info['xpos']
         cost = cost

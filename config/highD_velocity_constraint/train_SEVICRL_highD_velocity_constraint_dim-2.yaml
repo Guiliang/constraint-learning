@@ -1,4 +1,4 @@
-task: 'SEVICRL-highD'
+task: 'SEVICRL-highD-velocity'
 group: 'SEVICRL'
 device: 'cuda'
 verbose: 1
