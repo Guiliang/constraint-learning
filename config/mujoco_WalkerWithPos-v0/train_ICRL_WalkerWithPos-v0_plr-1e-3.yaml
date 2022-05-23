@@ -75,7 +75,7 @@ CN:
   cn_batch_size: null
   cn_obs_select_name: null  # null means all
   cn_acs_select_name: null  # null means all
-  no_importance_sampling: True
+  no_importance_sampling: False
   per_step_importance_sampling: True
   clip_obs: 20
   cn_normalize: False

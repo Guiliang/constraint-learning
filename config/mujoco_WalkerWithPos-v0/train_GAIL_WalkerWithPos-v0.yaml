@@ -1,11 +1,11 @@
-task: 'GAIL-HC'
+task: 'GAIL-WalkerWithPos'
 group: 'GAIL'
 device: 'cuda'
 verbose: 2
 env:
   config_path: null
-  train_env_id : 'HCWithPos-v0'
-  eval_env_id: 'HCWithPos-v0'  # 'HCWithPosTest-v0'
+  train_env_id : 'WalkerWithPos-v0'
+  eval_env_id: 'WalkerWithPos-v0'
   save_dir: '../save_model'
   cost_info_str: 'cost'
   use_cost: False
@@ -13,15 +13,15 @@ env:
   cost_gamma: 0.99  # no cost
   dont_normalize_obs: False
   dont_normalize_reward: False
-  record_info_names: ["xpos"]
-  record_info_input_dims: [0] # the dim of record info in inputs=(obs, action)
-  visualize_info_ranges: [[-30, 30]]
+  record_info_names: ['x_position']
+  record_info_input_dims: [ 0 ] # the dim of record info in inputs=(obs, action)
+  visualize_info_ranges: [ [ -10, 10 ] ]
 
 running:
-  save_every: 500000
-  eval_every: 200000
-  expert_rollouts: 10
-  expert_path: '../data/expert_data/HCWithPos-New/'
+  save_every: 1000000
+  eval_every: 1000000
+  expert_rollouts: 50
+  expert_path: '../data/expert_data/no_constraint_train_ppo_lag_WalkerWithPos-v0-multi_env-May-07-2022-01:19-seed_123/'
 
 PPO:
   policy_name: 'MlpPolicy'
@@ -42,12 +42,12 @@ PPO:
   reward_vf_layers: [64, 64]
   batch_size: 64
 #  eval_every: 2048
-  timesteps: 8000000
+  timesteps: 10000000
 
 DISC:
   disc_batch_size: null
   disc_eps: 1e-05
-  disc_layers: [ 30 ]
+  disc_layers: [ 20 ]
   disc_learning_rate: 0.003
   disc_normalize": false
   disc_obs_select_dim: null

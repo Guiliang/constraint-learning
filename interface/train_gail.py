@@ -41,7 +41,7 @@ def train(args):
         log_file = None
     debug_msg = ''
     if debug_mode:
-        # config['device'] = 'cpu'
+        config['device'] = 'cpu'
         # config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['running']['save_every'] = 2048
         config['running']['eval_every'] = 1024

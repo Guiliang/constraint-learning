@@ -8,7 +8,7 @@
 #SBATCH --time=36:00:00
 #SBATCH --mem=24GB
 #SBATCH --job-name=GAIL
-task_name="train-Mojuco-GAIL_1"
+task_name="train-Mojuco-GAIL_2"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 export PATH=/pkgs/anaconda3/bin:$PATH
