@@ -67,27 +67,29 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    env_id = 'highD_distance_constraint'
-    method_names_labels_dict = {
-        "ppo_highD_no_slo_distance_dm-5": 'PPO',
-    }
+    # env_id = 'highD_distance_constraint'
+    # method_names_labels_dict = {
+    #     "ppo_highD_no_slo_distance_dm-5": 'PPO',
+    # }
     # env_id = 'InvertedPendulumWall-v0'
     # method_names_labels_dict = {
     #     # "PPO_Pendulum": 'PPO',
     #     "PPO_lag_Pendulum": 'PPO_lag',
-    #     "ICRL_Pendulum": 'ICRL',
-    #     "VICRL_PendulumWall": 'VICRL',
     #     "Binary_PendulumWall": 'Binary',
     #     "GAIL_PendulumWall": 'GAIL',
+    #     "ICRL_Pendulum": 'ICRL',
+    #     "VICRL_PendulumWall": 'VICRL',
     # }
-    # env_id = 'WalkerWithPos-v0'
-    # method_names_labels_dict = {
-    #     # "PPO_Walker": 'PPO',
-    #     "PPO_lag_Walker": 'PPO_lag',
-    #     "ICRL_Walker": 'ICRL',
-    #     # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
-    #     "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
-    # }
+    env_id = 'WalkerWithPos-v0'
+    method_names_labels_dict = {
+        # "PPO_Walker": 'PPO',
+        "PPO_lag_Walker": 'PPO_lag',
+        "Binary_Walker": 'Binary',
+        "GAIL_Walker": 'GAIL',
+        "ICRL_Walker": 'ICRL',
+        # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
+        "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
+    }
     modes = ['train']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -706,6 +708,9 @@ def generate_plots():
                 ],
                 'GAIL_PendulumWall': [
                     '../save_model/GAIL-InvertedPendulumWall/train_GAIL_disclr-1e-5_InvertedPendulumWall-v0-multi_env-May-10-2022-12:55-seed_123/',
+                    '../save_model/GAIL-InvertedPendulumWall/train_GAIL_disclr-1e-5_InvertedPendulumWall-v0-multi_env-May-23-2022-13:26-seed_123/',
+                    '../save_model/GAIL-InvertedPendulumWall/train_GAIL_disclr-1e-5_InvertedPendulumWall-v0-multi_env-May-23-2022-19:43-seed_321/',
+                    '../save_model/GAIL-InvertedPendulumWall/train_GAIL_disclr-1e-5_InvertedPendulumWall-v0-multi_env-May-24-2022-02:06-seed_456/',
                 ]
             }
         elif env_id == 'WalkerWithPos-v0':
@@ -734,6 +739,12 @@ def generate_plots():
                     '../save_model/PPO-Lag-Walker/train_ppo_lag_WalkerWithPos-v0-multi_env-May-07-2022-10:43-seed_456/',
                     '../save_model/PPO-Lag-Walker/train_ppo_lag_WalkerWithPos-v0-multi_env-May-07-2022-15:29-seed_654/',
                     '../save_model/PPO-Lag-Walker/train_ppo_lag_WalkerWithPos-v0-multi_env-May-07-2022-20:05-seed_666/',
+                ],
+                'Binary_Walker': [
+                    '../save_model/Binary-WalkerWithPos/train_Binary_WalkerWithPos-v0-multi_env-May-24-2022-01:09-seed_123/',
+                ],
+                'GAIL_Walker': [
+                    '../save_model/GAIL-WalkerWithPos/train_GAIL_WalkerWithPos-v0-multi_env-May-23-2022-14:30-seed_123/',
                 ],
                 'ICRL_Walker': [
                     '../save_model/ICRL-WalkerWithPos/train_ICRL_WalkerWithPos-v0-multi_env-May-18-2022-10:41-seed_123/',

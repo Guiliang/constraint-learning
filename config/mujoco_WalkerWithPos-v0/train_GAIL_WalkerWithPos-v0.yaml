@@ -10,7 +10,7 @@ env:
   cost_info_str: 'cost'
   use_cost: False
   reward_gamma: 0.99
-  cost_gamma: 0.99  # no cost
+  cost_gamma: null  # no cost
   dont_normalize_obs: False
   dont_normalize_reward: False
   record_info_names: ['x_position']

@@ -19,7 +19,7 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface
-python train_gail.py ../config/mujoco_WalkerWithPos-v0/train_GAIL_WalkerWithPos-v0.yaml -n 5 -s 123 -l "$log_dir"
+python train_gail.py ../config/mujuco_HCWithPos-v0/train_GAIL_HCWithPos-v0_with-action.yaml -n 5 -s 123 -l "$log_dir"
 #process_id=$!
 #wait $process_id
 echo shell finish running
