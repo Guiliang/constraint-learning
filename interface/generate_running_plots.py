@@ -67,15 +67,19 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    env_id = 'InvertedPendulumWall-v0'
+    env_id = 'highD_distance_constraint'
     method_names_labels_dict = {
-        # "PPO_Pendulum": 'PPO',
-        "PPO_lag_Pendulum": 'PPO_lag',
-        "ICRL_Pendulum": 'ICRL',
-        "VICRL_PendulumWall": 'VICRL',
-        "Binary_PendulumWall": 'Binary',
-        "GAIL_PendulumWall": 'GAIL',
+        "ppo_highD_no_slo_distance_dm-5": 'PPO',
     }
+    # env_id = 'InvertedPendulumWall-v0'
+    # method_names_labels_dict = {
+    #     # "PPO_Pendulum": 'PPO',
+    #     "PPO_lag_Pendulum": 'PPO_lag',
+    #     "ICRL_Pendulum": 'ICRL',
+    #     "VICRL_PendulumWall": 'VICRL',
+    #     "Binary_PendulumWall": 'Binary',
+    #     "GAIL_PendulumWall": 'GAIL',
+    # }
     # env_id = 'WalkerWithPos-v0'
     # method_names_labels_dict = {
     #     # "PPO_Walker": 'PPO',
@@ -292,6 +296,30 @@ def generate_plots():
                     # '../save_model/Binary-highD/train_Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2-multi_env-May-02-2022-20:10-seed_666/',
                 ],
 
+            }
+        elif env_id == 'highD_distance_constraint':
+            max_episodes = 10000
+            average_num = 100
+            max_reward = 50
+            min_reward = -50
+            plot_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
+                        'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance', 'is_too_closed']
+            label_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
+                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance', 'is_too_closed']
+            plot_y_lim_dict = {'reward': (-50, 50),
+                               'reward_nc': (0, 50),
+                               'is_collision': (0, 1),
+                               'is_off_road': (0, 1),
+                               'is_goal_reached': (0, 1),
+                               'is_time_out': (0, 1),
+                               'avg_velocity': (20, 50),
+                               'is_over_speed': (0, 1),
+                               'avg_distance': (50, 100),
+                               'is_too_closed': (0, 1)}
+            log_path_dict = {
+                "ppo_highD_no_slo_distance_dm-5": [
+                    '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_dm-5_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-multi_env-May-23-2022-04:26-seed_123/',
+                ],
             }
         elif env_id == 'HCWithPos-v0':
             max_episodes = 6000
