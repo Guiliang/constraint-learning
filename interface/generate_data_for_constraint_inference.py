@@ -8,12 +8,10 @@ import time
 from typing import Union, Callable
 import numpy as np
 import yaml
-
-from common.cns_env import make_env
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from gym import Env
+from common.cns_env import make_env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 # from utils.model_utils import get_net_arch
 # from stable_baselines3 import PPO
