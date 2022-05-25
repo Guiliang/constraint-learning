@@ -201,6 +201,7 @@ def run():
         raise ValueError("Unknown env_id: {0}".format(config['env']['train_env_id']))
 
     success = 0
+    saved_num = 0
     benchmark_id_all = []
     while benchmark_idx < max_benchmark_num:
         if is_commonroad(env_id=config['env']['train_env_id']):
@@ -239,6 +240,10 @@ def run():
             action, state = model.predict(obs, state=state, deterministic=True)
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
             new_obs, rewards, dones, infos = env.step(action)
+            lanebase_relative_position = []
+            for info in infos:
+                lanebase_relative_position.append(info['lanebase_relative_position'][0])
+            print(lanebase_relative_position)
             for i in range(num_threads):
                 if not multi_thread_dones[i]:
                     obs_all[i].append(obs[i])
@@ -274,17 +279,20 @@ def run():
             # num_off_road += info["valid_off_road"] if "valid_off_road" in info else info["is_off_road"]
             # num_goal_reaching += info["is_goal_reached"]
             termination_reasons = []
+            print(info['lanebase_relative_position'])
             if is_commonroad(env_id=config['env']['train_env_id']):
                 if info["episode"].get("is_time_out", 0) == 1:
                     termination_reasons.append("time_out")
-                elif info["episode"].get("is_off_road", 0) == 1:
+                if info["episode"].get("is_off_road", 0) == 1:
                     termination_reasons.append("off_road")
-                elif info["episode"].get("is_collision", 0) == 1:
+                if info["episode"].get("is_collision", 0) == 1:
                     termination_reasons.append("collision")
-                elif info["episode"].get("is_goal_reached", 0) == 1:
+                if info["episode"].get("is_goal_reached", 0) == 1:
                     termination_reasons.append("goal_reached")
-                elif "is_over_speed" in info["episode"].keys() and info["episode"].get("is_over_speed", 0) == 1:
+                if "is_over_speed" in info["episode"].keys() and info["episode"].get("is_over_speed", 0) == 1:
                     termination_reasons.append("over_speed")
+                if "is_too_closed" in info["episode"].keys() and info["episode"].get("is_too_closed", 0) == 1:
+                    termination_reasons.append("too_closed")
                 # if len(termination_reasons) == 0:
                 #     termination_reasons = "other"
                 # else:
@@ -300,6 +308,7 @@ def run():
                     save_constraint_expert = False
 
             if save_constraint_expert:
+                saved_num += 1
                 print('saving expert data for game {0} with terminal reason: {1}'.format(benchmark_ids[i],
                                                                                          termination_reasons),
                       file=log_file, flush=True)
@@ -339,7 +348,7 @@ def run():
             #     out_of_scenarios = False
         benchmark_idx += 1
 
-    print('total', total_scenarios, 'success', success, file=log_file, flush=True)
+    print('total', total_scenarios, 'success', success, 'saved_num', saved_num, file=log_file, flush=True)
 
 
 if __name__ == '__main__':
