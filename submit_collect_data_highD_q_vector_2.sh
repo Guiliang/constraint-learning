@@ -12,6 +12,6 @@ log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
 conda activate galen-cr37
 cd ./interface/
-#python generate_data_for_constraint_inference.py -n 5 -mn train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-multi_env-May-24-2022-00:53-seed_123 -tn PPO-Lag-highD-distance -ct is_too_closed
-python generate_data_for_constraint_inference.py -n 5 -mn train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-10-multi_env-May-24-2022-00:53-seed_123 -tn PPO-Lag-highD-distance -ct is_too_closed
-#python generate_data_for_constraint_inference.py -n 5 -mn train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123 -tn PPO-Lag-highD-distance -ct is_too_closed
+#python generate_data_for_constraint_inference.py -n 5 -mn train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-multi_env-May-24-2022-00:53-seed_123 -tn PPO-Lag-highD-distance -ct no-too_closed
+python generate_data_for_constraint_inference.py -n 5 -mn train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-10-multi_env-May-24-2022-00:53-seed_123 -tn PPO-Lag-highD-distance -ct no-too_closed
+#python generate_data_for_constraint_inference.py -n 5 -mn train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123 -tn PPO-Lag-highD-distance -ct no-too_closed
