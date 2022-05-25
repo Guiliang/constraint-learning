@@ -6,7 +6,7 @@
 #SBATCH --time=96:00:00
 #SBATCH --mem=120GB
 #SBATCH --job-name=collect
-task_name="collect_data-highD"
+task_name="collect_data-highD_1"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
