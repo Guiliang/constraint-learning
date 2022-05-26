@@ -1,4 +1,4 @@
-task: 'ICRL-highD-velocity'
+task: 'ICRL-highD-distance'
 group: 'ICRL'
 device: 'cuda'
 verbose: 1
@@ -14,7 +14,7 @@ env:
   dont_normalize_obs: False
   dont_normalize_reward: False
   dont_normalize_cost: False  # no cost
-  record_info_names: ["slo-same_lane_leading_obstacle_distance"]
+  record_info_names: ["same_lane_leading_obstacle_distance"]
   record_info_input_dims: [22] # the dim of record info in inputs=(obs, action)
   visualize_info_ranges: [[ 0, 100] ]
 

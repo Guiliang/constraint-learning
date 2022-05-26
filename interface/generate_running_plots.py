@@ -341,6 +341,15 @@ def generate_plots():
                 "ppo_lag_highD_no_slo_distance_dm-20": [
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
                 ],
+                "ppo_lag_highD_no_slo_distance_dm-20": [
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
+                ],
+                "ppo_lag_highD_no_slo_distance_dm-20": [
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
+                ],
+                "ppo_lag_highD_no_slo_distance_dm-20": [
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
+                ],
             }
         elif env_id == 'HCWithPos-v0':
             max_episodes = 6000

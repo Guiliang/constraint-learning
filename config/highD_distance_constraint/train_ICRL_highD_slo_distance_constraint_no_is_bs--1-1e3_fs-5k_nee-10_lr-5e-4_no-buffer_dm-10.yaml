@@ -1,4 +1,4 @@
-task: 'ICRL-highD-velocity'
+task: 'ICRL-highD-distance'
 group: 'ICRL'
 device: 'cuda'
 verbose: 1
