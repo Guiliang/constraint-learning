@@ -278,7 +278,7 @@ def get_all_env_ids(num_threads, env):
 
 
 def is_mujoco(env_id):
-    mujoco_env_id = ['HC', 'AntWall', 'Pendulum', 'Walker', 'LGW', 'WGW']
+    mujoco_env_id = ['HC', 'AntWall', 'Pendulum', 'Walker', 'LGW', 'WGW', 'Swimmer']
     # if 'HC' in env_id or 'LGW' in env_id or 'AntWall' in env_id or 'Pendulum' in env_id or 'Walker' in env_id:
     for item in mujoco_env_id:
         if item in env_id:

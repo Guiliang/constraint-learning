@@ -1,5 +1,6 @@
 import numpy as np
 from gym.envs.mujoco import swimmer
+from gym.envs.mujoco import swimmer_v3
 
 ###############################################################################
 # TORQUE CONSTRAINTS
@@ -96,34 +97,36 @@ class SwimmerWithPos(swimmer.SwimmerEnv):
 
         return ob, reward, done, info
 
-class SwimmerWithPosTest(SwimmerWithPos):
-    def _get_obs(self):
-        return np.concatenate([
-            self.sim.data.qpos.flat,
-            self.sim.data.qvel.flat,
-        ])
-
-    def step(self, action):
-        xposbefore = self.sim.data.qpos[0]
-        self.do_simulation(action, self.frame_skip)
-        xposafter = self.sim.data.qpos[0]
-        ob = self._get_obs()
-        if REWARD_TYPE == 'new':
-            reward, info = self.new_reward(xposbefore,
-                                           xposafter,
-                                           action)
-        elif REWARD_TYPE == 'old':
-            reward, info = self.old_reward(xposbefore,
-                                           xposafter,
-                                           action)
-        done = False
-
-        # If agent violates constraint, terminate the episode
-        if xposafter <= -3:
-            print("Violated constraint in the test environment; terminating episode")
-            done = True
-            reward = 0
-
-        return ob, reward, done, info
-
-
+#class SwimmerWithPosTest(SwimmerWithPos):
+#    def _get_obs(self):
+#        return np.concatenate([
+#            self.sim.data.qpos.flat,
+#            self.sim.data.qvel.flat,
+#        ])
+#
+#    def step(self, action):
+#        xposbefore = self.sim.data.qpos[0]
+#        self.do_simulation(action, self.frame_skip)
+#        xposafter = self.sim.data.qpos[0]
+#        ob = self._get_obs()
+#        if REWARD_TYPE == 'new':
+#            reward, info = self.new_reward(xposbefore,
+#                                           xposafter,
+#                                           action)
+#        elif REWARD_TYPE == 'old':
+#            reward, info = self.old_reward(xposbefore,
+#                                           xposafter,
+#                                           action)
+#        done = False
+#
+#        # If agent violates constraint, terminate the episode
+#        if xposafter <= -3:
+#            print("Violated constraint in the test environment; terminating episode")
+#            done = True
+#            reward = 0
+#
+#        return ob, reward, done, info
+#
+#class SwimmerWithPos(swimmer_v3.SwimmerEnv):
+#    def __init__(self):
+#        super(SwimmerWithPos, self).__init__(exclude_current_positions_from_observation=False)
