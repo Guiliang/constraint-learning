@@ -7,13 +7,15 @@ import numpy as np
 def get_true_cost_function(env_id, env_configs={}):
     """Returns the cost function correpsonding to provided env)"""
     if env_id in ["HCWithPosTest-v0",
-                  "SwimmerWithPosTest-v0",
                   "AntWallTest-v0",
                   "HCWithPos-v0",
-                  "SwimmerWithPos-v0",
                   "AntWall-v0",
                   ]:
         return partial(wall_behind, -3)
+    elif env_id in ["SwimmerWithPos-v0",
+                    "SwimmerWithPosTest-v0"
+                    ]:
+        return partial(wall_behind, -0.1)
     elif env_id in ["InvertedPendulumWall-v0",
                     "InvertedPendulumWallTest-v0",
                     ]:
