@@ -67,11 +67,12 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    # env_id = 'highD_distance_constraint'
-    # method_names_labels_dict = {
-    #     "ppo_highD_no_slo_distance_dm-20": 'PPO',
-    #     "ppo_lag_highD_no_slo_distance_dm-20": 'PPO-Lag',
-    # }
+    env_id = 'highD_distance_constraint'
+    method_names_labels_dict = {
+        "ppo_highD_no_slo_distance_dm-10": 'PPO',
+        "ppo_lag_highD_no_slo_distance_dm-10": 'PPO-Lag',
+        'ICRL_highD_slo_distance_dm-10': 'ICRL',
+    }
     # env_id = 'InvertedPendulumWall-v0'
     # method_names_labels_dict = {
     #     # "PPO_Pendulum": 'PPO',
@@ -81,16 +82,16 @@ def generate_plots():
     #     "ICRL_Pendulum": 'ICRL',
     #     "VICRL_PendulumWall": 'VICRL',
     # }
-    env_id = 'WalkerWithPos-v0'
-    method_names_labels_dict = {
-        # "PPO_Walker": 'PPO',
-        "PPO_lag_Walker": 'PPO_lag',
-        "Binary_Walker": 'Binary',
-        "GAIL_Walker": 'GAIL',
-        "ICRL_Walker": 'ICRL',
-        # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
-        "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
-    }
+    # env_id = 'WalkerWithPos-v0'
+    # method_names_labels_dict = {
+    #     # "PPO_Walker": 'PPO',
+    #     "PPO_lag_Walker": 'PPO_lag',
+    #     "Binary_Walker": 'Binary',
+    #     "GAIL_Walker": 'GAIL',
+    #     "ICRL_Walker": 'ICRL',
+    #     # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
+    #     "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
+    # }
     modes = ['train']
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
@@ -302,7 +303,7 @@ def generate_plots():
             }
         elif env_id == 'highD_distance_constraint':
             max_episodes = 10000
-            average_num = 100
+            average_num = 500
             max_reward = 50
             min_reward = -50
             plot_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
@@ -341,14 +342,14 @@ def generate_plots():
                 "ppo_lag_highD_no_slo_distance_dm-20": [
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
                 ],
-                "ppo_lag_highD_no_slo_distance_dm-20": [
-                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
+                "ICRL_highD_slo_distance_dm-5": [
+                    '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-5-multi_env-May-25-2022-10:17-seed_123/',
                 ],
-                "ppo_lag_highD_no_slo_distance_dm-20": [
-                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
+                "ICRL_highD_slo_distance_dm-10": [
+                    '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-10-multi_env-May-25-2022-10:17-seed_123/',
                 ],
-                "ppo_lag_highD_no_slo_distance_dm-20": [
-                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
+                "ICRL_highD_slo_distance_dm-20": [
+                    '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-25-2022-10:17-seed_123/',
                 ],
             }
         elif env_id == 'HCWithPos-v0':
