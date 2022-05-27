@@ -17,9 +17,9 @@ env:
   record_info_names: ['xpos']
 
 running:
-  n_iters: 20
-  n_eval_episodes: 5
-  save_every: 5
+  n_iters: 100
+  n_eval_episodes: 10
+  save_every: 10
 
 PPO:
   policy_name: 'MlpPolicy'
@@ -43,5 +43,5 @@ PPO:
   use_curiosity_driven_exploration: False
   warmup_timesteps: False
   reset_policy: False
-  forward_timesteps: 200000
+  forward_timesteps: 20000
   clip_range_reward_vf: null

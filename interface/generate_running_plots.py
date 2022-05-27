@@ -10,6 +10,8 @@ def plot_results(mean_results_moving_avg_dict,
                  save_label,
                  legend_dict=None,
                  legend_size=20,
+                 axis_size=None,
+                 img_size=None,
                  title=None):
     plot_mean_y_dict = {}
     plot_std_y_dict = {}
@@ -23,20 +25,20 @@ def plot_results(mean_results_moving_avg_dict,
                       y_dict_mean=plot_mean_y_dict,
                       x_dict_std=plot_x_dict,
                       y_dict_std=plot_std_y_dict,
-                      img_size=(6.7, 5.6),
+                      img_size=img_size if img_size is not None else (6.7, 5.6),
                       ylim=ylim,
                       title=title,
                       xlabel='Episode',
-                      # ylabel=label,
+                      ylabel=label,
                       legend_dict=legend_dict,
                       legend_size=legend_size,
-                      axis_size=18,
+                      axis_size=axis_size if axis_size is not None else 18,
                       title_size=20,
                       plot_name='./plot_results/{0}'.format(save_label), )
 
 
 def generate_plots():
-    env_id = 'HCWithPos-v0'
+    # env_id = 'HCWithPos-v0'
     # method_names_labels_dict = {
     #     # "PPO_Pos": 'PPO',
     #     # "PPO_lag_Pos": 'PPO_lag',
@@ -73,12 +75,12 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    # env_id = 'highD_distance_constraint'
-    # method_names_labels_dict = {
-    #     "ppo_highD_no_slo_distance_dm-10": 'PPO',
-    #     "ppo_lag_highD_no_slo_distance_dm-10": 'PPO-Lag',
-    #     'ICRL_highD_slo_distance_dm-10': 'ICRL',
-    # }
+    env_id = 'highD_distance_constraint'
+    method_names_labels_dict = {
+        "ppo_highD_no_slo_distance_dm-20": 'PPO',
+        "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
+        # 'ICRL_highD_slo_distance_dm-10': 'ICRL',
+    }
     # env_id = 'InvertedPendulumWall-v0'
     # method_names_labels_dict = {
     #     # "PPO_Pendulum": 'PPO',
@@ -98,13 +100,15 @@ def generate_plots():
     #     # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
     #     "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
     # }
-    env_id = 'SwimmerWithPos-v0'
-    method_names_labels_dict = {
-        "PPO_Swimmer_b--1": 'PPO',
-        "PPO_lag_Swimmer_b--1": 'PPO_lag',
-    }
+    # env_id = 'SwimmerWithPos-v0'
+    # method_names_labels_dict = {
+    #     "PPO_Swimmer_b--1": 'PPO',
+    #     "PPO_lag_Swimmer_b--1": 'PPO_lag',
+    # }
     modes = ['train']
     plot_mode = 'part'
+    img_size = None
+    axis_size = None
     if plot_mode == 'part':
         for method_name in method_names_labels_dict.copy().keys():
             if method_names_labels_dict[method_name] != 'PPO' and method_names_labels_dict[method_name] != 'PPO_lag':
@@ -118,11 +122,13 @@ def generate_plots():
             average_num = 100
             max_reward = 50
             min_reward = -50
-            gap = 1
+            axis_size = 20
+            img_size = [8, 6.5]
+            title = 'Velocity Constraint'
             plot_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
-            label_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
-                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
+            label_key = ['Reward', 'Reward', 'Collision Rate', 'Off Road Rate',
+                         'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Over Speed Rate']
             plot_y_lim_dict = {'reward': (-50, 50),
                                'reward_nc': (0, 50),
                                'is_collision': (0, 1),
@@ -144,7 +150,10 @@ def generate_plots():
                     '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10-multi_env-Apr-02-2022-01:16-seed_123/'
                 ],
                 "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": [
-                    '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:28-seed_123/'
+                    # '../save_model/PPO-highD-velocity/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:28-seed_123/',
+                    '../save_model/PPO-highD-velocity/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-May-07-2022-02:01-seed_123/',
+                    '../save_model/PPO-highD-velocity/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-May-07-2022-03:35-seed_321/',
+                    '../save_model/PPO-highD-velocity/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-May-07-2022-07:05-seed_666/',
                 ],
                 "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-45": [
                     '../save_model/PPO-highD/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-45-multi_env-Apr-05-2022-09:47-seed_123/'
@@ -181,9 +190,9 @@ def generate_plots():
                 ],
                 'PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40': [
                     # '../save_model/PPO-Lag-highD/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-10-2022-12:45-seed_123/',
-                    '../save_model/PPO-Lag-highD/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-25-2022-13:34-seed_123/',
-                    '../save_model/PPO-Lag-highD/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-25-2022-13:35-seed_321/',
-                    '../save_model/PPO-Lag-highD/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-25-2022-13:46-seed_666/',
+                    '../save_model/PPO-Lag-highD-velocity/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-25-2022-13:34-seed_123/',
+                    '../save_model/PPO-Lag-highD-velocity/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-25-2022-13:35-seed_321/',
+                    '../save_model/PPO-Lag-highD-velocity/train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-25-2022-13:46-seed_666/',
                 ],
                 'ICRL_highD_velocity_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40': [
                     '../save_model/ICRL-highD/train_ICRL_highD_velocity_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-13-2022-12:42-seed_123/',
@@ -246,7 +255,6 @@ def generate_plots():
             average_num = 100
             max_reward = 50
             min_reward = -50
-            gap = 1
             plot_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
             label_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
@@ -320,16 +328,17 @@ def generate_plots():
 
             }
         elif env_id == 'highD_distance_constraint':
-            max_episodes = 10000
-            average_num = 500
+            max_episodes = 5000
+            average_num = 200
             max_reward = 50
             min_reward = -50
+            axis_size = 20
+            img_size = [8, 6.5]
+            title = 'Distance Constraint'
             plot_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
-                        'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance',
-                        'is_too_closed']
-            label_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
-                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance',
-                         'is_too_closed']
+                        'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance', 'is_too_closed']
+            label_key = ['Reward', 'Reward', 'Collision Rate', 'Off Road Rate',
+                         'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Over Speed Rate', 'Avg. Distance', 'Over Closed Rate']
             plot_y_lim_dict = {'reward': (-50, 50),
                                'reward_nc': (0, 50),
                                'is_collision': (0, 1),
@@ -339,7 +348,7 @@ def generate_plots():
                                'avg_velocity': (20, 50),
                                'is_over_speed': (0, 1),
                                'avg_distance': (50, 100),
-                               'is_too_closed': (0, 1)}
+                               'is_too_closed': (0, 0.5)}
             log_path_dict = {
                 "ppo_highD_no_slo_distance_dm-5": [
                     '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-multi_env-May-24-2022-00:31-seed_123/',
@@ -347,18 +356,28 @@ def generate_plots():
                 ],
                 "ppo_highD_no_slo_distance_dm-10": [
                     '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-10-multi_env-May-24-2022-00:31-seed_123/',
+                    '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-10-multi_env-May-26-2022-00:58-seed_321/',
+                    '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-10-multi_env-May-26-2022-00:58-seed_666/',
                 ],
                 "ppo_highD_no_slo_distance_dm-20": [
                     '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:52-seed_123/',
+                    '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-26-2022-00:58-seed_321/',
+                    '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-26-2022-00:58-seed_666/',
                 ],
                 "ppo_lag_highD_no_slo_distance_dm-5": [
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-multi_env-May-24-2022-00:53-seed_123/',
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-multi_env-May-26-2022-00:49-seed_321/',
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-multi_env-May-26-2022-00:49-seed_666/',
                 ],
                 "ppo_lag_highD_no_slo_distance_dm-10": [
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-10-multi_env-May-24-2022-00:53-seed_123/',
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-10-multi_env-May-26-2022-00:49-seed_321/',
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-10-multi_env-May-26-2022-00:49-seed_666/',
                 ],
                 "ppo_lag_highD_no_slo_distance_dm-20": [
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-26-2022-00:54-seed_321/',
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-26-2022-00:54-seed_666/',
                 ],
                 "ICRL_highD_slo_distance_dm-5": [
                     '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-5-multi_env-May-25-2022-10:17-seed_123/',
@@ -912,7 +931,10 @@ def generate_plots():
                              method_names=[method_name],
                              ylim=plot_y_lim_dict[plot_key[idx]],
                              save_label=os.path.join(env_id, method_name, plot_key[idx] + '_' + mode),
-                             title=title)
+                             title=title,
+                             axis_size=axis_size,
+                             img_size=img_size,
+                             )
         for idx in range(len(plot_key)):
             mean_results_moving_avg_dict = {}
             std_results_moving_avg_dict = {}
@@ -927,7 +949,10 @@ def generate_plots():
                          save_label=os.path.join(env_id, plot_key[idx] + '_' + mode + '_' + env_id + '_' + plot_mode),
                          # legend_size=18,
                          legend_dict=method_names_labels_dict,
-                         title=title)
+                         title=title,
+                         axis_size=axis_size,
+                         img_size=img_size,
+                         )
 
 
 if __name__ == "__main__":
