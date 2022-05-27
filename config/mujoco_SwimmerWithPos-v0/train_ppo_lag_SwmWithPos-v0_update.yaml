@@ -27,7 +27,7 @@ PPO:
   n_steps: 2048
   n_epochs: 20
   reward_gamma: 0.99
-  reward_gae_lambda: 0.95
+  reward_gae_lambda: 0.9
   cost_gamma: 0.99
   cost_gae_lambda: 0.95
   clip_range: 0.4
@@ -42,7 +42,7 @@ PPO:
   policy_layers: [64, 64]
   reward_vf_layers: [64, 64]
   cost_vf_layers: [64, 64]
-  batch_size: 64
+  batch_size: 128
   eval_every: 2048
   use_curiosity_driven_exploration: False
   warmup_timesteps: False
