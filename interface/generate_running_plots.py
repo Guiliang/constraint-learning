@@ -8,7 +8,9 @@ def plot_results(mean_results_moving_avg_dict,
                  std_results_moving_avg_dict,
                  ylim, label, method_names,
                  save_label,
-                 legend_dict=None, legend_size=None):
+                 legend_dict=None,
+                 legend_size=20,
+                 title=None):
     plot_mean_y_dict = {}
     plot_std_y_dict = {}
     plot_x_dict = {}
@@ -21,33 +23,37 @@ def plot_results(mean_results_moving_avg_dict,
                       y_dict_mean=plot_mean_y_dict,
                       x_dict_std=plot_x_dict,
                       y_dict_std=plot_std_y_dict,
+                      img_size=(6.7, 5.6),
                       ylim=ylim,
-                      title='{0}'.format(save_label),
+                      title=title,
                       xlabel='Episode',
-                      ylabel=label,
+                      # ylabel=label,
                       legend_dict=legend_dict,
                       legend_size=legend_size,
+                      axis_size=18,
+                      title_size=20,
                       plot_name='./plot_results/{0}'.format(save_label), )
 
 
 def generate_plots():
-    # env_id = 'HCWithPos-v0'
+    env_id = 'HCWithPos-v0'
     # method_names_labels_dict = {
-    #     "PPO_Pos": 'PPO',
-    #     "PPO_lag_Pos": 'PPO_lag',
-    #     "GAIL_HCWithPos-v0_with-action": 'GAIL',
-    #     "Binary_HCWithPos-v0_with-action": 'Binary',
-    #     "ICRL_Pos_with-action": 'ICRL',
+    #     # "PPO_Pos": 'PPO',
+    #     # "PPO_lag_Pos": 'PPO_lag',
+    #     "GAIL_HCWithPos-v0_with-action": 'GACL',  # 'GAIL',
+    #     "Binary_HCWithPos-v0_with-action": 'BC2L',  # 'Binary',
+    #     "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
     #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
     # }
     # env_id = 'AntWall-V0'
     # method_names_labels_dict = {
     #     # "PPO-AntWall": 'PPO',
-    #     "PPO-Lag-AntWall": 'PPO_lag',
-    #     "GAIL_AntWall-v0_with-action": 'GAIL',
-    #     "Binary_AntWall-v0_with-action_nit-50": 'Binary',
-    #     "ICRL_AntWall_with-action_nit-50": 'ICRL',
-    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1": "VICRL",  # VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2
+    #     # "PPO-Lag-AntWall": 'PPO_lag',
+    #     "GAIL_AntWall-v0_with-action": 'GACL',  # 'GAIL',
+    #     "Binary_AntWall-v0_with-action_nit-50": 'BC2L',  # 'Binary',
+    #     "ICRL_AntWall_with-action_nit-50": 'MECL',  # 'ICRL',
+    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1": "VICRL",
+    #     # VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2
     # }
     # env_id = 'highD_velocity_constraint'
     # method_names_labels_dict = {
@@ -67,32 +73,44 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    env_id = 'highD_distance_constraint'
-    method_names_labels_dict = {
-        "ppo_highD_no_slo_distance_dm-10": 'PPO',
-        "ppo_lag_highD_no_slo_distance_dm-10": 'PPO-Lag',
-        'ICRL_highD_slo_distance_dm-10': 'ICRL',
-    }
+    # env_id = 'highD_distance_constraint'
+    # method_names_labels_dict = {
+    #     "ppo_highD_no_slo_distance_dm-10": 'PPO',
+    #     "ppo_lag_highD_no_slo_distance_dm-10": 'PPO-Lag',
+    #     'ICRL_highD_slo_distance_dm-10': 'ICRL',
+    # }
     # env_id = 'InvertedPendulumWall-v0'
     # method_names_labels_dict = {
     #     # "PPO_Pendulum": 'PPO',
-    #     "PPO_lag_Pendulum": 'PPO_lag',
-    #     "Binary_PendulumWall": 'Binary',
-    #     "GAIL_PendulumWall": 'GAIL',
-    #     "ICRL_Pendulum": 'ICRL',
+    #     # "PPO_lag_Pendulum": 'PPO_lag',
+    #     "GAIL_PendulumWall": 'GACL',  # 'GAIL',
+    #     "Binary_PendulumWall": 'BC2L',  # 'Binary',
+    #     "ICRL_Pendulum": 'MECL',  # 'ICRL',
     #     "VICRL_PendulumWall": 'VICRL',
     # }
     # env_id = 'WalkerWithPos-v0'
     # method_names_labels_dict = {
     #     # "PPO_Walker": 'PPO',
-    #     "PPO_lag_Walker": 'PPO_lag',
-    #     "Binary_Walker": 'Binary',
-    #     "GAIL_Walker": 'GAIL',
-    #     "ICRL_Walker": 'ICRL',
+    #     # "PPO_lag_Walker": 'PPO_lag',
+    #     "GAIL_Walker": 'GACL',  # 'GACL'
+    #     "Binary_Walker": 'BC2L',  # 'Binary
+    #     "ICRL_Walker": 'MECL',  # 'ICRL',
     #     # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
     #     "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
     # }
+    env_id = 'SwimmerWithPos-v0'
+    method_names_labels_dict = {
+        "PPO_Swimmer": 'PPO',
+        "PPO_lag_Swimmer": 'PPO_lag',
+    }
     modes = ['train']
+    plot_mode = 'part'
+    if plot_mode == 'part':
+        for method_name in method_names_labels_dict.copy().keys():
+            if method_names_labels_dict[method_name] != 'PPO' and method_names_labels_dict[method_name] != 'PPO_lag':
+                del method_names_labels_dict[method_name]
+    else:
+        method_names_labels_dict = method_names_labels_dict
     for mode in modes:
         # plot_key = ['reward', 'is_collision', 'is_off_road', 'is_goal_reached', 'is_time_out']
         if env_id == 'highD_velocity_constraint':
@@ -360,9 +378,12 @@ def generate_plots():
             gap = 1
             plot_key = ['reward', 'reward_nc', 'constraint']
             label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
+            # plot_key = ['reward', 'constraint']
+            # label_key = ['reward', 'Constraint Breaking Rate']
             plot_y_lim_dict = {'reward': (0, 7000),
                                'reward_nc': (0, 6000),
                                'constraint': (0, 1.1)}
+            title = 'Blocked Half-Cheetah'
             log_path_dict = {
                 "PPO_Pos": [
                     '../save_model/PPO-HC/train_ppo_HCWithPos-v0-multi_env-Apr-06-2022-05:18-seed_123/',
@@ -544,15 +565,17 @@ def generate_plots():
             }
         elif env_id == 'AntWall-V0':
             max_episodes = 15000
-            average_num = 100
-            gap = 1
+            average_num = 300
+            title = 'Blocked Ant'
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
             label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
-            plot_y_lim_dict = {'reward': (0, 30000),
-                               'reward_nc': (0, 30000),
-                               'constraint': (0, 1)}
+            # plot_key = ['reward', 'constraint']
+            # label_key = ['reward', 'Constraint Breaking Rate']
+            plot_y_lim_dict = {'reward': (0, 9000),
+                               'reward_nc': (0, 18000),
+                               'constraint': (0, 0.5)}
             log_path_dict = {
                 'PPO-AntWall': [
                     '../save_model/PPO-AntWall/train_ppo_AntWall-v0_nit-50-multi_env-Apr-19-2022-04:34-seed_123/',
@@ -672,8 +695,8 @@ def generate_plots():
             }
         elif env_id == 'InvertedPendulumWall-v0':
             max_episodes = 80000
-            average_num = 1000
-            gap = 1000
+            average_num = 2000
+            title = 'Biased Pendulumn'
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['constraint', 'reward', 'reward_nc']
@@ -704,11 +727,11 @@ def generate_plots():
                     # '../save_model/PPO-Lag-InvertedPendulumWall/train_ppo_lag_InvertedPendulumWall-v0-multi_env-Apr-29-2022-05:41-seed_123/',
                 ],
                 'ICRL_Pendulum': [
-                    '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-09:17-seed_123/',
+                    # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-09:17-seed_123/',
                     '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-14:51-seed_321/',
                     '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-19:19-seed_456/',
                     '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-23:49-seed_654/',
-                    '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-11-2022-04:20-seed_666/',
+                    # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-11-2022-04:20-seed_666/',
                     # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0-multi_env-May-01-2022-06:09-seed_123/',
                     # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-04-2022-05:57-seed_123/',
                     # '../save_model/ICRL-InvertedPendulumWall/train_ICRL_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-14:46-seed_456/',
@@ -723,13 +746,13 @@ def generate_plots():
                     '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-15-2022-05:27-seed_123/',
                     '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-15-2022-11:00-seed_123/',
                     '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-15-2022-14:58-seed_321/',
-                    '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-15-2022-18:46-seed_456/',
+                    # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-15-2022-18:46-seed_456/',
                     '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-15-2022-23:11-seed_654/',
                     '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-16-2022-03:23-seed_666/',
                 ],
                 'Binary_PendulumWall': [
                     # '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2-multi_env-May-09-2022-12:25-seed_123/',
-                    '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-10:43-seed_123/',
+                    # '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-10:43-seed_123/',
                     '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-17:34-seed_321/',
                     '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-10-2022-21:52-seed_456/',
                     '../save_model/Binary-InvertedPendulumWall/train_Binary_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5-multi_env-May-11-2022-02:09-seed_654/',
@@ -744,15 +767,15 @@ def generate_plots():
             }
         elif env_id == 'WalkerWithPos-v0':
             max_episodes = 40000
-            average_num = 1000
-            gap = 1000
+            average_num = 2000
+            title = 'Blocked Walker'
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
             label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
-            plot_y_lim_dict = {'reward': (0, 3000),
-                               'reward_nc': (0, 3000),
-                               'constraint': (0, 1.1)}
+            plot_y_lim_dict = {'reward': (0, 700),
+                               'reward_nc': (0, 700),
+                               'constraint': (0, 1)}
             log_path_dict = {
                 'PPO_Walker': [
                     '../save_model/PPO-Walker/train_ppo_WalkerWithPos-v0-multi_env-May-06-2022-06:56-seed_123/',
@@ -801,6 +824,32 @@ def generate_plots():
                     '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64-multi_env-May-19-2022-05:32-seed_666/',
                 ],
             }
+        elif env_id == 'SwimmerWithPos-v0':
+            max_episodes = 1000
+            average_num = 10
+            title = 'Blocked Swimmer'
+            max_reward = float('inf')
+            min_reward = -float('inf')
+            plot_key = ['reward', 'reward_nc', 'constraint']
+            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
+            plot_y_lim_dict = {'reward': None,
+                               'reward_nc': None,
+                               'constraint': None}
+            log_path_dict = {
+                'PPO_Swimmer': [
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0-multi_env-May-26-2022-00:09-seed_123/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0-multi_env-May-26-2022-05:15-seed_321/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0-multi_env-May-26-2022-09:50-seed_456/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0-multi_env-May-26-2022-14:51-seed_654/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0-multi_env-May-26-2022-20:08-seed_666/',
+                ],
+                'PPO_lag_Swimmer': [
+                    # '../save_model/PPO-Lag-Walker/train_ppo_lag_WalkerWithPos-v0-multi_env-May-04-2022-12:26-seed_123/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0-multi_env-May-26-2022-00:09-seed_123/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0-multi_env-May-26-2022-08:53-seed_321/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0-multi_env-May-26-2022-18:01-seed_456/',
+                ],
+            }
         else:
             raise ValueError("Unknown env id {0}".format(env_id))
 
@@ -843,13 +892,14 @@ def generate_plots():
                     mean_results_moving_average = mean_results_moving_average[:max_episodes]
                     std_results_moving_average = std_results_moving_average[:max_episodes]
                 all_mean_dict[method_name].update({plot_key[idx]: mean_results_moving_average})
-                all_std_dict[method_name].update({plot_key[idx]: std_results_moving_average})
+                all_std_dict[method_name].update({plot_key[idx]: std_results_moving_average / 2})
                 plot_results(mean_results_moving_avg_dict={method_name: mean_results_moving_average},
                              std_results_moving_avg_dict={method_name: std_results_moving_average},
                              label=plot_key[idx],
                              method_names=[method_name],
                              ylim=plot_y_lim_dict[plot_key[idx]],
-                             save_label=os.path.join(env_id, method_name, plot_key[idx] + '_' + mode))
+                             save_label=os.path.join(env_id, method_name, plot_key[idx] + '_' + mode),
+                             title=title)
         for idx in range(len(plot_key)):
             mean_results_moving_avg_dict = {}
             std_results_moving_avg_dict = {}
@@ -861,9 +911,10 @@ def generate_plots():
                          label=label_key[idx],
                          method_names=list(method_names_labels_dict.keys()),
                          ylim=plot_y_lim_dict[plot_key[idx]],
-                         save_label=os.path.join(env_id, plot_key[idx] + '_' + mode + '_' + env_id),
-                         legend_size=15,
-                         legend_dict=method_names_labels_dict)
+                         save_label=os.path.join(env_id, plot_key[idx] + '_' + mode + '_' + env_id + '_' + plot_mode),
+                         # legend_size=18,
+                         legend_dict=method_names_labels_dict,
+                         title=title)
 
 
 if __name__ == "__main__":
