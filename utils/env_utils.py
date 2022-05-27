@@ -358,7 +358,7 @@ def get_obs_feature_names(env, env_id):
     return feature_names
 
 
-def check_if_duplicate_seed(seed, config, current_time_date, save_model_mother_dir, log_file, max_endure_date=3):
+def check_if_duplicate_seed(seed, config, current_time_date, save_model_mother_dir, log_file, max_endure_date=1):
     from datetime import datetime as dt
     if is_mujoco(env_id=config['env']['train_env_id']):
         task_saving_path = '{0}/{1}/'.format(config['env']['save_dir'], config['task'])
