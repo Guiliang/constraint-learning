@@ -15,7 +15,7 @@ def get_true_cost_function(env_id, env_configs={}):
     elif env_id in ["SwimmerWithPos-v0",
                     "SwimmerWithPosTest-v0"
                     ]:
-        return partial(wall_infront, 1)  # -0.1
+        return partial(wall_infront, 0.1)  # -0.1
     elif env_id in ["InvertedPendulumWall-v0",
                     "InvertedPendulumWallTest-v0",
                     ]:
