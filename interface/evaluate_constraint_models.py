@@ -171,8 +171,8 @@ def evaluate():
     num_threads = 1
     if_testing_env = False
 
-    load_model_name = 'debug-part-train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-May-23-2022-12:42-seed_123'
-    task_name = 'PPO-highD-distance'
+    load_model_name = 'train_ppo_SwmWithPos-v0_update_b-3-multi_env-May-27-2022-12:32-seed_123'
+    task_name = 'PPO-Swm'
     iteration_msg = 'best'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
@@ -251,6 +251,7 @@ def evaluate():
     eval_obs_all = []
     eval_acs_all = []
     rewards_sum_all = []
+    tmp = []
     if cns_model is not None:
         costs = []
     while benchmark_idx < max_benchmark_num:
@@ -284,6 +285,7 @@ def evaluate():
         # img = env.render(mode="rgb_array")
         # im = Image.fromarray(img)
         # im.show()
+        tmp_flag = False
         while not done:
             action, state = ppo_model.predict(obs, state=state, deterministic=False)
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
@@ -311,12 +313,17 @@ def evaluate():
                 eval_obs_all.append(obs[0])
                 eval_acs_all.append(action[0])
             new_obs, reward, done, info = env.step(action)
+            # print(obs[0][0])
+            if obs[0][0] > 3:
+                tmp_flag = True
+            tmp.append(obs[0][0])
             # print(action, reward, new_obs)
             reward_sum += reward
             obs = new_obs
             running_step += 1
         game_info_file.close()
         print(reward_sum, '\n')
+        print(tmp_flag)
         rewards_sum_all.append(reward_sum)
         # pngs2gif(png_dir=os.path.join(viz_path, benchmark_ids[0]))
 
@@ -354,7 +361,7 @@ def evaluate():
         benchmark_idx += 1
     print('total', total_scenarios, 'success', success, file=log_file, flush=True)
     print(np.asarray(rewards_sum_all).mean())
-
+    print(np.asarray(tmp).mean())
     # eval_obs_all = np.asarray(eval_obs_all)
     # eval_acs_all = np.asarray(eval_acs_all)
     # for record_info_idx in range(len(config['env']["record_info_names"])):
