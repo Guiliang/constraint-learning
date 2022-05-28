@@ -79,7 +79,7 @@ def generate_plots():
     method_names_labels_dict = {
         "ppo_highD_no_slo_distance_dm-20": 'PPO',
         "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
-        # 'ICRL_highD_slo_distance_dm-10': 'ICRL',
+        'ICRL_highD_slo_distance_dm-20_plr-1e-3': 'ICRL',
     }
     # env_id = 'InvertedPendulumWall-v0'
     # method_names_labels_dict = {
@@ -106,7 +106,7 @@ def generate_plots():
     #     "PPO_lag_Swimmer_b--1": 'PPO_lag',
     # }
     modes = ['train']
-    plot_mode = 'part'
+    plot_mode = 'all'
     img_size = None
     axis_size = None
     if plot_mode == 'part':
@@ -387,6 +387,10 @@ def generate_plots():
                 ],
                 "ICRL_highD_slo_distance_dm-20": [
                     '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-25-2022-10:17-seed_123/',
+                    '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-27-2022-08:59-seed_123/',
+                ],
+                "ICRL_highD_slo_distance_dm-20_plr-1e-3": [
+                    '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_plr-1e-3_no-buffer_dm-20-multi_env-May-27-2022-08:59-seed_123/',
                 ],
             }
         elif env_id == 'HCWithPos-v0':
