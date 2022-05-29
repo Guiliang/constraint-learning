@@ -75,13 +75,13 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    env_id = 'highD_distance_constraint'
-    method_names_labels_dict = {
-        # "ppo_highD_no_slo_distance_dm-20": 'PPO',
-        # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
-        'ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'ICRL',
-        'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'VICRL',
-    }
+    # env_id = 'highD_distance_constraint'
+    # method_names_labels_dict = {
+    #     # "ppo_highD_no_slo_distance_dm-20": 'PPO',
+    #     # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
+    #     'ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'ICRL',
+    #     'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'VICRL',
+    # }
     # env_id = 'InvertedPendulumWall-v0'
     # method_names_labels_dict = {
     #     # "PPO_Pendulum": 'PPO',
@@ -101,13 +101,13 @@ def generate_plots():
     #     # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
     #     "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
     # }
-    # env_id = 'SwimmerWithPos-v0'
-    # method_names_labels_dict = {
-    #     "PPO_Swimmer_b--1": 'PPO',
-    #     "PPO_lag_Swimmer_b--1": 'PPO_lag',
-    # }
+    env_id = 'SwimmerWithPos-v0'
+    method_names_labels_dict = {
+        "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
+        "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
+    }
     modes = ['train']
-    plot_mode = 'all'
+    plot_mode = 'part'
     img_size = None
     axis_size = None
     if plot_mode == 'part':
@@ -870,7 +870,7 @@ def generate_plots():
                 ],
             }
         elif env_id == 'SwimmerWithPos-v0':
-            max_episodes = 2000
+            max_episodes = 4000
             average_num = 10
             title = 'Blocked Swimmer'
             max_reward = float('inf')
@@ -881,31 +881,45 @@ def generate_plots():
                                'reward_nc': None,
                                'constraint': None}
             log_path_dict = {
-                # 'PPO_Swimmer': [
+                # 'train_ppo_SwmWithPos-v0': [
                 #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0-multi_env-May-26-2022-00:09-seed_123/',
                 #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0-multi_env-May-26-2022-05:15-seed_321/',
                 #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0-multi_env-May-26-2022-09:50-seed_456/',
                 #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0-multi_env-May-26-2022-14:51-seed_654/',
                 #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0-multi_env-May-26-2022-20:08-seed_666/',
                 # ],
-                'PPO_Swimmer_b--1': [
-                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-00:05-seed_123/',
-                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-00:29-seed_321/',
-                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-00:53-seed_456/',
-                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:17-seed_654/',
-                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:40-seed_666/',
+                # 'train_ppo_SwmWithPos-v0_b--1': [
+                #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-00:05-seed_123/',
+                #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-00:29-seed_321/',
+                #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-00:53-seed_456/',
+                #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:17-seed_654/',
+                #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:40-seed_666/',
+                # ],
+                'ppo_SwmWithPos-v0_update_b-5e-1': [
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-00:02-seed_123/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-00:38-seed_321/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-01:14-seed_456/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-01:52-seed_654/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-02:30-seed_666/',
                 ],
-                # 'PPO_lag_Swimmer': [
+                # 'ppo_lag_SwmWithPos-v0': [
                 #     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0-multi_env-May-26-2022-00:09-seed_123/',
                 #     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0-multi_env-May-26-2022-08:53-seed_321/',
                 #     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0-multi_env-May-26-2022-18:01-seed_456/',
                 # ],
-                'PPO_lag_Swimmer_b--1': [
-                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-00:05-seed_123/',
-                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-00:32-seed_321/',
-                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:00-seed_456/',
-                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:27-seed_654/',
-                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:53-seed_666/',
+                # 'ppo_lag_SwmWithPos-v0_b--1': [
+                #     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-00:05-seed_123/',
+                #     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-00:32-seed_321/',
+                #     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:00-seed_456/',
+                #     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:27-seed_654/',
+                #     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:53-seed_666/',
+                # ],
+                'ppo_lag_SwmWithPos-v0_update_b-5e-1': [
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-00:02-seed_123/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-00:35-seed_321/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-01:08-seed_456/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-01:41-seed_654/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-02:15-seed_666/',
                 ],
             }
         else:
