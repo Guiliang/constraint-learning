@@ -354,7 +354,7 @@ def get_obs_feature_names(env, env_id):
 
     if is_mujoco(env_id):
         feature_names.append('(pls visit mujoco xml settings at: {0})'.format(
-            'https://github.com/openai/gym/blob/master/gym/envs/mujoco/assets'))
+            'https://www.gymlibrary.ml/environments/mujoco/'))
     return feature_names
 
 
