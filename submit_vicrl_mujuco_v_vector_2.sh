@@ -18,4 +18,8 @@ conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface
 python train_icrl.py ../config/mujoco_SwimmerWithPos-v0/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-2-1e-2.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujoco_SwimmerWithPos-v0/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-2-1e-2.yaml -n 5 -s 321 -l "$log_dir"
+python train_icrl.py ../config/mujoco_SwimmerWithPos-v0/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-2-1e-2.yaml -n 5 -s 456 -l "$log_dir"
+python train_icrl.py ../config/mujoco_SwimmerWithPos-v0/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-2-1e-2.yaml -n 5 -s 654 -l "$log_dir"
+python train_icrl.py ../config/mujoco_SwimmerWithPos-v0/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-2-1e-2.yaml -n 5 -s 666 -l "$log_dir"
 echo shell finish running
