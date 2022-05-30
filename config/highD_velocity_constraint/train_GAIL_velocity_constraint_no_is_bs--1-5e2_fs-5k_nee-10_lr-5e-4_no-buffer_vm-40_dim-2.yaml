@@ -40,7 +40,7 @@ PPO:
   shared_layers: null
   policy_layers: [64, 64]
   reward_vf_layers: [64, 64]
-  batch_size: 64
+  batch_size: null  # 64
 #  eval_every: 2048
   timesteps: 2500000
 

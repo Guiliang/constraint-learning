@@ -1,9 +1,9 @@
-task: 'GAIL-highD-velocity'
+task: 'GAIL-highD-distance'
 group: 'GAIL'
 device: 'cuda'
 verbose: 2
 env:
-  config_path: "../config/highD_velocity_constraint/highD_environment_configurations_no_velocity_penalty-40.yaml"
+  config_path: "../config/highD_distance_constraint/highD_environment_configurations_no_slo_distance_penalty_dm-20.yaml"
   train_env_id : 'commonroad-v1'
   eval_env_id: 'commonroad-v1'
   save_dir: '../save_model'
@@ -13,19 +13,19 @@ env:
   cost_gamma: 0.99  # no cost
   dont_normalize_obs: False
   dont_normalize_reward: False
-  record_info_names: ["ego_velocity_x", "ego_velocity_y"]
-  record_info_input_dims: [ 6, 7 ] # the dim of record info in inputs=(obs, action)
-  visualize_info_ranges: [ [ 20, 50 ], [ -10, 10 ] ]
+  record_info_names: ["same_lane_leading_obstacle_distance"]
+  record_info_input_dims: [22] # the dim of record info in inputs=(obs, action)
+  visualize_info_ranges: [[ 0, 100] ]
 
 running:
   save_every: 500000
   eval_every: 200000
   expert_rollouts: 100
-  expert_path: '../data/expert_data/no-over_speed_train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:29-seed_123/'
+  expert_path: '../data/expert_data/no-too_closed_train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/'
 
 PPO:
   policy_name: 'MlpPolicy'
-  learning_rate: 0.0003
+  learning_rate: 0.0005
   n_steps: 2048
   n_epochs: 10
   reward_gamma: 0.99
@@ -40,7 +40,7 @@ PPO:
   shared_layers: null
   policy_layers: [64, 64]
   reward_vf_layers: [64, 64]
-  batch_size: null  # 64
+  batch_size: null
 #  eval_every: 2048
   timesteps: 2500000
 
