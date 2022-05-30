@@ -33,7 +33,7 @@ class VariationalConstraintNet(ConstraintNet):
             acs_select_dim: Optional[Tuple[int, ...]] = None,
             optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
             optimizer_kwargs: Optional[Dict[str, Any]] = None,
-            no_importance_sampling: bool = False,
+            no_importance_sampling: bool = True,
             per_step_importance_sampling: bool = False,
             clip_obs: Optional[float] = 10.,
             initial_obs_mean: Optional[np.ndarray] = None,

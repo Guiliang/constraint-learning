@@ -34,7 +34,7 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
             acs_select_dim: Optional[Tuple[int, ...]] = None,
             optimizer_class: Type[torch.optim.Optimizer] = torch.optim.Adam,
             optimizer_kwargs: Optional[Dict[str, Any]] = None,
-            no_importance_sampling: bool = False,
+            no_importance_sampling: bool = True,
             per_step_importance_sampling: bool = False,
             clip_obs: Optional[float] = 10.,
             initial_obs_mean: Optional[np.ndarray] = None,
