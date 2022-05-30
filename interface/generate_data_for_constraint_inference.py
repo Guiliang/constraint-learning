@@ -194,7 +194,7 @@ def run():
         max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)
         # num_collisions, num_off_road, num_goal_reaching, num_timeout = 0, 0, 0, 0
     elif is_mujoco(env_id=config['env']['train_env_id']):
-        max_benchmark_num = 50 / num_threads  # max number of expert traj is 50 for mujoco
+        max_benchmark_num = 70 / num_threads  # max number of expert traj is 50 for mujoco
     else:
         raise ValueError("Unknown env_id: {0}".format(config['env']['train_env_id']))
 
@@ -238,10 +238,10 @@ def run():
             action, state = model.predict(obs, state=state, deterministic=True)
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
             new_obs, rewards, dones, infos = env.step(action)
-            lanebase_relative_position = []
-            for info in infos:
-                lanebase_relative_position.append(info['lanebase_relative_position'][0])
-            print(lanebase_relative_position)
+            # lanebase_relative_position = []
+            # for info in infos:
+            #     lanebase_relative_position.append(info['lanebase_relative_position'][0])
+            # print(lanebase_relative_position)
             for i in range(num_threads):
                 if not multi_thread_dones[i]:
                     obs_all[i].append(obs[i])
@@ -277,7 +277,7 @@ def run():
             # num_off_road += info["valid_off_road"] if "valid_off_road" in info else info["is_off_road"]
             # num_goal_reaching += info["is_goal_reached"]
             termination_reasons = []
-            print(info['lanebase_relative_position'])
+            # print(info['lanebase_relative_position'])
             if is_commonroad(env_id=config['env']['train_env_id']):
                 if info["episode"].get("is_time_out", 0) == 1:
                     termination_reasons.append("time_out")

@@ -246,8 +246,6 @@ def train(config):
         'regularizer_coeff': config['CN']['cn_reg_coeff'],
         'obs_select_dim': cn_obs_select_dim,
         'acs_select_dim': cn_acs_select_dim,
-        'no_importance_sampling': config['CN']['no_importance_sampling'],
-        'per_step_importance_sampling': config['CN']['per_step_importance_sampling'],
         'clip_obs': config['CN']['clip_obs'],
         'initial_obs_mean': None if not config['CN']['cn_normalize'] else np.zeros(obs_dim),
         'initial_obs_var': None if not config['CN']['cn_normalize'] else np.ones(obs_dim),
@@ -262,6 +260,8 @@ def train(config):
     }
 
     if 'ICRL' == config['group'] or 'Binary' == config['group']:
+        cn_parameters.update({'no_importance_sampling': config['CN']['no_importance_sampling'], })
+        cn_parameters.update({'per_step_importance_sampling': config['CN']['per_step_importance_sampling'], })
         constraint_net = ConstraintNet(**cn_parameters)
     elif 'VICRL' == config['group']:
         cn_parameters.update({'di_prior': config['CN']['di_prior'], })

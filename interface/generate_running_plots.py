@@ -29,7 +29,7 @@ def plot_results(mean_results_moving_avg_dict,
                       ylim=ylim,
                       title=title,
                       xlabel='Episode',
-                      ylabel=label,
+                      # ylabel=label,
                       legend_dict=legend_dict,
                       legend_size=legend_size,
                       axis_size=axis_size if axis_size is not None else 18,
@@ -75,13 +75,13 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'ICRL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    # env_id = 'highD_distance_constraint'
-    # method_names_labels_dict = {
-    #     # "ppo_highD_no_slo_distance_dm-20": 'PPO',
-    #     # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
-    #     'ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'ICRL',
-    #     'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'VICRL',
-    # }
+    env_id = 'highD_distance_constraint'
+    method_names_labels_dict = {
+        # "ppo_highD_no_slo_distance_dm-20": 'PPO',
+        # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
+        'ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'ICRL',
+        'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'VICRL',
+    }
     # env_id = 'InvertedPendulumWall-v0'
     # method_names_labels_dict = {
     #     # "PPO_Pendulum": 'PPO',
@@ -101,13 +101,13 @@ def generate_plots():
     #     # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
     #     "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
     # }
-    env_id = 'SwimmerWithPos-v0'
-    method_names_labels_dict = {
-        "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
-        "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
-    }
+    # env_id = 'SwimmerWithPos-v0'
+    # method_names_labels_dict = {
+    #     "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
+    #     "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
+    # }
     modes = ['train']
-    plot_mode = 'part'
+    plot_mode = 'all'
     img_size = None
     axis_size = None
     if plot_mode == 'part':
@@ -398,6 +398,8 @@ def generate_plots():
                 ],
                 "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20": [
                     '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-28-2022-09:58-seed_123/',
+                    '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-29-2022-01:50-seed_321/',
+                    '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-29-2022-01:50-seed_666/',
                 ],
                 "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_cl-64-64_no-buffer_dm-20": [
                     '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_cl-64-64_no-buffer_dm-20-multi_env-May-28-2022-09:58-seed_123/',
@@ -410,6 +412,8 @@ def generate_plots():
                 ],
                 "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20": [
                     '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-28-2022-10:19-seed_123/',
+                    '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-29-2022-01:50-seed_321/',
+                    '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-29-2022-01:50-seed_666/',
                 ],
                 "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_plr-1e-3_no-buffer_dm-20": [
                     '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_plr-1e-3_no-buffer_dm-20-multi_env-May-28-2022-10:19-seed_123/',
@@ -870,8 +874,8 @@ def generate_plots():
                 ],
             }
         elif env_id == 'SwimmerWithPos-v0':
-            max_episodes = 4000
-            average_num = 10
+            max_episodes = 10000
+            average_num = 100
             title = 'Blocked Swimmer'
             max_reward = float('inf')
             min_reward = -float('inf')
@@ -896,11 +900,11 @@ def generate_plots():
                 #     '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:40-seed_666/',
                 # ],
                 'ppo_SwmWithPos-v0_update_b-5e-1': [
-                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-00:02-seed_123/',
-                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-00:38-seed_321/',
-                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-01:14-seed_456/',
-                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-01:52-seed_654/',
-                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-02:30-seed_666/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-10:10-seed_123/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-11:28-seed_321/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-12:46-seed_456/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-14:14-seed_654/',
+                    '../save_model/PPO-Swm/train_ppo_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-15:39-seed_666/',
                 ],
                 # 'ppo_lag_SwmWithPos-v0': [
                 #     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0-multi_env-May-26-2022-00:09-seed_123/',
@@ -915,11 +919,11 @@ def generate_plots():
                 #     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_b--1-multi_env-May-27-2022-01:53-seed_666/',
                 # ],
                 'ppo_lag_SwmWithPos-v0_update_b-5e-1': [
-                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-00:02-seed_123/',
-                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-00:35-seed_321/',
-                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-01:08-seed_456/',
-                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-01:41-seed_654/',
-                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-02:15-seed_666/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-10:10-seed_123/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-11:15-seed_321/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-12:21-seed_456/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-13:26-seed_654/',
+                    '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-14:34-seed_666/',
                 ],
             }
         else:

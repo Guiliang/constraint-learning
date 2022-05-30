@@ -54,7 +54,7 @@ class SwimmerWithPos(swimmer.SwimmerEnv):
         info = dict(
                 reward_run=reward_run,
                 reward_ctrl=reward_ctrl,
-                xpos=xposafter
+                x_position=xposafter
                 )
 
         return reward, info
@@ -74,7 +74,7 @@ class SwimmerWithPos(swimmer.SwimmerEnv):
                 reward_run=reward_run,
                 reward_ctrl=reward_ctrl,
                 reward_dist=reward_dist,
-                xpos=xposafter
+                x_position=xposafter
                 )
 
         return reward, info
