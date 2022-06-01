@@ -84,13 +84,13 @@ def generate_plots():
     #     'ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'MECL',
     #     'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'VICRL',
     # }
-    # env_id = 'highD_distance_constraint_dim6'
-    # method_names_labels_dict = {
-    #     # "ppo_highD_no_slo_distance_dm-20": 'PPO',
-    #     # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
-    #     "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'MECL',
-    #     "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'VICRL',
-    # }
+    env_id = 'highD_distance_constraint_dim6'
+    method_names_labels_dict = {
+        # "ppo_highD_no_slo_distance_dm-20": 'PPO',
+        # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
+        "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'MECL',
+        "VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'VICRL',
+    }
     # env_id = 'InvertedPendulumWall-v0'
     # method_names_labels_dict = {
     #     # "PPO_Pendulum": 'PPO',
@@ -110,13 +110,13 @@ def generate_plots():
     #     # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
     #     "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
     # }
-    env_id = 'SwimmerWithPos-v0'
-    method_names_labels_dict = {
-        # "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
-        # "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
-        "ICRL_SwmWithPos-v0_update_b-5e-1": 'ICRL',
-        "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VICRL',
-    }
+    # env_id = 'SwimmerWithPos-v0'
+    # method_names_labels_dict = {
+    #     # "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
+    #     # "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
+    #     "ICRL_SwmWithPos-v0_update_b-5e-1": 'ICRL',
+    #     "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VICRL',
+    # }
     modes = ['train']
     plot_mode = 'all'
     img_size = None
@@ -458,11 +458,18 @@ def generate_plots():
                 "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_plr-1e-3_no-buffer_dm-20": [
                     '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_plr-1e-3_no-buffer_dm-20-multi_env-May-28-2022-10:19-seed_123/',
                 ],
+                "VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20": [
+                    '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-31-2022-04:39-seed_123/',
+                ],
                 "Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20": [
                     '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-30-2022-02:11-seed_123/',
+                    '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-31-2022-04:38-seed_321/',
+                    '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-31-2022-04:38-seed_666/',
                 ],
                 "GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20": [
                     '../save_model/GAIL-highD-distance/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20-multi_env-May-30-2022-02:11-seed_123/',
+                    '../save_model/GAIL-highD-distance/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20-multi_env-May-31-2022-04:39-seed_321/',
+                    '../save_model/GAIL-highD-distance/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20-multi_env-May-31-2022-04:40-seed_666/'
                 ]
             }
         elif env_id == 'highD_distance_constraint_dim6':
@@ -534,6 +541,9 @@ def generate_plots():
                 ],
                 "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": [
                     '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-May-30-2022-05:11-seed_123/',
+                ],
+                "VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": [
+                    '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-May-31-2022-04:39-seed_123/',
                 ],
             }
         elif env_id == 'HCWithPos-v0':
