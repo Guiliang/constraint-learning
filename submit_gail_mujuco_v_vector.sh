@@ -19,11 +19,11 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface
-python train_gail.py ../config/mujoco_WalkerWithPos-v0/train_GAIL_WalkerWithPos-v0.yaml -n 5 -s 123 -l "$log_dir"
-python train_gail.py ../config/mujoco_WalkerWithPos-v0/train_GAIL_WalkerWithPos-v0.yaml -n 5 -s 321 -l "$log_dir"
-python train_gail.py ../config/mujoco_WalkerWithPos-v0/train_GAIL_WalkerWithPos-v0.yaml -n 5 -s 456 -l "$log_dir"
-python train_gail.py ../config/mujoco_WalkerWithPos-v0/train_GAIL_WalkerWithPos-v0.yaml -n 5 -s 654 -l "$log_dir"
-python train_gail.py ../config/mujoco_WalkerWithPos-v0/train_GAIL_WalkerWithPos-v0.yaml -n 5 -s 666 -l "$log_dir"
+python train_gail.py ../config/mujoco_SwimmerWithPos-v0/train_GAIL_SwmWithPos-v0.yaml -n 5 -s 123 -l "$log_dir"
+python train_gail.py ../config/mujoco_SwimmerWithPos-v0/train_GAIL_SwmWithPos-v0.yaml -n 5 -s 321 -l "$log_dir"
+python train_gail.py ../config/mujoco_SwimmerWithPos-v0/train_GAIL_SwmWithPos-v0.yaml -n 5 -s 456 -l "$log_dir"
+python train_gail.py ../config/mujoco_SwimmerWithPos-v0/train_GAIL_SwmWithPos-v0.yaml -n 5 -s 654 -l "$log_dir"
+python train_gail.py ../config/mujoco_SwimmerWithPos-v0/train_GAIL_SwmWithPos-v0.yaml -n 5 -s 666 -l "$log_dir"
 #process_id=$!
 #wait $process_id
 echo shell finish running
