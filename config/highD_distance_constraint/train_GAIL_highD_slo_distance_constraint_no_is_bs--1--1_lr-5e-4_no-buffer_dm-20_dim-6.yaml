@@ -50,7 +50,7 @@ DISC:
   disc_layers: [ 30 ]
   disc_learning_rate: 0.003
   disc_normalize": false
-  disc_obs_select_dim: [ 'lane_based_p_rel_0', 'lane_based_p_rel_1', 'lane_based_p_rel_2', 'lane_based_p_rel_3', 'lane_based_p_rel_4', 'lane_based_p_rel_5' ]
+  disc_obs_select_dim: [18, 19, 20, 21, 22, 23]
   disc_acs_select_dim: null  # null means all
   disc_plot_every: 1
   clip_obs: 20

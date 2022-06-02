@@ -476,7 +476,7 @@ def generate_plots():
             }
         elif env_id == 'highD_distance_constraint_dim6':
             max_episodes = 5000
-            average_num = 500
+            average_num = 200
             max_reward = 50
             min_reward = -50
             axis_size = 20

@@ -50,7 +50,7 @@ DISC:
   disc_layers: [ 30 ]
   disc_learning_rate: 0.003
   disc_normalize": false
-  disc_obs_select_dim: ['v_ego_0', 'v_ego_1']
+  disc_obs_select_dim: [6, 7]
   disc_acs_select_dim: [-1]
   disc_plot_every: 1
   clip_obs: 20
