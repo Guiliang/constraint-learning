@@ -12,4 +12,4 @@ log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
 conda activate galen-cr37
 cd ./interface/
-python train_gail.py ../config/highD_distance_constraint/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20.yaml -s 666 -n 5 -l "$log_dir"
+python train_gail.py ../config/highD_distance_constraint/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20_dim-6.yaml -s 321 -n 5 -l "$log_dir"

@@ -51,7 +51,7 @@ def generate_plots():
     # method_names_labels_dict = {
     #     # "PPO-AntWall": 'PPO',
     #     # "PPO-Lag-AntWall": 'PPO_lag',
-    #     "GAIL_AntWall-v0_with-action": 'GACL',  # 'GAIL',
+    #     # "GAIL_AntWall-v0_with-action": 'GACL',  # 'GAIL',
     #     "Binary_AntWall-v0_with-action_nit-50": 'BC2L',  # 'Binary',
     #     "ICRL_AntWall_with-action_nit-50": 'MECL',  # 'ICRL',
     #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1": "VICRL",
@@ -79,7 +79,7 @@ def generate_plots():
     # method_names_labels_dict = {
     #     # "ppo_highD_no_slo_distance_dm-20": 'PPO',
     #     # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
-    #     'GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20': 'GACL',
+    #     # 'GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20': 'GACL',
     #     'Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20': 'BC2L',
     #     'ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'MECL',
     #     'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'VICRL',
@@ -89,7 +89,7 @@ def generate_plots():
         # "ppo_highD_no_slo_distance_dm-20": 'PPO',
         # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
         "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'MECL',
-        "VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'VICRL',
+        "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'VICRL',
     }
     # env_id = 'InvertedPendulumWall-v0'
     # method_names_labels_dict = {
@@ -114,7 +114,9 @@ def generate_plots():
     # method_names_labels_dict = {
     #     # "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
     #     # "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
-    #     "ICRL_SwmWithPos-v0_update_b-5e-1": 'ICRL',
+    #     # "GAIL_SwmWithPos-v0": 'GACL',
+    #     "Binary_SwmWithPos-v0_update_b-5e-1": 'BC2L',
+    #     "ICRL_SwmWithPos-v0_update_b-5e-1": 'MECL',
     #     "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VICRL',
     # }
     modes = ['train']
@@ -221,9 +223,9 @@ def generate_plots():
                     '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-14-2022-07:10-seed_123/'
                 ],
                 "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": [
-                    # '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-18-2022-13:04-seed_123/',
-                    # '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-18-2022-13:04-seed_321/',
-                    # '../save_model/VICRL-highD/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-18-2022-13:04-seed_666/',
+                    # '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-18-2022-13:04-seed_123/',
+                    # '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-18-2022-13:04-seed_321/',
+                    # '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-18-2022-13:04-seed_666/',
                     '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-29-2022-04:48-seed_123/',
                     '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-29-2022-04:49-seed_321/',
                     '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-29-2022-04:49-seed_666/',
@@ -538,12 +540,18 @@ def generate_plots():
                 ],
                 "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": [
                     '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-May-30-2022-05:11-seed_123/',
+                    '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-01-2022-01:26-seed_321/',
+                    '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-01-2022-01:26-seed_666/',
                 ],
                 "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": [
                     '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-May-30-2022-05:11-seed_123/',
+                    '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-01-2022-01:27-seed_321/',
+                    '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-01-2022-02:12-seed_666/',
                 ],
                 "VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": [
                     '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-May-31-2022-04:39-seed_123/',
+                    '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-01-2022-01:27-seed_321/',
+                    '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-01-2022-02:12-seed_666/',
                 ],
             }
         elif env_id == 'HCWithPos-v0':
@@ -553,9 +561,9 @@ def generate_plots():
             min_reward = -10000
             gap = 1
             plot_key = ['reward', 'reward_nc', 'constraint']
-            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
+            label_key = ['reward', 'reward_nc', 'Constraint Violation Rate']
             # plot_key = ['reward', 'constraint']
-            # label_key = ['reward', 'Constraint Breaking Rate']
+            # label_key = ['reward', 'Constraint Violation Rate']
             plot_y_lim_dict = {'reward': (0, 7000),
                                'reward_nc': (0, 6000),
                                'constraint': (0, 1.1)}
@@ -746,9 +754,9 @@ def generate_plots():
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
-            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
+            label_key = ['reward', 'reward_nc', 'Constraint Violation Rate']
             # plot_key = ['reward', 'constraint']
-            # label_key = ['reward', 'Constraint Breaking Rate']
+            # label_key = ['reward', 'Constraint Violation Rate']
             plot_y_lim_dict = {'reward': (0, 9000),
                                'reward_nc': (0, 18000),
                                'constraint': (0, 0.5)}
@@ -876,7 +884,7 @@ def generate_plots():
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['constraint', 'reward', 'reward_nc']
-            label_key = ['Constraint Breaking Rate', 'reward', 'reward_nc']
+            label_key = ['Constraint Violation Rate', 'reward', 'reward_nc']
             # plot_y_lim_dict = {'reward': (0, 100),
             #                    'reward_nc': (0, 100),
             #                    'constraint': (0, 1.1)}
@@ -948,7 +956,7 @@ def generate_plots():
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
-            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
+            label_key = ['reward', 'reward_nc', 'Constraint Violation Rate']
             plot_y_lim_dict = {'reward': (0, 700),
                                'reward_nc': (0, 700),
                                'constraint': (0, 1)}
@@ -1002,12 +1010,12 @@ def generate_plots():
             }
         elif env_id == 'SwimmerWithPos-v0':
             max_episodes = 10000
-            average_num = 100
+            average_num = 200
             title = 'Blocked Swimmer'
             max_reward = float('inf')
             min_reward = -float('inf')
             plot_key = ['reward', 'reward_nc', 'constraint']
-            label_key = ['reward', 'reward_nc', 'Constraint Breaking Rate']
+            label_key = ['reward', 'reward_nc', 'Constraint Violation Rate']
             plot_y_lim_dict = {'reward': None,
                                'reward_nc': None,
                                'constraint': None}
@@ -1052,12 +1060,40 @@ def generate_plots():
                     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-13:26-seed_654/',
                     '../save_model/PPO-Lag-Swm/train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-14:34-seed_666/',
                 ],
+                "GAIL_SwmWithPos-v0": [
+                    '../save_model/GAIL-Swm/train_GAIL_SwmWithPos-v0-multi_env-Jun-01-2022-00:12-seed_123/',
+                    '../save_model/GAIL-Swm/train_GAIL_SwmWithPos-v0-multi_env-Jun-01-2022-02:08-seed_321/',
+                    '../save_model/GAIL-Swm/train_GAIL_SwmWithPos-v0-multi_env-Jun-01-2022-04:00-seed_456/',
+                    '../save_model/GAIL-Swm/train_GAIL_SwmWithPos-v0-multi_env-Jun-01-2022-05:51-seed_654/',
+                    '../save_model/GAIL-Swm/train_GAIL_SwmWithPos-v0-multi_env-Jun-01-2022-07:44-seed_666/',
+                ],
+                "Binary_SwmWithPos-v0_update_b-5e-1": [
+                    '../save_model/Binary-Swm/train_Binary_SwmWithPos-v0_update_b-5e-1-multi_env-Jun-01-2022-00:11-seed_123/',
+                    '../save_model/Binary-Swm/train_Binary_SwmWithPos-v0_update_b-5e-1-multi_env-Jun-01-2022-02:23-seed_321/',
+                    '../save_model/Binary-Swm/train_Binary_SwmWithPos-v0_update_b-5e-1-multi_env-Jun-01-2022-04:33-seed_456/',
+                    '../save_model/Binary-Swm/train_Binary_SwmWithPos-v0_update_b-5e-1-multi_env-Jun-01-2022-06:41-seed_654/',
+                    '../save_model/Binary-Swm/train_Binary_SwmWithPos-v0_update_b-5e-1-multi_env-Jun-01-2022-08:50-seed_666/',
+                ],
+                "Binary_SwmWithPos-v0_update_b-5e-1_piv-5": [
+                    '../save_model/Binary-Swm/train_Binary_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-00:12-seed_123/',
+                    '../save_model/Binary-Swm/train_Binary_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-02:17-seed_321/',
+                    '../save_model/Binary-Swm/train_Binary_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-04:22-seed_456/',
+                    '../save_model/Binary-Swm/train_Binary_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-06:28-seed_654/',
+                    '../save_model/Binary-Swm/train_Binary_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-08:34-seed_666/',
+                ],
                 'ICRL_SwmWithPos-v0_update_b-5e-1': [
                     '../save_model/ICRL-Swm/train_ICRL_SwmWithPos-v0_update_b-5e-1-multi_env-May-30-2022-01:45-seed_123/',
                     '../save_model/ICRL-Swm/train_ICRL_SwmWithPos-v0_update_b-5e-1-multi_env-May-30-2022-03:52-seed_321/',
                     '../save_model/ICRL-Swm/train_ICRL_SwmWithPos-v0_update_b-5e-1-multi_env-May-30-2022-06:01-seed_456/',
                     '../save_model/ICRL-Swm/train_ICRL_SwmWithPos-v0_update_b-5e-1-multi_env-May-30-2022-08:08-seed_654/',
                     '../save_model/ICRL-Swm/train_ICRL_SwmWithPos-v0_update_b-5e-1-multi_env-May-30-2022-10:15-seed_666/',
+                ],
+                'ICRL_SwmWithPos-v0_update_b-5e-1_piv-5': [
+                    '../save_model/ICRL-Swm/train_ICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-00:12-seed_321/',
+                    '../save_model/ICRL-Swm/train_ICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-00:12-seed_321/',
+                    '../save_model/ICRL-Swm/train_ICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-02:19-seed_456/',
+                    '../save_model/ICRL-Swm/train_ICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-04:27-seed_654/',
+                    '../save_model/ICRL-Swm/train_ICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-06:35-seed_666/',
                 ],
                 'VICRL_SwmWithPos-v0_update_b-5e-1': [
                     '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1-multi_env-May-30-2022-05:08-seed_123/',
@@ -1101,7 +1137,7 @@ def generate_plots():
                     '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-3-1e-3-multi_env-May-31-2022-13:06-seed_666/',
                 ],
                 'VICRL_SwmWithPos-v0_update_b-5e-1_piv-5': [
-                    # '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-May-31-2022-01:58-seed_123/',
+                    '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-Jun-01-2022-00:12-seed_123/',
                     '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-May-31-2022-01:58-seed_321/',
                     '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-May-31-2022-04:19-seed_456/',
                     '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-May-31-2022-06:40-seed_654/',
@@ -1114,6 +1150,13 @@ def generate_plots():
                     '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-10-multi_env-May-31-2022-11:46-seed_654/',
                     '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-10-multi_env-May-31-2022-14:07-seed_666/',
                 ],
+                "VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10": [
+                    # '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10-multi_env-Jun-01-2022-00:12-seed_123/',
+                    '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10-multi_env-Jun-01-2022-00:12-seed_321/',
+                    '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10-multi_env-Jun-01-2022-02:32-seed_456/',
+                    '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10-multi_env-Jun-01-2022-05:00-seed_654/',
+                    '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10-multi_env-Jun-01-2022-07:31-seed_666/',
+                ]
             }
         else:
             raise ValueError("Unknown env id {0}".format(env_id))
@@ -1174,6 +1217,10 @@ def generate_plots():
             for method_name in method_names_labels_dict.keys():
                 mean_results_moving_avg_dict.update({method_name: all_mean_dict[method_name][plot_key[idx]]})
                 std_results_moving_avg_dict.update({method_name: all_std_dict[method_name][plot_key[idx]]})
+                if (plot_key[idx] == 'reward_nc' or plot_key[idx] == 'constraint') and mode == 'test':
+                    print(method_name, plot_key[idx],
+                          all_mean_dict[method_name][plot_key[idx]][-1],
+                          all_std_dict[method_name][plot_key[idx]][-1])
             plot_results(mean_results_moving_avg_dict=mean_results_moving_avg_dict,
                          std_results_moving_avg_dict=std_results_moving_avg_dict,
                          label=label_key[idx],

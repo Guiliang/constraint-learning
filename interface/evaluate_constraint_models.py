@@ -171,9 +171,9 @@ def evaluate():
     num_threads = 1
     if_testing_env = False
 
-    load_model_name = 'train_ppo_SwmWithPos-v0_update_b-3-multi_env-May-27-2022-12:32-seed_123'
-    task_name = 'PPO-Swm'
-    iteration_msg = 'best'
+    load_model_name = 'train_Binary_HCWithPos-v0_with-action-multi_env-Apr-21-2022-04:49-seed_123/'
+    task_name = 'Binary-HC'
+    iteration_msg = 25
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
     with open(os.path.join(model_loading_path, 'model_hyperparameters.yaml')) as reader:
@@ -360,7 +360,7 @@ def evaluate():
             success += 1
         benchmark_idx += 1
     print('total', total_scenarios, 'success', success, file=log_file, flush=True)
-    print(np.asarray(rewards_sum_all).mean())
+    print(np.asarray(rewards_sum_all).mean(), np.asarray(rewards_sum_all).std())
     print(np.asarray(tmp).mean())
     # eval_obs_all = np.asarray(eval_obs_all)
     # eval_acs_all = np.asarray(eval_acs_all)

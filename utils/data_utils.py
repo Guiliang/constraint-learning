@@ -143,7 +143,7 @@ def compute_moving_average(result_all, average_num=100):
         filling_in_values = np.random.choice(result_all[-i:], i)
         result_moving_all.append(np.concatenate([result_all[i:], filling_in_values]))
     result_moving_all = np.mean(result_moving_all, axis=0)
-    return result_moving_all
+    return result_moving_all[:-average_num]
 
 
 def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_episodes):
