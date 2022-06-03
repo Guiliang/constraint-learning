@@ -25,7 +25,7 @@ def plot_results(mean_results_moving_avg_dict,
                       y_dict_mean=plot_mean_y_dict,
                       x_dict_std=plot_x_dict,
                       y_dict_std=plot_std_y_dict,
-                      img_size=img_size if img_size is not None else (6.7, 5.6),
+                      img_size=img_size if img_size is not None else (5.7, 5.6),
                       ylim=ylim,
                       title=title,
                       xlabel='Episode',
@@ -70,7 +70,7 @@ def generate_plots():
     # method_names_labels_dict = {
     #     # "PPO_highD_no-velocity": 'PPO',
     #     # "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
-    #     "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GACL',
+    #     # "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GACL',
     #     "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'BC2L',
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'MECL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
@@ -79,18 +79,20 @@ def generate_plots():
     # method_names_labels_dict = {
     #     # "ppo_highD_no_slo_distance_dm-20": 'PPO',
     #     # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
-    #     # 'GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20': 'GACL',
+    #     'GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20': 'GACL',
     #     'Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20': 'BC2L',
     #     'ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'MECL',
     #     'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'VICRL',
     # }
-    env_id = 'highD_distance_constraint_dim6'
-    method_names_labels_dict = {
-        # "ppo_highD_no_slo_distance_dm-20": 'PPO',
-        # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
-        "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'MECL',
-        "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'VICRL',
-    }
+    # env_id = 'highD_distance_constraint_dim6'
+    # method_names_labels_dict = {
+    #     # "ppo_highD_no_slo_distance_dm-20": 'PPO',
+    #     # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
+    #     "GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20_dim-6": 'GACL',
+    #     "Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'BC2L',
+    #     "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'MECL',
+    #     "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'VICRL',
+    # }
     # env_id = 'InvertedPendulumWall-v0'
     # method_names_labels_dict = {
     #     # "PPO_Pendulum": 'PPO',
@@ -110,17 +112,17 @@ def generate_plots():
     #     # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
     #     "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
     # }
-    # env_id = 'SwimmerWithPos-v0'
-    # method_names_labels_dict = {
-    #     # "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
-    #     # "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
-    #     # "GAIL_SwmWithPos-v0": 'GACL',
-    #     "Binary_SwmWithPos-v0_update_b-5e-1": 'BC2L',
-    #     "ICRL_SwmWithPos-v0_update_b-5e-1": 'MECL',
-    #     "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VICRL',
-    # }
+    env_id = 'SwimmerWithPos-v0'
+    method_names_labels_dict = {
+        "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
+        "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
+        "GAIL_SwmWithPos-v0": 'GACL',
+        "Binary_SwmWithPos-v0_update_b-5e-1": 'BC2L',
+        "ICRL_SwmWithPos-v0_update_b-5e-1": 'MECL',
+        "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VICRL',
+    }
     modes = ['train']
-    plot_mode = 'all'
+    plot_mode = 'part'
     img_size = None
     axis_size = None
     if plot_mode == 'part':
@@ -265,17 +267,17 @@ def generate_plots():
                 ],
             }
         elif env_id == 'highD_velocity_constraint_dim2':
-            max_episodes = 5000
+            max_episodes = 2000
             average_num = 200
             max_reward = 50
             min_reward = -50
             axis_size = 20
-            img_size = [8, 6.5]
+            img_size = [8.4, 6.5]
             title = 'Velocity Constraint - dim 2'
             plot_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
-            label_key = ['reward', 'reward_nc', 'is_collision', 'is_off_road',
-                         'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
+            label_key = ['Reward', 'Reward', 'Collision Rate', 'Off Road Rate',
+                         'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Over Speed Rate']
             # plot_y_lim_dict = {'reward': (-50, 50),
             #                    'reward_nc': (0, 50),
             #                    'is_collision': (0, 1),
@@ -537,6 +539,16 @@ def generate_plots():
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-26-2022-00:54-seed_321/',
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-26-2022-00:54-seed_666/',
+                ],
+                "GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20_dim-6": [
+                    '../save_model/GAIL-highD-distance/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-02-2022-11:21-seed_123/',
+                    '../save_model/GAIL-highD-distance/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-02-2022-11:21-seed_321/',
+                    '../save_model/GAIL-highD-distance/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-02-2022-11:21-seed_666/',
+                ],
+                "Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": [
+                    '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-02-2022-09:35-seed_123/',
+                    '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-02-2022-09:35-seed_321/',
+                    '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-Jun-02-2022-09:35-seed_666/',
                 ],
                 "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": [
                     '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6-multi_env-May-30-2022-05:11-seed_123/',
