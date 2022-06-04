@@ -75,15 +75,16 @@ def generate_plots():
     #     "ICRL_highD_velocity_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": 'MECL',
     #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dim-2": "VICRL",
     # }
-    # env_id = 'highD_distance_constraint'
-    # method_names_labels_dict = {
-    #     # "ppo_highD_no_slo_distance_dm-20": 'PPO',
-    #     # "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
-    #     'GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20': 'GACL',
-    #     'Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20': 'BC2L',
-    #     'ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'MECL',
-    #     'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'VICRL',
-    # }
+    env_id = 'highD_distance_constraint'
+    method_names_labels_dict = {
+        "ppo_highD_no_slo_distance_dm-60": 'PPO',
+        "ppo_lag_highD_no_slo_distance_dm-60": 'PPO_lag',
+        # 'GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20': 'GACL',
+        # 'Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20': 'BC2L',
+        # 'ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'MECL',
+        # 'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20': 'VICRL',
+    }
+
     # env_id = 'highD_distance_constraint_dim6'
     # method_names_labels_dict = {
     #     # "ppo_highD_no_slo_distance_dm-20": 'PPO',
@@ -112,15 +113,15 @@ def generate_plots():
     #     # "VICRL_Walker-v0_p-9e-3-1e-3": 'VICRL',
     #     "VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64": 'VICRL',
     # }
-    env_id = 'SwimmerWithPos-v0'
-    method_names_labels_dict = {
-        "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
-        "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
-        "GAIL_SwmWithPos-v0": 'GACL',
-        "Binary_SwmWithPos-v0_update_b-5e-1": 'BC2L',
-        "ICRL_SwmWithPos-v0_update_b-5e-1": 'MECL',
-        "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VICRL',
-    }
+    # env_id = 'SwimmerWithPos-v0'
+    # method_names_labels_dict = {
+    #     "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
+    #     "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
+    #     "GAIL_SwmWithPos-v0": 'GACL',
+    #     "Binary_SwmWithPos-v0_update_b-5e-1": 'BC2L',
+    #     "ICRL_SwmWithPos-v0_update_b-5e-1": 'MECL',
+    #     "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VICRL',
+    # }
     modes = ['train']
     plot_mode = 'part'
     img_size = None
@@ -409,6 +410,14 @@ def generate_plots():
                     '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-26-2022-00:58-seed_321/',
                     '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-26-2022-00:58-seed_666/',
                 ],
+                "ppo_highD_no_slo_distance_dm-40": [
+                    '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-40-multi_env-Jun-03-2022-11:13-seed_123/',
+                    '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-40-multi_env-Jun-03-2022-11:13-seed_321/',
+                ],
+                "ppo_highD_no_slo_distance_dm-60": [
+                    '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-60-multi_env-Jun-03-2022-11:13-seed_123/',
+                    '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-60-multi_env-Jun-03-2022-11:13-seed_321/',
+                ],
                 "ppo_lag_highD_no_slo_distance_dm-5": [
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-multi_env-May-24-2022-00:53-seed_123/',
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-5-multi_env-May-26-2022-00:49-seed_321/',
@@ -423,6 +432,14 @@ def generate_plots():
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/',
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-26-2022-00:54-seed_321/',
                     '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-26-2022-00:54-seed_666/',
+                ],
+                "ppo_lag_highD_no_slo_distance_dm-40": [
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-40-multi_env-Jun-03-2022-11:14-seed_123/',
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-40-multi_env-Jun-03-2022-11:14-seed_321/',
+                ],
+                "ppo_lag_highD_no_slo_distance_dm-60": [
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-60-multi_env-Jun-03-2022-11:14-seed_123/',
+                    '../save_model/PPO-Lag-highD-distance/train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-60-multi_env-Jun-03-2022-11:14-seed_321/',
                 ],
                 "ICRL_highD_slo_distance_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-5": [
                     '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_no_is_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-5-multi_env-May-25-2022-10:17-seed_123/',
