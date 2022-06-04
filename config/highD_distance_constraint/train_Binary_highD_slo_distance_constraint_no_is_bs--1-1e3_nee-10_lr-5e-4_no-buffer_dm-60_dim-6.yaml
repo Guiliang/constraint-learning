@@ -3,7 +3,7 @@ group: 'Binary'
 device: 'cuda'
 verbose: 1
 env:
-  config_path: "../config/highD_distance_constraint/highD_environment_configurations_no_slo_distance_penalty_dm-20.yaml"
+  config_path: "../config/highD_distance_constraint/highD_environment_configurations_no_slo_distance_penalty_dm-60.yaml"
   train_env_id : 'commonroad-v1'
   eval_env_id: 'commonroad-v1'
   save_dir: '../save_model'
@@ -25,7 +25,7 @@ running:
   expert_rollouts: 100
   sample_rollouts: 100
   store_sample_rollouts: null
-  expert_path: '../data/expert_data/no-too_closed_train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123/'
+  expert_path: '../data/expert_data/no-too_closed-off_road_train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-60-multi_env-Jun-03-2022-11:14-seed_123/'
   use_buffer: False
   store_by_game: False
 
