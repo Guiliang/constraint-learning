@@ -12,4 +12,4 @@ log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
 conda activate galen-cr37
 cd ./interface/
-python train_ppo.py ../config/highD_distance_constraint/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-40.yaml -n 5 -s 666 -l "$log_dir"
+python train_ppo.py ../config/highD_velocity_constraint/train_ppo_highD_no_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-30.yaml -n 5 -s 123 -l "$log_dir"
