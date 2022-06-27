@@ -1,9 +1,9 @@
 import gym
 import numpy as np
-import stable_baselines3.common.callbacks as callbacks
+import cirl_stable_baselines3.common.callbacks as callbacks
 import torch
 import torch.nn as nn
-from stable_baselines3.common.torch_layers import create_mlp
+from cirl_stable_baselines3.common.torch_layers import create_mlp
 from torch.optim import Adam
 
 # =====================================================================================

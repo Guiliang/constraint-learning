@@ -1,13 +1,7 @@
 import os
-from typing import Any, Dict, List, Optional, Tuple
-
 import numpy as np
-import gym
-# from gym.envs.mujoco import mujoco_env
-
-import stable_baselines3.common.vec_env as vec_env
-from stable_baselines3.common.callbacks import BaseCallback
-from utils.true_constraint_functions import get_true_cost_function
+import cirl_stable_baselines3.common.vec_env as vec_env
+from cirl_stable_baselines3.common.callbacks import BaseCallback
 
 
 def get_benchmark_ids(num_threads, benchmark_idx, benchmark_total_nums, env_ids):
@@ -81,7 +75,7 @@ def multi_threads_sample_from_agent(agent, env, rollouts, num_threads, store_by_
     return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, all_lengths
 
 
-def sample_from_agent(agent, env, rollouts, store_by_game=False):
+def sample_from_agent(agent, env, rollouts, store_by_game=False, **sample_parameters):
     if isinstance(env, vec_env.VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
 
@@ -145,108 +139,6 @@ def sample_from_agent(agent, env, rollouts, store_by_game=False):
         lengths = np.array(lengths)
         return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
 
-
-class MujocoExternalSignalWrapper(gym.Wrapper):
-    def __init__(self, env: gym.Wrapper, group: str, **wrapper_config):
-        super(MujocoExternalSignalWrapper, self).__init__(env=env)
-        self.wrapper_config = wrapper_config
-        self.group = group
-
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
-        obs, reward, done, info = self.env.step(action)
-        ture_cost_function = get_true_cost_function(env_id=self.spec.id,
-                                                    env_configs=self.wrapper_config)
-        lag_cost_ture = int(ture_cost_function(obs, action) == True)
-        # print(obs[0])
-        # print(obs)
-        # if lag_cost_ture == 1:
-        #     print("abc")
-        # lag_cost = 0
-        # if self.spec.id == 'HCWithPos-v0':
-        #     if info['xpos'] <= -3:
-        #         lag_cost = 1
-        # elif self.spec.id == 'LGW-v0':
-        #     # print(action)
-        #     info.update({'action': action})
-        #     if action == 1:
-        #         lag_cost = 1
-        # elif self.spec.id == 'AntWall-v0':
-        #     if info['x_position'] <= -3:
-        #         lag_cost = 1
-        # # if self.group == 'PPO-Lag':
-        # # print(lag_cost)
-        # assert lag_cost_ture == lag_cost
-        info.update({'lag_cost': lag_cost_ture})
-        return obs, reward, done, info
-
-
-class CommonRoadExternalSignalsWrapper(gym.Wrapper):
-    def __init__(self, env: gym.Wrapper, group: str, **wrapper_config):
-        super(CommonRoadExternalSignalsWrapper, self).__init__(env=env)
-        self.wrapper_config = wrapper_config
-        self.group = group
-
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
-        observation, reward, done, info = self.env.step(action)
-        reward_features = self.wrapper_config['external_reward']['reward_features']
-        feature_bounds = self.wrapper_config['external_reward']['feature_bounds']
-        feature_dims = self.wrapper_config['external_reward']['feature_dims']
-        feature_penalties = self.wrapper_config['external_reward']['feature_penalties']
-        terminates = self.wrapper_config['external_reward']['terminate']
-        lag_cost = 0
-        for idx in range(len(reward_features)):
-            reward_feature = reward_features[idx]
-            if reward_feature == 'velocity':
-                ego_velocity_x_y = [observation[feature_dims[idx][0]], observation[feature_dims[idx][1]]]
-                assert np.sum(info["ego_velocity"] - ego_velocity_x_y) == 0  # TODO: remove this line if there is an error
-                info["ego_velocity"] = ego_velocity_x_y
-                ego_velocity = np.sqrt(np.sum(np.square(ego_velocity_x_y)))
-                if ego_velocity < float(feature_bounds[idx][0]) or ego_velocity > float(feature_bounds[idx][1]):
-                    reward += float(feature_penalties[idx])
-                    lag_cost = 1
-                    if terminates[idx]:
-                        done = True
-                    info.update({'is_over_speed': 1})
-                else:
-                    info.update({'is_over_speed': 0})
-            elif reward_feature == 'same_lead_obstacle_distance':
-                lanebase_relative_position = [observation[feature_dims[idx][0]]]
-                info["lanebase_relative_position"] = np.asarray(lanebase_relative_position)
-                _lanebase_relative_position = np.mean(lanebase_relative_position)
-                if _lanebase_relative_position < float(feature_bounds[idx][0]) or \
-                        _lanebase_relative_position > float(feature_bounds[idx][1]):
-                    reward += float(feature_penalties[idx])
-                    lag_cost = 1
-                    if terminates[idx]:
-                        done = True
-                    info.update({'is_too_closed': 1})
-                else:
-                    info.update({'is_too_closed': 0})
-            elif reward_feature == 'obstacle_distance':
-                lanebase_relative_positions = [observation[feature_dims[idx][0]], observation[feature_dims[idx][1]],
-                                               observation[feature_dims[idx][2]], observation[feature_dims[idx][3]],
-                                               observation[feature_dims[idx][4]], observation[feature_dims[idx][5]]]
-                # [p_rel_left_follow, p_rel_same_follow, p_rel_right_follow, p_rel_left_lead, p_rel_same_lead, p_rel_right_lead]
-
-                info["lanebase_relative_position"] = np.asarray(lanebase_relative_positions)
-                for lanebase_relative_position in lanebase_relative_positions:
-                    if lanebase_relative_position < float(feature_bounds[idx][0]) or \
-                            lanebase_relative_position > float(feature_bounds[idx][1]):
-                        reward += float(feature_penalties[idx])
-                        lag_cost = 1
-                        if terminates[idx]:
-                            done = True
-                        info.update({'is_too_closed': 1})
-                    else:
-                        info.update({'is_too_closed': 0})
-            else:
-                raise ValueError("Unknown reward features: {0}".format(reward_feature))
-        # print(ego_velocity, lag_cost)
-        # if self.group == 'PPO-Lag':
-        info.update({'lag_cost': lag_cost})
-        return observation, reward, done, info
-
-
 class SaveVecNormalizeCallback(BaseCallback):
     def __init__(self, save_path: str, verbose=1):
         super(SaveVecNormalizeCallback, self).__init__(verbose)
@@ -278,7 +170,7 @@ def get_all_env_ids(num_threads, env):
 
 
 def is_mujoco(env_id):
-    mujoco_env_id = ['HC', 'AntWall', 'Pendulum', 'Walker', 'LGW', 'WGW', 'Swimmer']
+    mujoco_env_id = ['HC', 'AntWall', 'Pendulum', 'Walker', 'LGW', 'WGW', 'Swimmer', 'Circle']
     # if 'HC' in env_id or 'LGW' in env_id or 'AntWall' in env_id or 'Pendulum' in env_id or 'Walker' in env_id:
     for item in mujoco_env_id:
         if item in env_id:

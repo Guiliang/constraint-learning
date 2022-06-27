@@ -7,9 +7,9 @@ import numpy
 import numpy as np
 import torch
 
-from stable_baselines3.common.callbacks import EventCallback, BaseCallback
-from stable_baselines3.common.evaluation import evaluate_policy
-from stable_baselines3.common.vec_env import VecEnv, DummyVecEnv, sync_envs_normalization
+from cirl_stable_baselines3.common.callbacks import EventCallback, BaseCallback
+from cirl_stable_baselines3.common.evaluation import evaluate_policy
+from cirl_stable_baselines3.common.vec_env import VecEnv, DummyVecEnv, sync_envs_normalization
 
 
 def evaluate_icrl_policy(

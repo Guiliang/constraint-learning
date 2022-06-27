@@ -1,6 +1,5 @@
 import os
 import imageio
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from matplotlib.animation import FuncAnimation, ImageMagickWriter

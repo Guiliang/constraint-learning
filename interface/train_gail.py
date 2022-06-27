@@ -13,17 +13,15 @@ from utils.env_utils import check_if_duplicate_seed
 from common.cns_env import make_train_env, make_eval_env, SaveEnvStatsCallback
 from common.cns_evaluation import CNSEvalCallback
 from common.cns_save_callbacks import CNSCheckpointCallback
-from common.cns_visualization import PlotCallback
-from constraint_models.constraint_net.gail_net import GailDiscriminator, GailCallback
+from models.constraint_net.gail_net import GailDiscriminator, GailCallback
 from exploration.exploration import CostShapingCallback
-from stable_baselines3 import PPO
-from stable_baselines3.common import logger
-from stable_baselines3.common.utils import get_schedule_fn
-from stable_baselines3.common.vec_env import VecNormalize
+from cirl_stable_baselines3 import PPO
+from cirl_stable_baselines3.common import logger
+from cirl_stable_baselines3.common.utils import get_schedule_fn
+from cirl_stable_baselines3.common.vec_env import VecNormalize
 from utils.data_utils import read_args, load_config, process_memory, load_expert_data, print_resource
 from utils.model_utils import load_ppo_config
-from utils.true_constraint_functions import get_true_cost_function
-import stable_baselines3.common.callbacks as callbacks
+from common.true_constraint_functions import get_true_cost_function
 
 
 def train(args):

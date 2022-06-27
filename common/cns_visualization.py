@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from stable_baselines3.common import callbacks
+from cirl_stable_baselines3.common import callbacks
 from utils.data_utils import del_and_make
 from utils.plot_utils import plot_curve
 

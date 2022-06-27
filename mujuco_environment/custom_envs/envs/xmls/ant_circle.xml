@@ -20,7 +20,7 @@
     <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 0" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>
     <!--############################## Custom lines start ######################-->
     <!--    <geom name="boundary_plus" pos="4 0 1" size="0.1 20 2" type="box" material="" contype="0" conaffinity="0" rgba="0.8 0.1 0.1 0.6"/>
-    <geom name="circle" type="cylinder" size="10 0.1" pos="0 0 0" contype="0" conaffinity="0" rgba="0.1 0.8 0.2 0.2"/>
+    <geom name="circle.py" type="cylinder" size="10 0.1" pos="0 0 0" contype="0" conaffinity="0" rgba="0.1 0.8 0.2 0.2"/>
     -->
         <geom name="boundary_neg" pos="-4 0 1" size="0.1 20 2" type="box" material="" contype="0" conaffinity="0" rgba="0.8 0.1 0.1 0.6"/>
       <camera name="track" mode="trackcom" pos="-10 -50 50" xyaxes="1 0 0 0 1 1"/>

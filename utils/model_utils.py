@@ -193,14 +193,15 @@ def load_ppo_config(config, train_env, seed, log_file):
             "gae_lambda": config['PPO']['reward_gae_lambda'],
             "vf_coef": config['PPO']['reward_vf_coef'],
         })
-    elif config['group'] == "PPO-Lag" or config['group'] == "Binary" or config['group'] == "ICRL" or config['group'] == "VICRL":
-    # elif config['group'] == "PPO-Lag":
+    elif config['group'] == "PPO-Lag" or config['group'] == "Binary" \
+            or config['group'] == "ICRL" or config['group'] == "VICRL" or config['group'] == "MEICRL":
+        # elif config['group'] == "PPO-Lag":
         ppo_parameters.update({
             "reward_gamma": config['PPO']['reward_gamma'],
             "reward_gae_lambda": config['PPO']['reward_gae_lambda'],
             "cost_gamma": config['PPO']['cost_gamma'],
             "cost_gae_lambda": config['PPO']['cost_gae_lambda'],
-            "clip_range_reward_vf":  config['PPO']['clip_range_reward_vf'],
+            "clip_range_reward_vf": config['PPO']['clip_range_reward_vf'],
             "clip_range_cost_vf": config['PPO']['clip_range_cost_vf'],
             "reward_vf_coef": config['PPO']['reward_vf_coef'],
             "cost_vf_coef": config['PPO']['cost_vf_coef'],
@@ -220,3 +221,10 @@ def load_ppo_config(config, train_env, seed, log_file):
         raise ValueError("Unknown Group {0}".format(config['group']))
 
     return ppo_parameters
+
+
+def update_code(code_dim, code_axis):
+    code = np.zeros((1, code_dim), dtype=np.float32)
+    code[0, code_axis] = 1
+    code_axis = (code_axis + 1) % code_dim
+    return code, code_axis

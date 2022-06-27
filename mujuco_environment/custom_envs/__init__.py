@@ -398,3 +398,16 @@ register(
 )
 
 
+# =========================================================================== #
+#                                     Circle                                  #
+# =========================================================================== #
+
+CIRCLE_LEN = 512
+
+register(
+    id="Circle-v0",
+    entry_point=ABS_PATH+".circle:CircleEnv",
+    max_episode_steps=CIRCLE_LEN,
+    reward_threshold=None,
+    nondeterministic=False,
+)

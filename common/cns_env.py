@@ -1,17 +1,17 @@
 import os
 import pickle
 from copy import copy, deepcopy
-
+from typing import Any, Dict, Tuple
 import numpy as np
 import gym
 import yaml
-import stable_baselines3.common.vec_env as vec_env
+import cirl_stable_baselines3.common.vec_env as vec_env
 from common.cns_monitor import CNSMonitor
-from stable_baselines3.common import callbacks
-from stable_baselines3.common.utils import set_random_seed
-from stable_baselines3.common.preprocessing import is_image_space
-from stable_baselines3.common.vec_env import VecEnvWrapper, VecEnv, VecNormalize, VecCostWrapper
-from utils.env_utils import CommonRoadExternalSignalsWrapper, MujocoExternalSignalWrapper, is_mujoco, is_commonroad
+from common.true_constraint_functions import get_true_cost_function
+from cirl_stable_baselines3.common import callbacks
+from cirl_stable_baselines3.common.utils import set_random_seed
+from cirl_stable_baselines3.common.vec_env import VecEnvWrapper, VecEnv, VecNormalize, VecCostWrapper, VecCostCodeWrapper
+from utils.env_utils import is_mujoco, is_commonroad
 
 
 def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0):
@@ -76,29 +76,17 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
                     multi_env=multi_env,
                     seed=base_seed)
            for i in range(num_threads)]
-    # if 'HC' in env_id:
+
     env = vec_env.SubprocVecEnv(env)
-    # elif 'commonroad' in env_id:
-    # env = vec_env.DummyVecEnv(env)
-    # else:
-    #     raise ValueError("Unknown env id {0}".format(env_id))
 
     if use_cost:
         if group == 'PPO-Lag':
             env = InternalVecCostWrapper(env, kwargs['cost_info_str'])  # internal cost
+        elif group == 'MEICRL':
+            env = vec_env.VecCostCodeWrapper(env, kwargs['cost_info_str'])  # cost with code
         else:
             env = vec_env.VecCostWrapper(env, kwargs['cost_info_str'])  # external cost
-    # if normalize_reward and normalize_cost:
-    #     assert (all(key in kwargs for key in ['cost_info_str', 'reward_gamma', 'cost_gamma']))
-    #     env = vec_env.VecNormalizeWithCost(
-    #         env, training=True,
-    #         norm_obs=normalize_obs,
-    #         norm_reward=normalize_reward,
-    #         norm_cost=normalize_cost,
-    #         cost_info_str=kwargs['cost_info_str'],
-    #         reward_gamma=kwargs['reward_gamma'],
-    #         cost_gamma=kwargs['cost_gamma'])
-    # else:
+
     if group == 'PPO' or group == 'GAIL':
         assert (all(key in kwargs for key in ['reward_gamma']))
         env = vec_env.VecNormalize(
@@ -117,14 +105,6 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
             cost_info_str=kwargs['cost_info_str'],
             reward_gamma=kwargs['reward_gamma'],
             cost_gamma=kwargs['cost_gamma'])
-    # else:
-    #     if use_cost:
-    #         env = vec_env.VecNormalizeWithCost(
-    #             env, training=True, norm_obs=normalize_obs, norm_reward=False, norm_cost=False)
-    #     else:
-    #         env = vec_env.VecNormalize(
-    #             env, training=True, norm_obs=normalize_obs, norm_reward=False, norm_cost=False,
-    #             gamma=kwargs['reward_gamma'])
     return env, env_configs
 
 
@@ -144,8 +124,7 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
             env_configs["test_env"] = True
     else:
         env_configs = {}
-    # env = [lambda: gym.make(env_id, **env_configs)]
-    # env = [make_env(env_id, env_configs, 0, os.path.join(save_dir, mode))]
+
     env = [make_env(env_id=env_id,
                     env_configs=env_configs,
                     rank=i,
@@ -153,15 +132,14 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
                     log_dir=os.path.join(save_dir, mode),
                     multi_env=multi_env)
            for i in range(num_threads)]
-    # if 'HC' in env_id:
-    # env = vec_env.SubprocVecEnv(env)
-    # elif 'commonroad' in env_id:
+
     env = vec_env.DummyVecEnv(env)
-    # else:
-    #     raise ValueError("Unknown env id {0}".format(env_id))
+
     if use_cost:
         if group == 'PPO-Lag':
             env = InternalVecCostWrapper(env, cost_info_str)  # internal cost, use environment knowledge
+        elif group == 'MEICRL':
+            env = vec_env.VecCostCodeWrapper(env, cost_info_str)  # cost with code
         else:
             env = vec_env.VecCostWrapper(env, cost_info_str)  # external cost, must be learned
     # print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
@@ -171,15 +149,11 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
         env = vec_env.VecNormalizeWithCost(env, training=False, norm_obs=normalize_obs,
                                            norm_reward=False, norm_cost=False)
 
-    # if is_image_space(env.observation_space) and not isinstance(env, vec_env.VecTransposeImage):
-    #     print("Wrapping eval env in a VecTransposeImage.")
-    #     env = vec_env.VecTransposeImage(env)
-
     return env, env_configs
 
 
 class InternalVecCostWrapper(VecEnvWrapper):
-    def __init__(self, venv, cost_info_str = 'cost'):
+    def __init__(self, venv, cost_info_str='cost'):
         super().__init__(venv)
         self.cost_info_str = cost_info_str
 
@@ -289,7 +263,7 @@ def sync_envs_normalization_ppo(env: "GymEnv", eval_env: "GymEnv") -> None:
             eval_env_tmp.obs_rms = deepcopy(env_tmp.obs_rms)
             eval_env_tmp.ret_rms = deepcopy(env_tmp.ret_rms)
         env_tmp = env_tmp.venv
-        if isinstance(env_tmp, VecCostWrapper) or isinstance(env_tmp, InternalVecCostWrapper):
+        if isinstance(env_tmp, VecCostWrapper) or isinstance(env_tmp, InternalVecCostWrapper) or isinstance(env_tmp, VecCostCodeWrapper):
             env_tmp = env_tmp.venv
         eval_env_tmp = eval_env_tmp.venv
 
@@ -307,3 +281,86 @@ class SaveEnvStatsCallback(callbacks.BaseCallback):
     def _on_step(self):
         if isinstance(self.env, vec_env.VecNormalize):
             self.env.save(os.path.join(self.save_path, "train_env_stats.pkl"))
+
+
+class MujocoExternalSignalWrapper(gym.Wrapper):
+    def __init__(self, env: gym.Wrapper, group: str, **wrapper_config):
+        super(MujocoExternalSignalWrapper, self).__init__(env=env)
+        self.wrapper_config = wrapper_config
+        self.group = group
+
+    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
+        obs, reward, done, info = self.env.step(action)
+        ture_cost_function = get_true_cost_function(env_id=self.spec.id,
+                                                    env_configs=self.wrapper_config)
+        lag_cost_ture = int(ture_cost_function(obs, action) == True)
+        info.update({'lag_cost': lag_cost_ture})
+        return obs, reward, done, info
+
+
+class CommonRoadExternalSignalsWrapper(gym.Wrapper):
+    def __init__(self, env: gym.Wrapper, group: str, **wrapper_config):
+        super(CommonRoadExternalSignalsWrapper, self).__init__(env=env)
+        self.wrapper_config = wrapper_config
+        self.group = group
+
+    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
+        observation, reward, done, info = self.env.step(action)
+        reward_features = self.wrapper_config['external_reward']['reward_features']
+        feature_bounds = self.wrapper_config['external_reward']['feature_bounds']
+        feature_dims = self.wrapper_config['external_reward']['feature_dims']
+        feature_penalties = self.wrapper_config['external_reward']['feature_penalties']
+        terminates = self.wrapper_config['external_reward']['terminate']
+        lag_cost = 0
+        for idx in range(len(reward_features)):
+            reward_feature = reward_features[idx]
+            if reward_feature == 'velocity':
+                ego_velocity_x_y = [observation[feature_dims[idx][0]], observation[feature_dims[idx][1]]]
+                assert np.sum(
+                    info["ego_velocity"] - ego_velocity_x_y) == 0  # TODO: remove this line if there is an error
+                info["ego_velocity"] = ego_velocity_x_y
+                ego_velocity = np.sqrt(np.sum(np.square(ego_velocity_x_y)))
+                if ego_velocity < float(feature_bounds[idx][0]) or ego_velocity > float(feature_bounds[idx][1]):
+                    reward += float(feature_penalties[idx])
+                    lag_cost = 1
+                    if terminates[idx]:
+                        done = True
+                    info.update({'is_over_speed': 1})
+                else:
+                    info.update({'is_over_speed': 0})
+            elif reward_feature == 'same_lead_obstacle_distance':
+                lanebase_relative_position = [observation[feature_dims[idx][0]]]
+                info["lanebase_relative_position"] = np.asarray(lanebase_relative_position)
+                _lanebase_relative_position = np.mean(lanebase_relative_position)
+                if _lanebase_relative_position < float(feature_bounds[idx][0]) or \
+                        _lanebase_relative_position > float(feature_bounds[idx][1]):
+                    reward += float(feature_penalties[idx])
+                    lag_cost = 1
+                    if terminates[idx]:
+                        done = True
+                    info.update({'is_too_closed': 1})
+                else:
+                    info.update({'is_too_closed': 0})
+            elif reward_feature == 'obstacle_distance':
+                lanebase_relative_positions = [observation[feature_dims[idx][0]], observation[feature_dims[idx][1]],
+                                               observation[feature_dims[idx][2]], observation[feature_dims[idx][3]],
+                                               observation[feature_dims[idx][4]], observation[feature_dims[idx][5]]]
+                # [p_rel_left_follow, p_rel_same_follow, p_rel_right_follow, p_rel_left_lead, p_rel_same_lead, p_rel_right_lead]
+
+                info["lanebase_relative_position"] = np.asarray(lanebase_relative_positions)
+                for lanebase_relative_position in lanebase_relative_positions:
+                    if lanebase_relative_position < float(feature_bounds[idx][0]) or \
+                            lanebase_relative_position > float(feature_bounds[idx][1]):
+                        reward += float(feature_penalties[idx])
+                        lag_cost = 1
+                        if terminates[idx]:
+                            done = True
+                        info.update({'is_too_closed': 1})
+                    else:
+                        info.update({'is_too_closed': 0})
+            else:
+                raise ValueError("Unknown reward features: {0}".format(reward_feature))
+        # print(ego_velocity, lag_cost)
+        # if self.group == 'PPO-Lag':
+        info.update({'lag_cost': lag_cost})
+        return observation, reward, done, info

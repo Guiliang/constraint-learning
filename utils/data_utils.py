@@ -11,9 +11,9 @@ import yaml
 import numpy as np
 from gym.utils.colorize import color2num
 from tqdm import tqdm
-import stable_baselines3.common.callbacks as callbacks
-from stable_baselines3 import PPO
-from stable_baselines3.common.utils import safe_mean
+import cirl_stable_baselines3.common.callbacks as callbacks
+from cirl_stable_baselines3 import PPO
+from cirl_stable_baselines3.common.utils import safe_mean
 
 
 def load_config(args=None):

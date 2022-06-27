@@ -13,10 +13,10 @@ from utils.env_utils import check_if_duplicate_seed
 from common.cns_env import make_train_env, make_eval_env, sync_envs_normalization_ppo
 from utils.plot_utils import plot_curve
 from exploration.exploration import ExplorationRewardCallback
-from stable_baselines3 import PPO, PPOLagrangian
-from stable_baselines3.common import logger
+from cirl_stable_baselines3 import PPO, PPOLagrangian
+from cirl_stable_baselines3.common import logger
 from common.cns_evaluation import evaluate_icrl_policy
-from stable_baselines3.common.vec_env import VecNormalize
+from cirl_stable_baselines3.common.vec_env import VecNormalize
 
 from utils.data_utils import ProgressBarManager, del_and_make, read_args, load_config, process_memory
 from utils.model_utils import load_ppo_config

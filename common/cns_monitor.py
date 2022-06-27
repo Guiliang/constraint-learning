@@ -7,11 +7,11 @@ from typing import Any, Dict, Optional, Tuple
 import gym
 import numpy as np
 
-import stable_baselines3.common.monitor
+import cirl_stable_baselines3.common.monitor
 from utils.env_utils import is_commonroad, is_mujoco
 
 
-class CNSMonitor(stable_baselines3.common.monitor.Monitor):
+class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
     def __init__(
             self,
             env: gym.Env,

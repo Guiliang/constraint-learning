@@ -10,20 +10,22 @@ import gym
 import numpy as np
 import yaml
 
+from models.constraint_net.info_constraint_net import InfoConstraintNet
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_evaluation import evaluate_icrl_policy
 from common.cns_visualization import plot_constraints
 from common.cns_env import make_train_env, make_eval_env
 from common.memory_buffer import IRLDataQueue
-from constraint_models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
-from constraint_models.constraint_net.variational_constraint_net import VariationalConstraintNet
-from constraint_models.constraint_net.constraint_net import ConstraintNet
+from models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
+from models.constraint_net.variational_constraint_net import VariationalConstraintNet
+from models.constraint_net.constraint_net import ConstraintNet
 from exploration.exploration import ExplorationRewardCallback
-from stable_baselines3 import PPOLagrangian
-from stable_baselines3.common import logger
+from cirl_stable_baselines3 import PPOLagrangian
+from cirl_stable_baselines3.common import logger
 
-from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
+from cirl_stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource, load_expert_data_tmp
 from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names, is_mujoco, \
@@ -267,6 +269,9 @@ def train(config):
         cn_parameters.update({'di_prior': config['CN']['di_prior'], })
         cn_parameters.update({'mode': config['CN']['mode'], })
         constraint_net = VariationalConstraintNet(**cn_parameters)
+    elif 'MEICRL' == config['group']:
+        cn_parameters.update({'code_dim': config['CN']['code_dim'], })
+        constraint_net = InfoConstraintNet(**cn_parameters)
     elif 'SEVICRL' == config['group']:
         cn_parameters.update({'di_prior': config['CN']['di_prior'],
                               'num_cut': config['CN']['num_cut'],
@@ -294,7 +299,6 @@ def train(config):
     # Warmup
     timesteps = 0.
     if config['PPO']['warmup_timesteps']:
-        # print(colorize("\nWarming up", color="green", bold=True))
         print("\nWarming up", file=log_file, flush=True)
         with ProgressBarManager(config['PPO']['warmup_timesteps']) as callback:
             nominal_agent.learn(total_timesteps=config['PPO']['warmup_timesteps'],
@@ -332,21 +336,25 @@ def train(config):
                                              log_file=log_file)
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sampling_env)
-        if sample_multi_env:
-            orig_observations, observations, actions, rewards, sum_rewards, lengths = multi_threads_sample_from_agent(
-                agent=nominal_agent,
-                env=sampling_env,
-                rollouts=int(config['running']['sample_rollouts']),
-                num_threads=num_threads,
-                store_by_game=config['running']['use_buffer'],
-            )
-        else:
-            orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
-                agent=nominal_agent,
-                env=sampling_env,
-                rollouts=int(config['running']['sample_rollouts']),
-                store_by_game=config['running']['use_buffer'],
-            )
+        # if sample_multi_env:
+        #     orig_observations, observations, actions, rewards, sum_rewards, lengths = multi_threads_sample_from_agent(
+        #         agent=nominal_agent,
+        #         env=sampling_env,
+        #         rollouts=int(config['running']['sample_rollouts']),
+        #         num_threads=num_threads,
+        #         store_by_game=config['running']['use_buffer'],
+        #     )
+        # else:
+        sample_parameters = {}
+        if 'MEICRL' == config['group']:
+            sample_parameters['code_dim'] = config['CN']['code_dim']
+        orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
+            agent=nominal_agent,
+            env=sampling_env,
+            rollouts=int(config['running']['sample_rollouts']),
+            store_by_game=config['running']['use_buffer'],
+            **sample_parameters
+        )
         if config['running']['use_buffer']:
             sample_data_queue.put(obs=orig_observations,
                                   acs=actions,
@@ -367,13 +375,15 @@ def train(config):
         if config['CN']['cn_normalize']:
             mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
 
+        cns_parameters = {}
         backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
                                                    nominal_obs=sample_obs,
                                                    nominal_acs=sample_acts,
                                                    episode_lengths=lengths,
                                                    obs_mean=mean,
                                                    obs_var=var,
-                                                   current_progress_remaining=current_progress_remaining)
+                                                   current_progress_remaining=current_progress_remaining,
+                                                   **cns_parameters)
 
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Training CN model', log_file=log_file)
@@ -405,14 +415,6 @@ def train(config):
             for record_info_idx in range(len(config['env']["record_info_names"])):
                 record_info_name = config['env']["record_info_names"][record_info_idx]
                 plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
-                # plot_curve(draw_keys=[record_info_name],
-                #            x_dict={record_info_name: plot_record_infos},
-                #            y_dict={record_info_name: plot_costs},
-                #            save_name=os.path.join(path, "{0}_empirical_visualize".format(record_info_name)),
-                #            xlabel=record_info_name,
-                #            ylabel='cost',
-                #            apply_scatter=True,
-                #            )
                 if len(expert_acs.shape) == 1:
                     empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
                 else:

@@ -164,7 +164,7 @@ class ThreeBridges(mujoco_env.MujocoEnv):
             next_state = state
 
         elif np.sum((self.goal-next_state)**2) < 1:
-            # Within 1 unit circle of the goal (states within unit circle
+            # Within 1 unit circle.py of the goal (states within unit circle.py
             # but outside grid have already been handled).
             reward = 50
             done = True
@@ -314,7 +314,7 @@ class DenseDiscreteThreeBridges(DiscreteThreeBridges):
             reward = -2.
 
         elif np.sum((self.goal-next_state)**2) < 1:
-            # Within 1 unit circle of the goal (states within unit circle
+            # Within 1 unit circle.py of the goal (states within unit circle.py
             # but outside grid have already been handled).
             reward = 250.
             done = True

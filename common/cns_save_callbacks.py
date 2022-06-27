@@ -3,8 +3,8 @@ from typing import Optional
 
 import gym
 
-from stable_baselines3.common import vec_env
-from stable_baselines3.common.callbacks import EventCallback, BaseCallback
+from cirl_stable_baselines3.common import vec_env
+from cirl_stable_baselines3.common.callbacks import EventCallback, BaseCallback
 
 
 class CNSCheckpointCallback(EventCallback):
