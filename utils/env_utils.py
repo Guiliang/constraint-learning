@@ -80,11 +80,14 @@ def sample_from_agent(agent, env, rollouts, store_by_game=False, **sample_parame
         assert env.num_envs == 1, "You must pass only one environment when using this function"
 
     all_orig_obs, all_obs, all_acs, all_rs = [], [], [], []
+    if sample_parameters['store_code']:
+        all_codes = []
     sum_rewards, lengths = [], []
     for i in range(rollouts):
         # Avoid double reset, as VecEnv are reset automatically
         if i == 0:
             obs = env.reset()
+            codes = sample_parameters['init_codes']
         # benchmark_id = env.venv.envs[0].benchmark_id
         # print('senario id', benchmark_id)
 
@@ -96,18 +99,28 @@ def sample_from_agent(agent, env, rollouts, store_by_game=False, **sample_parame
             obs_game = []
             acs_game = []
             rs_game = []
+            if sample_parameters['store_code']:
+                codes_game = []
         while not done:
+            if sample_parameters['store_code']:
+                obs = np.concatenate([obs, codes], axis=1)
             action, state = agent.predict(obs, state=state, deterministic=False)
 
             if store_by_game:
                 origin_obs_game.append(env.get_original_obs())
                 obs_game.append(obs)
                 acs_game.append(action)
+                if sample_parameters['store_code']:
+                    codes_game.append(codes)
             else:
                 all_orig_obs.append(env.get_original_obs())
                 all_obs.append(obs)
                 all_acs.append(action)
+                if sample_parameters['store_code']:
+                    all_codes.append(codes)
             obs, reward, done, _info = env.step(action)
+            if sample_parameters['store_code']:
+                codes = np.asarray([_info[0]["code"]])
             if store_by_game:
                 rs_game.append(reward)
             else:
@@ -124,12 +137,18 @@ def sample_from_agent(agent, env, rollouts, store_by_game=False, **sample_parame
             all_obs.append(obs_game)
             all_acs.append(acs_game)
             all_rs.append(rs_game)
+            if sample_parameters['store_code']:
+                codes_game = np.squeeze(np.asarray(codes_game))
+                all_codes.append(codes_game)
 
         sum_rewards.append(episode_sum_reward)
         lengths.append(episode_length)
 
     if store_by_game:
-        return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
+        if sample_parameters['store_code']:
+            return all_orig_obs, all_obs, all_acs, all_rs, all_codes, sum_rewards, lengths
+        else:
+            return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
     else:
         all_orig_obs = np.squeeze(np.array(all_orig_obs), axis=1)
         all_obs = np.squeeze(np.array(all_obs), axis=1)
@@ -137,7 +156,11 @@ def sample_from_agent(agent, env, rollouts, store_by_game=False, **sample_parame
         all_rs = np.array(all_rs)
         sum_rewards = np.squeeze(np.array(sum_rewards), axis=1)
         lengths = np.array(lengths)
-        return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
+        if sample_parameters['store_code']:
+            all_codes = np.squeeze(np.array(all_codes), axis=1)
+            return all_orig_obs, all_obs, all_acs, all_rs, all_codes, sum_rewards, lengths
+        else:
+            return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
 
 class SaveVecNormalizeCallback(BaseCallback):
     def __init__(self, save_path: str, verbose=1):

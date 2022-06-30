@@ -439,12 +439,15 @@ def mean_std_plot_results(all_results):
     return mean_results, std_results
 
 
-def print_resource(mem_prev, time_prev, process_name, log_file):
+def print_resource(mem_prev, time_prev, process_name, log_file, print_msg=True):
     mem_current = process_memory()
     time_current = time.time()
-    print("{0} consumed memory: {1:.2f}/{2:.2f} and time {3:.2f}".format(
-        process_name,
-        float(mem_current - mem_prev) / 1000000,
-        float(mem_current) / 1000000,
-        time_current - time_prev), file=log_file, flush=True)
-    return mem_current, time_current
+    print_str = "{0} consumed memory: {1:.2f}/{2:.2f} and time {3:.2f}".format(process_name,
+                                                                               float(mem_current - mem_prev) / 1000000,
+                                                                               float(mem_current) / 1000000,
+                                                                               time_current - time_prev)
+    if print_msg:
+        print(print_str, file=log_file, flush=True)
+        return mem_current, time_current
+    else:
+        return mem_current, time_current, print_str

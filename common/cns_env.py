@@ -81,11 +81,13 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
 
     if use_cost:
         if group == 'PPO-Lag':
-            env = InternalVecCostWrapper(env, kwargs['cost_info_str'])  # internal cost
+            env = InternalVecCostWrapper(venv=env, cost_info_str=kwargs['cost_info_str'])  # internal cost
         elif group == 'MEICRL':
-            env = vec_env.VecCostCodeWrapper(env, kwargs['cost_info_str'])  # cost with code
+            env = vec_env.VecCostCodeWrapper(venv=env,
+                                             latent_dim=kwargs['latent_dim'],
+                                             cost_info_str=kwargs['cost_info_str'])  # cost with code
         else:
-            env = vec_env.VecCostWrapper(env, kwargs['cost_info_str'])  # external cost
+            env = vec_env.VecCostWrapper(venv=env, cost_info_str=kwargs['cost_info_str'])  # external cost
 
     if group == 'PPO' or group == 'GAIL':
         assert (all(key in kwargs for key in ['reward_gamma']))
@@ -110,7 +112,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
 
 def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
                   mode='test', use_cost=False, normalize_obs=True, cost_info_str='cost',
-                  part_data=False, multi_env=False, log_file=None):
+                  part_data=False, multi_env=False, log_file=None,**kwargs):
     if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
@@ -137,11 +139,13 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
 
     if use_cost:
         if group == 'PPO-Lag':
-            env = InternalVecCostWrapper(env, cost_info_str)  # internal cost, use environment knowledge
+            env = InternalVecCostWrapper(venv=env, cost_info_str=cost_info_str)  # internal cost
         elif group == 'MEICRL':
-            env = vec_env.VecCostCodeWrapper(env, cost_info_str)  # cost with code
+            env = vec_env.VecCostCodeWrapper(venv=env,
+                                             latent_dim=kwargs['latent_dim'],
+                                             cost_info_str=cost_info_str)  # cost with code
         else:
-            env = vec_env.VecCostWrapper(env, cost_info_str)  # external cost, must be learned
+            env = vec_env.VecCostWrapper(venv=env, cost_info_str=cost_info_str)  # external cost, must be learned
     # print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
     if group == 'PPO' or group == 'GAIL':
         env = vec_env.VecNormalize(env, training=False, norm_obs=normalize_obs, norm_reward=False)

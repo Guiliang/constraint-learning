@@ -52,7 +52,7 @@ idx = 0
 for i in range(len(rs)):
     print("r = {:.2f}".format(rs[i]))
 
-    for j in tqdm(range(50)):  # default: 128
+    for j in tqdm(range(128)):  # default: 128
         state = env.reset()
         # s_traj.append([])
         # a_traj.append([])
@@ -91,4 +91,4 @@ for i in range(len(rs)):
                      idx,
                      len(s_traj)
                  ), "wb"))
-# plt.show()
+plt.show()

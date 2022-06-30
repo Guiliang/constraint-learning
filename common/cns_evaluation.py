@@ -5,11 +5,11 @@ from typing import Callable, List, Optional, Tuple, Union, Dict, Any
 import gym
 import numpy
 import numpy as np
-import torch
 
 from cirl_stable_baselines3.common.callbacks import EventCallback, BaseCallback
 from cirl_stable_baselines3.common.evaluation import evaluate_policy
-from cirl_stable_baselines3.common.vec_env import VecEnv, DummyVecEnv, sync_envs_normalization
+from cirl_stable_baselines3.common.vec_env import VecEnv, DummyVecEnv, sync_envs_normalization, VecNormalize
+from utils.model_utils import build_code
 
 
 def evaluate_icrl_policy(
@@ -100,6 +100,81 @@ def evaluate_icrl_policy(
     return mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs
 
 
+def evaluate_meicrl_policy(
+        model: "base_class.BaseAlgorithm",
+        env: Union[gym.Env, VecEnv],
+        record_info_names: list,
+        n_eval_episodes: int = 10,
+        deterministic: bool = True,
+        render: bool = False,
+        callback: Optional[Callable] = None,
+        reward_threshold: Optional[float] = None,
+        return_episode_rewards: bool = False,
+):
+    if isinstance(env, VecEnv):
+        assert env.num_envs == 1, "You must pass only one environment when using this function"
+
+    episode_rewards, episode_nc_rewards, episode_lengths = [], [], []
+    costs = []
+    record_infos = {}
+    for record_info_name in record_info_names:
+        record_infos.update({record_info_name: []})
+    for i in range(n_eval_episodes):
+        # Avoid double reset, as VecEnv are reset automatically
+        if not isinstance(env, VecEnv) or i == 0:
+            obs = env.reset()
+            if isinstance(env, VecNormalize):
+                codes = build_code(code_axis=env.venv.code_axis,
+                                   code_dim=env.venv.latent_dim,
+                                   num_envs=env.venv.num_envs)
+            else:
+                codes = build_code(code_axis=env.code_axis,
+                                   code_dim=env.latent_dim,
+                                   num_envs=env.num_envs)
+        done, state = False, None
+        episode_reward = np.asarray([0.0] * env.num_envs)
+        episode_nc_reward = np.asarray([0.0] * env.num_envs)
+        is_constraint = [False for i in range(env.num_envs)]
+        episode_length = 0
+        while not done:
+            inputs = np.concatenate([obs, codes], axis=1)
+            action, state = model.predict(inputs, state=state, deterministic=deterministic)
+            obs, reward, done, _info = env.step(action)
+            codes = []
+            for i in range(env.num_envs):
+                codes.append(_info[i]["code"])
+                if 'cost' in _info[i].keys():
+                    costs.append(_info[i]['cost'])
+                else:
+                    costs = None
+                for record_info_name in record_info_names:
+                    record_infos[record_info_name].append(np.mean(_info[i][record_info_name]))
+                if not is_constraint[i]:
+                    if _info[i]['lag_cost']:
+                        is_constraint[i] = True
+                    else:
+                        episode_nc_reward[i] += reward[i]
+                episode_reward[i] += reward[i]
+            codes = np.asarray(codes)
+            if callback is not None:
+                callback(locals(), globals())
+            episode_length += 1
+            if render:
+                env.render()
+        episode_rewards.append(episode_reward)
+        episode_nc_rewards.append(episode_nc_reward)
+        episode_lengths.append(episode_length)
+    mean_reward = np.mean(episode_rewards)
+    std_reward = np.std(episode_rewards)
+    mean_nc_reward = np.mean(episode_nc_rewards)
+    std_nc_reward = np.std(episode_nc_rewards)
+    if reward_threshold is not None:
+        assert mean_reward > reward_threshold, "Mean reward below threshold: " f"{mean_reward:.2f} < {reward_threshold:.2f}"
+    if return_episode_rewards:
+        return episode_rewards, episode_lengths
+    return mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs
+
+
 def evaluate_with_synthetic_data(env_id, cns_model, env_configs, model_name, iteration_msg):
     if env_id == 'WGW-v0':
         map_height = int(env_configs['map_height'])
@@ -120,7 +195,8 @@ def evaluate_with_synthetic_data(env_id, cns_model, env_configs, model_name, ite
             shw = plt.imshow(pred_cost, cmap=cm.Greys_r)
             bar = plt.colorbar(shw)
             # plt.show()
-            plt.savefig('./plot_grid_world_constraints/constraint_{0}_action-{1}_iter_{2}.png'.format(model_name, act, iteration_msg))
+            plt.savefig('./plot_grid_world_constraints/constraint_{0}_action-{1}_iter_{2}.png'.format(model_name, act,
+                                                                                                      iteration_msg))
     pass
 
 

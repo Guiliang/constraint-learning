@@ -25,6 +25,7 @@ class RolloutBufferSamples(NamedTuple):
     advantages: th.Tensor
     returns: th.Tensor
 
+
 class RolloutBufferWithCostSamples(NamedTuple):
     orig_observations: th.Tensor
     observations: th.Tensor
@@ -37,6 +38,22 @@ class RolloutBufferWithCostSamples(NamedTuple):
     cost_advantages: th.Tensor
     cost_returns: th.Tensor
 
+
+class RolloutBufferWithCostCodeSamples(NamedTuple):
+    orig_observations: th.Tensor
+    observations: th.Tensor
+    actions: th.Tensor
+    codes: th.Tensor
+    code_posteriors: th.Tensor
+    old_log_prob: th.Tensor
+    old_reward_values: th.Tensor
+    reward_advantages: th.Tensor
+    reward_returns: th.Tensor
+    old_cost_values: th.Tensor
+    cost_advantages: th.Tensor
+    cost_returns: th.Tensor
+
+
 class LagrangianBufferSamples(NamedTuple):
     observations: th.Tensor
     actions: th.Tensor
@@ -46,12 +63,14 @@ class LagrangianBufferSamples(NamedTuple):
     returns: th.Tensor
     costs: th.Tensor
 
+
 class ReplayBufferSamples(NamedTuple):
     observations: th.Tensor
     actions: th.Tensor
     next_observations: th.Tensor
     dones: th.Tensor
     rewards: th.Tensor
+
 
 class RolloutReturn(NamedTuple):
     episode_reward: float

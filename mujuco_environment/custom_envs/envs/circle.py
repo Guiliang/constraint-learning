@@ -23,7 +23,7 @@ class CircleEnv(gym.Env):
         self.observation_space = gym.spaces.Box(low=np.ones([10], dtype=np.float32) * -1,
                                                 high=np.ones([10], dtype=np.float32))
         self.action_space = gym.spaces.Box(low=np.ones([2], dtype=np.float32) * float('-inf'),
-                                           high=np.ones([2], dtype=np.float32) * float('-inf'))
+                                           high=np.ones([2], dtype=np.float32) * float('inf'))
 
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111)
@@ -61,10 +61,10 @@ class CircleEnv(gym.Env):
         reward = 0.0
 
         # if self.n_step >= 129 or abs(self.p[0]) >= 1 or abs(self.p[1]) >= 1:
-        if self.n_step >= 129:
-            done = True
-        else:
-            done = False
+        # if self.n_step >= 129:
+        #     done = True
+        # else:
+        done = False
 
         return np.copy(self.state.flatten()), reward, done, {}
 

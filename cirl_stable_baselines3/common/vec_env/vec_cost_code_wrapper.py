@@ -5,14 +5,15 @@ import numpy as np
 # =============================================================================
 # Cost Wrapper
 # =============================================================================
-from utils.model_utils import update_code
+from utils.model_utils import update_code, build_code
 
 
 class VecCostCodeWrapper(VecEnvWrapper):
-    def __init__(self, venv, code_dim, cost_info_str='cost'):
+    def __init__(self, venv, latent_dim, cost_info_str='cost'):
         super().__init__(venv)
         self.cost_info_str = cost_info_str
-        self.code_dim = code_dim
+        self.latent_dim = latent_dim
+        self.code_axis = [0 for i in range(self.num_envs)]
 
     def step_async(self, actions: np.ndarray):
         self.actions = actions
@@ -62,18 +63,28 @@ class VecCostCodeWrapper(VecEnvWrapper):
         where 'news' is a boolean vector indicating whether each element is new.
         """
         obs, rews, news, infos = self.venv.step_wait()
-        code, self.code_axis = update_code(self.code_dim, self.code_axis)
+        for env_idx in range(self.num_envs):
+            if news[env_idx]:
+                print('update code_axis')
+                self.code_axis[env_idx] = update_code(code_dim=self.latent_dim, code_axis=self.code_axis[env_idx])
+        code = build_code(code_axis=self.code_axis, code_dim=self.latent_dim, num_envs=self.num_envs)
         if infos is None:
             infos = {}
         # Cost depends on previous observation and current actions
-        cost = self.cost_function(self.previous_obs.copy(), self.actions.copy(), code.copy())
+        cost = self.cost_function(self.previous_obs.copy(), self.actions.copy(), code.copy())  # [batch size]
+        code_posterior = self.latent_function(self.previous_obs.copy(), self.actions.copy())  # [batch_size, code_dim]
         for i in range(len(infos)):
             infos[i][self.cost_info_str] = cost[i]
+            infos[i]['code_posterior'] = code_posterior[i][self.code_axis[i]]
+            infos[i]['code'] = code[i]
         self.previous_obs = obs.copy()
         return obs, rews, news, infos
 
     def set_cost_function(self, cost_function):
         self.cost_function = cost_function
+
+    def set_latent_function(self, latent_function):
+        self.latent_function = latent_function
 
     def reset(self):
         """

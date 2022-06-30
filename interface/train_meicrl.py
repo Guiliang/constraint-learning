@@ -9,26 +9,24 @@ import random
 import gym
 import numpy as np
 import yaml
+from matplotlib import pyplot as plt
+
+from cirl_stable_baselines3.ppo_lag.ppo_latent_lag import PPOLagrangianInfo
+from models.constraint_net.info_constraint_net import InfoConstraintNet
 
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
-from common.cns_evaluation import evaluate_icrl_policy
-from common.cns_visualization import plot_constraints
+from common.cns_evaluation import evaluate_meicrl_policy
 from common.cns_env import make_train_env, make_eval_env
 from common.memory_buffer import IRLDataQueue
-from constraint_models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
-from constraint_models.constraint_net.variational_constraint_net import VariationalConstraintNet
-from constraint_models.constraint_net.constraint_net import ConstraintNet
-from exploration.exploration import ExplorationRewardCallback
-from stable_baselines3 import PPOLagrangian
-from stable_baselines3.common import logger
+from cirl_stable_baselines3.common import logger
 
-from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
+from cirl_stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource, load_expert_data_tmp
 from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names, is_mujoco, \
     check_if_duplicate_seed, is_commonroad
-from utils.model_utils import get_net_arch, load_ppo_config
+from utils.model_utils import get_net_arch, load_ppo_config, build_code
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -56,10 +54,10 @@ def train(config):
     if debug_mode:
         config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 200  # 2000
-        config['PPO']['n_steps'] = 32
+        config['PPO']['forward_timesteps'] = 2000  # 2000
+        config['PPO']['n_steps'] = 500
         config['PPO']['n_epochs'] = 2
-        config['running']['n_eval_episodes'] = 10
+        config['running']['n_eval_episodes'] = 3
         config['running']['save_every'] = 1
         config['running']['sample_rollouts'] = 10
         # config['running']['sample_data_num'] = 500
@@ -107,8 +105,9 @@ def train(config):
         yaml.dump(config, hyperparam_file)
 
     mem_prev = process_memory()
-    time_prev = time.time()
+    time_prev = start_time = time.time()
     # Create the vectorized environments
+
     train_env, env_configs = make_train_env(env_id=config['env']['train_env_id'],
                                             config_path=config['env']['config_path'],
                                             save_dir=save_model_mother_dir,
@@ -120,6 +119,8 @@ def train(config):
                                             normalize_reward=not config['env']['dont_normalize_reward'],
                                             normalize_cost=not config['env']['dont_normalize_cost'],
                                             cost_info_str=config['env']['cost_info_str'],
+                                            latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config[
+                                                'group'] else None,
                                             reward_gamma=config['env']['reward_gamma'],
                                             cost_gamma=config['env']['cost_gamma'],
                                             multi_env=multi_env,
@@ -133,25 +134,23 @@ def train(config):
     save_valid_mother_dir = os.path.join(save_model_mother_dir, "sample/")
     if not os.path.exists(save_valid_mother_dir):
         os.mkdir(save_valid_mother_dir)
-    # if 'commonroad' in config['env']['train_env_id']:
-    #     sample_num_threads = num_threads
-    #     sample_multi_env = multi_env
-    # else:
-    # TODO: multi_env sampling
+
     sample_num_threads = 1
     sample_multi_env = False
-    sampling_env, env_configs = make_eval_env(env_id=config['env']['train_env_id'],
-                                              config_path=config['env']['config_path'],
-                                              save_dir=save_valid_mother_dir,
-                                              group=config['group'],
-                                              num_threads=sample_num_threads,
-                                              mode='sample',
-                                              use_cost=False,
-                                              normalize_obs=not config['env']['dont_normalize_obs'],
-                                              part_data=partial_data,
-                                              multi_env=sample_multi_env,
-                                              log_file=log_file)
-    # We don't need cost when during evaluation
+    sample_env, env_configs = make_eval_env(env_id=config['env']['train_env_id'],
+                                            config_path=config['env']['config_path'],
+                                            save_dir=save_valid_mother_dir,
+                                            group=config['group'],
+                                            num_threads=sample_num_threads,
+                                            mode='sample',
+                                            use_cost=config['env']['use_cost'],
+                                            normalize_obs=not config['env']['dont_normalize_obs'],
+                                            latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config[
+                                                'group'] else None,
+                                            part_data=partial_data,
+                                            multi_env=sample_multi_env,
+                                            log_file=log_file)
+
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
         os.mkdir(save_test_mother_dir)
@@ -164,12 +163,15 @@ def train(config):
                                           use_cost=config['env']['use_cost'],
                                           normalize_obs=not config['env']['dont_normalize_obs'],
                                           cost_info_str=config['env']['cost_info_str'],
+                                          latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config[
+                                              'group'] else None,
                                           part_data=partial_data,
                                           multi_env=False,
                                           log_file=log_file)
 
-    mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
-                                         process_name='Loading environment', log_file=log_file)
+    mem_prev, time_prev, load_env_str = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                                       process_name='Loading environment', log_file=log_file,
+                                                       print_msg=False)
 
     # Set specs
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
@@ -177,8 +179,8 @@ def train(config):
     obs_dim = train_env.observation_space.shape[0]
     acs_dim = train_env.action_space.n if is_discrete else train_env.action_space.shape[0]
     action_low, action_high = None, None
-    if isinstance(sampling_env.action_space, gym.spaces.Box):
-        action_low, action_high = sampling_env.action_space.low, sampling_env.action_space.high
+    if isinstance(sample_env.action_space, gym.spaces.Box):
+        action_low, action_high = sample_env.action_space.low, sample_env.action_space.high
 
     # Load expert data
     expert_path = config['running']['expert_path']
@@ -232,7 +234,8 @@ def train(config):
     print("Selecting acs features are : {0}".format(cn_acs_select_name if cn_acs_select_name is not None else 'all'),
           file=log_file, flush=True)
     cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
-                                               all_feature_names=['a_ego_0', 'a_ego_1'] if is_commonroad(env_id=config['env']['train_env_id']) else None)
+                                               all_feature_names=['a_ego_0', 'a_ego_1'] if is_commonroad(
+                                                   env_id=config['env']['train_env_id']) else None)
 
     cn_parameters = {
         'obs_dim': obs_dim,
@@ -259,54 +262,29 @@ def train(config):
         'task': config['task'],
     }
 
-    if 'ICRL' == config['group'] or 'Binary' == config['group']:
-        cn_parameters.update({'no_importance_sampling': config['CN']['no_importance_sampling'], })
-        cn_parameters.update({'per_step_importance_sampling': config['CN']['per_step_importance_sampling'], })
-        constraint_net = ConstraintNet(**cn_parameters)
-    elif 'VICRL' == config['group']:
-        cn_parameters.update({'di_prior': config['CN']['di_prior'], })
-        cn_parameters.update({'mode': config['CN']['mode'], })
-        constraint_net = VariationalConstraintNet(**cn_parameters)
-    elif 'SEVICRL' == config['group']:
-        cn_parameters.update({'di_prior': config['CN']['di_prior'],
-                              'num_cut': config['CN']['num_cut'],
-                              'temperature': config['CN']['temperature'],
-                              'explain_model_name': config['CN']['explain_model_name'],
-                              })
-        constraint_net = SelfExplainableVariationalConstraintNet(**cn_parameters)
+    if 'MEICRL' == config['group']:
+        cn_parameters.update({'latent_dim': config['CN']['latent_dim'], })
+        constraint_net = InfoConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown group: {0}".format(config['group']))
 
     # Pass constraint net cost function to cost wrapper (train env)
-    train_env.set_cost_function(constraint_net.cost_function)
+    train_env.set_cost_function(constraint_net.cost_function_with_code)
+    sample_env.set_cost_function(constraint_net.cost_function_with_code)
+    # Pass encoder posterior to cost wrapper (train env)
+    train_env.set_latent_function(constraint_net.latent_function)
+    sample_env.set_latent_function(constraint_net.latent_function)
 
     # Init ppo agent
     ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
-    create_nominal_agent = lambda: PPOLagrangian(**ppo_parameters)
+    create_nominal_agent = lambda: PPOLagrangianInfo(**ppo_parameters)
     nominal_agent = create_nominal_agent()
 
-    # Callbacks
-    all_callbacks = []
-    if config['PPO']['use_curiosity_driven_exploration']:
-        explorationCallback = ExplorationRewardCallback(obs_dim, acs_dim, device=config['device'])
-        all_callbacks.append(explorationCallback)
-
-    # Warmup
-    timesteps = 0.
-    if config['PPO']['warmup_timesteps']:
-        # print(colorize("\nWarming up", color="green", bold=True))
-        print("\nWarming up", file=log_file, flush=True)
-        with ProgressBarManager(config['PPO']['warmup_timesteps']) as callback:
-            nominal_agent.learn(total_timesteps=config['PPO']['warmup_timesteps'],
-                                cost_function=null_cost,  # During warmup we dont want to incur any cost
-                                callback=callback)
-            timesteps += nominal_agent.num_timesteps
-
-    mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
-                                         process_name='Setting model', log_file=log_file)
-
+    mem_prev, time_prev, set_model_str = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                                        process_name='Setting model', log_file=log_file,
+                                                        print_msg=False)
     # Train
-    start_time = time.time()
+    timesteps = 0.
     # print(utils.colorize("\nBeginning training", color="green", bold=True), flush=True)
     print("\nBeginning training", file=log_file, flush=True)
     best_true_reward, best_true_cost, best_forward_kl, best_reverse_kl = -np.inf, np.inf, np.inf, np.inf
@@ -321,77 +299,88 @@ def train(config):
             nominal_agent.learn(
                 total_timesteps=config['PPO']['forward_timesteps'],
                 cost_function="cost",  # Cost should come from cost wrapper
-                callback=[callback] + all_callbacks
+                callback=[callback]
             )
             forward_metrics = logger.Logger.CURRENT.name_to_value
             timesteps += nominal_agent.num_timesteps
 
-        mem_prev, time_prev = print_resource(mem_prev=mem_prev,
-                                             time_prev=time_prev,
-                                             process_name='Training PPO model',
-                                             log_file=log_file)
+        mem_prev, time_prev, train_ppo_str = print_resource(mem_prev=mem_prev,
+                                                            time_prev=time_prev,
+                                                            process_name='Training PPO model',
+                                                            log_file=log_file,
+                                                            print_msg=False)
         # Sample nominal trajectories
-        sync_envs_normalization(train_env, sampling_env)
-        if sample_multi_env:
-            orig_observations, observations, actions, rewards, sum_rewards, lengths = multi_threads_sample_from_agent(
-                agent=nominal_agent,
-                env=sampling_env,
-                rollouts=int(config['running']['sample_rollouts']),
-                num_threads=num_threads,
-                store_by_game=config['running']['use_buffer'],
-            )
-        else:
-            orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
-                agent=nominal_agent,
-                env=sampling_env,
-                rollouts=int(config['running']['sample_rollouts']),
-                store_by_game=config['running']['use_buffer'],
-            )
-        if config['running']['use_buffer']:
-            sample_data_queue.put(obs=orig_observations,
-                                  acs=actions,
-                                  rs=rewards
-                                  )
-            sample_obs, sample_acts, sample_rs = \
-                sample_data_queue.get(sample_num=config['running']['sample_rollouts'], )
-        else:
-            sample_obs = orig_observations
-            sample_acts = actions
+        sync_envs_normalization(train_env, sample_env)
+        sample_parameters = {}
 
-        mem_prev, time_prev = print_resource(mem_prev=mem_prev,
-                                             time_prev=time_prev,
-                                             process_name='Sampling',
-                                             log_file=log_file)
+        sample_parameters['store_code'] = True
+        if isinstance(sample_env, VecNormalize):
+            init_codes = build_code(code_axis=sample_env.venv.code_axis,
+                                    code_dim=sample_env.venv.latent_dim,
+                                    num_envs=sample_env.venv.num_envs)
+        else:
+            init_codes = build_code(code_axis=sample_env.code_axis,
+                                    code_dim=sample_env.latent_dim,
+                                    num_envs=sample_env.num_envs)
+        sample_parameters['init_codes'] = init_codes
+        sample_data = sample_from_agent(
+            agent=nominal_agent,
+            env=sample_env,
+            rollouts=int(config['running']['sample_rollouts']),
+            store_by_game=config['running']['use_buffer'],
+            **sample_parameters
+        )
+        orig_observations, observations, actions, rewards, codes, sum_rewards, lengths = sample_data
+        sample_obs = orig_observations
+        sample_acts = actions
+        sample_codes = codes
+
+        mem_prev, time_prev, sample_str = print_resource(mem_prev=mem_prev,
+                                                         time_prev=time_prev,
+                                                         process_name='Sampling',
+                                                         log_file=log_file,
+                                                         print_msg=False)
         # Update constraint net
         mean, var = None, None
         if config['CN']['cn_normalize']:
-            mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
+            mean, var = sample_env.obs_rms.mean, sample_env.obs_rms.var
 
+        cns_parameters = {}
+        cns_parameters['nominal_codes'] = sample_codes
         backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
                                                    nominal_obs=sample_obs,
                                                    nominal_acs=sample_acts,
                                                    episode_lengths=lengths,
                                                    obs_mean=mean,
                                                    obs_var=var,
-                                                   current_progress_remaining=current_progress_remaining)
+                                                   current_progress_remaining=current_progress_remaining,
+                                                   **cns_parameters)
 
-        mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
-                                             process_name='Training CN model', log_file=log_file)
+        mem_prev, time_prev, train_cn_str = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                                           process_name='Training CN model', log_file=log_file,
+                                                           print_msg=False)
 
-        # Pass updated cost_function to cost wrapper (train_env, eval_env, but not sampling_env)
-        train_env.set_cost_function(constraint_net.cost_function)
-        eval_env.set_cost_function(constraint_net.cost_function)
+        # Pass constraint net cost function to cost wrapper
+        train_env.set_cost_function(constraint_net.cost_function_with_code)
+        eval_env.set_cost_function(constraint_net.cost_function_with_code)
+        sample_env.set_cost_function(constraint_net.cost_function_with_code)
+        # Pass encoder posterior to cost wrapper (train env)
+        train_env.set_latent_function(constraint_net.latent_function)
+        eval_env.set_latent_function(constraint_net.latent_function)
+        sample_env.set_latent_function(constraint_net.latent_function)
 
         # Evaluate:
         # reward on true environment
         sync_envs_normalization(train_env, eval_env)
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
-            evaluate_icrl_policy(nominal_agent, eval_env,
-                                 record_info_names=config['env']["record_info_names"],
-                                 n_eval_episodes=config['running']['n_eval_episodes'],
-                                 deterministic=False)
-        mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
-                                             process_name='Evaluation', log_file=log_file)
+            evaluate_meicrl_policy(nominal_agent, eval_env,
+                                   record_info_names=config['env']["record_info_names"],
+                                   n_eval_episodes=config['running']['n_eval_episodes'],
+                                   deterministic=False,
+                                   render=True,
+                                   )
+        mem_prev, time_prev, eval_str = print_resource(mem_prev=mem_prev, time_prev=time_prev,
+                                                       process_name='Evaluation', log_file=log_file, print_msg=False)
 
         # Save
         # (1) periodically
@@ -402,33 +391,7 @@ def train(config):
             constraint_net.save(os.path.join(path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(path, "train_env_stats.pkl"))
-            for record_info_idx in range(len(config['env']["record_info_names"])):
-                record_info_name = config['env']["record_info_names"][record_info_idx]
-                plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
-                # plot_curve(draw_keys=[record_info_name],
-                #            x_dict={record_info_name: plot_record_infos},
-                #            y_dict={record_info_name: plot_costs},
-                #            save_name=os.path.join(path, "{0}_empirical_visualize".format(record_info_name)),
-                #            xlabel=record_info_name,
-                #            ylabel='cost',
-                #            apply_scatter=True,
-                #            )
-                if len(expert_acs.shape) == 1:
-                    empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
-                else:
-                    empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
-                plot_constraints(cost_function=constraint_net.cost_function,
-                                 feature_range=config['env']["visualize_info_ranges"][record_info_idx],
-                                 select_dim=config['env']["record_info_input_dims"][record_info_idx],
-                                 obs_dim=constraint_net.obs_dim,
-                                 acs_dim=1 if is_discrete else constraint_net.acs_dim,
-                                 device=constraint_net.device,
-                                 save_name=os.path.join(path, "{0}_visual.png".format(record_info_name)),
-                                 feature_data=plot_record_infos,
-                                 feature_cost=plot_costs,
-                                 feature_name=record_info_name,
-                                 empirical_input_means=empirical_input_means)
-
+            plt.savefig(os.path.join(path, "traj_visual.png".format()))
         # (2) best
         if mean_nc_reward > best_true_reward:
             # print(utils.colorize("Saving new best model", color="green", bold=True), flush=True)
@@ -444,7 +407,13 @@ def train(config):
 
         # Collect metrics
         metrics = {
-            "time(m)": (time.time() - start_time) / 60,
+            "running time(m)": (time.time() - start_time) / 60,
+            "env loading resource": load_env_str,
+            "model setting resource": set_model_str,
+            "train ppo resource": train_ppo_str,
+            "sample resource": sample_str,
+            "train cns resource": train_cn_str,
+            "evaluate resource": eval_str,
             "run_iter": itr,
             "timesteps": timesteps,
             "true/mean_nc_reward": mean_nc_reward,

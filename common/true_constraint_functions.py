@@ -24,6 +24,8 @@ def get_true_cost_function(env_id, env_configs={}):
     elif env_id in ["WGW-v0"]:
         unsafe_states = env_configs['unsafe_states']
         return partial(wall_in, unsafe_states)
+    elif env_id in ["Circle-v0",]:
+        return null_cost
     else:
         print("Cost function for %s is not implemented yet. Returning null cost function" % env_id)
         return null_cost

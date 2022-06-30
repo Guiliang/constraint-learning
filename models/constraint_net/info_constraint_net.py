@@ -1,4 +1,5 @@
 import os
+import random
 from itertools import accumulate
 from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
 import numpy as np
@@ -17,7 +18,7 @@ class InfoConstraintNet(ConstraintNet):
             self,
             obs_dim: int,
             acs_dim: int,
-            code_dim: int,
+            latent_dim: int,
             hidden_sizes: Tuple[int, ...],
             batch_size: int,
             lr_schedule: Callable[[float], float],
@@ -72,7 +73,7 @@ class InfoConstraintNet(ConstraintNet):
                                                 device=device,
                                                 log_file=log_file,
                                                 build_net=False)
-        self.code_dim = code_dim
+        self.latent_dim = latent_dim
         self._build()
 
     def _define_input_dims(self) -> None:
@@ -95,14 +96,14 @@ class InfoConstraintNet(ConstraintNet):
 
         # Create constraint function and add sigmoid at the end
         self.constraint_function = nn.Sequential(
-            *create_mlp(self.input_dims+self.code_dim, 1, self.hidden_sizes),
+            *create_mlp(self.input_dims + self.latent_dim, 1, self.hidden_sizes),
             nn.Sigmoid()
         )
         self.constraint_function.to(self.device)
 
         # Create the posterior of latent code encoder. The code should be in a one-hot format, so we use softmax
         self.posterior_encoder = nn.Sequential(
-            *create_mlp(self.input_dims, self.code_dim, self.hidden_sizes),
+            *create_mlp(self.input_dims, self.latent_dim, self.hidden_sizes),
             nn.Softmax()
         )
         self.bce_loss = torch.nn.BCELoss()
@@ -118,8 +119,7 @@ class InfoConstraintNet(ConstraintNet):
     def forward(self, x: th.tensor) -> th.tensor:
         return self.constraint_function(x)
 
-    def cost_function_with_code(self, obs: np.ndarray, acs: np.ndarray,
-                                codes: np.ndarray, force_mode: str = None) -> np.ndarray:
+    def cost_function_with_code(self, obs: np.ndarray, acs: np.ndarray, codes: np.ndarray) -> np.ndarray:
         assert obs.shape[-1] == self.obs_dim, ""
         if not self.is_discrete:
             assert acs.shape[-1] == self.acs_dim, ""
@@ -131,6 +131,17 @@ class InfoConstraintNet(ConstraintNet):
             out = self.__call__(function_input)
         cost = 1 - out.detach().cpu().numpy()
         return cost.squeeze(axis=-1)
+
+    def latent_function(self, obs: np.ndarray, acs: np.ndarray) -> np.ndarray:
+        assert obs.shape[-1] == self.obs_dim, ""
+        if not self.is_discrete:
+            assert acs.shape[-1] == self.acs_dim, ""
+
+        data = self.prepare_data(obs, acs)
+        with th.no_grad():
+            out = self.posterior_encoder(data)
+        code_posterior = out.detach().cpu().numpy()
+        return code_posterior
 
     def call_forward(self, x: np.ndarray):
         with th.no_grad():
@@ -161,6 +172,7 @@ class InfoConstraintNet(ConstraintNet):
         expert_data = self.prepare_data(self.expert_obs, self.expert_acs)
         assert 'nominal_codes' in other_parameters
         nominal_codes = th.tensor(other_parameters['nominal_codes'], dtype=th.float32).to(self.device)
+        expert_codes = th.tensor(np.eye(self.latent_dim)[np.random.choice(self.latent_dim, expert_data.shape[0])], dtype=th.float32).to(self.device)
 
         # Save current network predictions if using importance sampling
         if self.importance_sampling:
@@ -193,12 +205,13 @@ class InfoConstraintNet(ConstraintNet):
                 nominal_data_batch = nominal_data[nom_batch_indices]
                 nominal_code_batch = nominal_codes[nom_batch_indices]
                 expert_data_batch = expert_data[exp_batch_indices]
+                expert_code_batch = expert_codes[exp_batch_indices]
                 is_batch = is_weights[nom_batch_indices][..., None]
 
                 # Make predictions
                 nominal_input_batch = torch.cat([nominal_data_batch, nominal_code_batch], dim=1)
                 nominal_preds = self.__call__(nominal_input_batch)
-                expert_input_batch = torch.cat([expert_data_batch, nominal_code_batch], dim=1)
+                expert_input_batch = torch.cat([expert_data_batch, expert_code_batch], dim=1)
                 expert_preds = self.__call__(expert_input_batch)
 
                 # update discriminator

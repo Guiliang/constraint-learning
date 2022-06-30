@@ -217,14 +217,22 @@ def load_ppo_config(config, train_env, seed, log_file):
                                delta_p_ema_alpha=config['PPO']['proportional_cost_ema_alpha'],
                                delta_d_ema_alpha=config['PPO']['derivative_cost_ema_alpha'], ),
         })
+        if config['group'] == "MEICRL":
+            ppo_parameters.update({"latent_dim": config['CN']['latent_dim']})
+            ppo_parameters["policy_kwargs"].update({"latent_dim": config['CN']['latent_dim']})
     else:
         raise ValueError("Unknown Group {0}".format(config['group']))
 
     return ppo_parameters
 
 
-def update_code(code_dim, code_axis):
-    code = np.zeros((1, code_dim), dtype=np.float32)
-    code[0, code_axis] = 1
+def build_code(code_axis, code_dim, num_envs):
+    code = np.zeros((num_envs, code_dim), dtype=np.float32)
+    for env_idx in range(num_envs):
+        code[:, code_axis[env_idx]] = 1
+    return code
+
+
+def update_code(code_axis, code_dim):
     code_axis = (code_axis + 1) % code_dim
-    return code, code_axis
+    return code_axis

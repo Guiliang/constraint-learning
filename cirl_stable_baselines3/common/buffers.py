@@ -14,7 +14,7 @@ except ImportError:
 from cirl_stable_baselines3.common.preprocessing import (get_action_dim,
                                                          get_obs_shape)
 from cirl_stable_baselines3.common.type_aliases import (
-    ReplayBufferSamples, RolloutBufferSamples, RolloutBufferWithCostSamples)
+    ReplayBufferSamples, RolloutBufferSamples, RolloutBufferWithCostSamples, RolloutBufferWithCostCodeSamples)
 from cirl_stable_baselines3.common.vec_env import VecNormalize
 
 
@@ -625,3 +625,218 @@ class RolloutBufferWithCost(BaseBuffer):
             self.cost_returns[batch_inds].flatten(),
         )
         return RolloutBufferWithCostSamples(*tuple(map(self.to_torch, data)))
+
+
+# ==========================================================================
+# Rollout Buffer With Cost
+# Extends the Rollout Buffer To Store
+# (1) Unnormalized original observation
+# (2) Nromalized next observation
+# (3) Unnormalized next observation
+# (4) latent code
+# (5) Cost
+# (6) Orig Cost (Unnormalized cost)
+# (7) Cost Returns
+# (8) Cost Advantages
+# ==========================================================================
+
+
+class RolloutBufferWithCostCode(BaseBuffer):
+    def __init__(
+        self,
+        buffer_size: int,
+        observation_space: spaces.Space,
+        action_space: spaces.Space,
+        code_dim: int,
+        device: Union[th.device, str] = "cpu",
+        reward_gamma: float = 0.99,
+        reward_gae_lambda: float = 1,
+        cost_gamma: float = 0.99,
+        cost_gae_lambda: float = 1,
+        n_envs: int = 1,
+    ):
+
+        super(RolloutBufferWithCostCode, self).__init__(buffer_size, observation_space, action_space, device, n_envs=n_envs)
+        self.code_dim = code_dim
+        self.reward_gamma = reward_gamma
+        self.reward_gae_lambda = reward_gae_lambda
+        self.cost_gamma = cost_gamma
+        self.cost_gae_lambda = cost_gae_lambda
+        self.observations, self.orig_observations, self.actions, self.rewards, self.advantages = \
+            None, None, None, None, None
+        self.code_posteriors, self.codes = None, None
+        self.new_observations, self.new_orig_observations = None, None
+        self.reward_returns, self.cost_returns, self.dones, self.values, self.log_probs = None, None, None, None, None
+        self.generator_ready = False
+        self.reset()
+
+    def reset(self) -> None:
+        self.observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=np.float32)
+        self.new_observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=np.float32)
+        self.orig_observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=np.float32)
+        self.new_orig_observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=np.float32)
+        self.actions = np.zeros((self.buffer_size, self.n_envs, self.action_dim), dtype=np.float32)
+        self.codes = np.zeros((self.buffer_size, self.n_envs, self.code_dim), dtype=np.float32)
+        self.code_posteriors = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.dones = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.log_probs = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+
+        # Rewards
+        self.rewards = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.reward_returns = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.reward_values = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.reward_advantages = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+
+        # Costs
+        self.costs = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.orig_costs = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.cost_returns = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.cost_values = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.cost_advantages = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+
+        self.generator_ready = False
+        super(RolloutBufferWithCostCode, self).reset()
+
+    def _compute_returns_and_advantage(
+            self,
+            rewards: np.ndarray,
+            values: np.ndarray,
+            dones: np.ndarray,
+            gamma: float,
+            gae_lambda: float,
+            last_value: th.Tensor,
+            last_dones: np.ndarray,
+            advantages: np.ndarray
+        ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Post-processing step: compute the returns (sum of discounted rewards)
+        and GAE advantage.
+
+        Uses Generalized Advantage Estimation (https://arxiv.org/abs/1506.02438)
+        to compute the advantage. To obtain vanilla advantage (A(s) = R - V(S))
+        where R is the discounted reward with value bootstrap,
+        set ``gae_lambda=1.0`` during initialization.
+
+        :param rewards:
+        :param values:
+        :param dones:
+        :param gamma:
+        :param gae_lambda:
+        :param last_value:
+        :param last_dones:
+        :param advantages
+        :return advantages
+        :return returns
+
+        """
+        # convert to numpy
+        last_value = last_value.clone().cpu().numpy().flatten()
+
+        last_gae_lam = 0
+        for step in reversed(range(self.buffer_size)):
+            if step == self.buffer_size - 1:
+                next_non_terminal = 1.0 - last_dones
+                next_value = last_value
+            else:
+                next_non_terminal = 1.0 - dones[step + 1]
+                next_value = values[step + 1]
+            delta = rewards[step] + gamma * next_value * next_non_terminal - values[step]
+            last_gae_lam = delta + gamma * gae_lambda * next_non_terminal * last_gae_lam
+            advantages[step] = last_gae_lam
+        returns = advantages + values
+
+        return returns, advantages
+
+    def compute_returns_and_advantage(self, reward_last_value: th.Tensor, cost_last_value: th.Tensor,
+                                      dones: np.ndarray) -> None:
+        self.reward_returns, self.reward_advantages = self._compute_returns_and_advantage(
+                self.rewards, self.reward_values, self.dones, self.reward_gamma, self.reward_gae_lambda,
+                reward_last_value, dones, self.reward_advantages
+        )
+        self.cost_returns, self.cost_advantages = self._compute_returns_and_advantage(
+                self.costs, self.cost_values, self.dones, self.cost_gamma, self.cost_gae_lambda,
+                cost_last_value, dones, self.cost_advantages
+        )
+
+    def add(self, obs: np.ndarray, orig_obs: np.ndarray, new_obs: np.ndarray, new_orig_obs: np.ndarray,
+            action: np.ndarray, code: np.ndarray, code_posterior: np.ndarray, reward: np.ndarray,
+            cost: np.ndarray, orig_cost: np.ndarray,
+            done: np.ndarray, reward_value: th.Tensor, cost_value: th.Tensor,
+            log_prob: th.Tensor) -> None:
+        """
+        :param obs: Observation
+        :param orig_obs: Original observation
+        :param new_obs: Next observation (to which agent transitions)
+        :param action: Action
+        :param reward:
+        :param code: latent code
+        :param code_posterior: latent code posterior
+        :param cost:
+        :param orig_cost: original cost
+        :param done: End of episode signal.
+        :param reward_value: estimated reward value of the current state
+            following the current policy.
+        :param cost_value: estimated cost value of the current state
+            following the current policy.
+        :param log_prob: log probability of the action
+            following the current policy.
+        """
+        if len(log_prob.shape) == 0:
+            # Reshape 0-d tensor to avoid error
+            log_prob = log_prob.reshape(-1, 1)
+
+        self.observations[self.pos] = np.array(obs).copy()
+        self.orig_observations[self.pos] = np.array(orig_obs).copy()
+        self.new_observations[self.pos] = np.array(new_obs).copy()
+        self.new_orig_observations[self.pos] = np.array(new_orig_obs).copy()
+        self.actions[self.pos] = np.array(action).copy()
+        self.codes[self.pos] = np.array(code).copy()
+        self.code_posteriors[self.pos] = np.array(code_posterior).copy()
+        self.dones[self.pos] = np.array(done).copy()
+        self.log_probs[self.pos] = log_prob.clone().cpu().numpy()
+        self.rewards[self.pos] = np.array(reward).copy()
+        self.reward_values[self.pos] = reward_value.clone().cpu().numpy().flatten()
+        self.costs[self.pos] = np.array(cost).copy()
+        self.orig_costs[self.pos] = np.array(orig_cost).copy()
+        self.cost_values[self.pos] = cost_value.clone().cpu().numpy().flatten()
+        self.pos += 1
+        if self.pos == self.buffer_size:
+            self.full = True
+
+    def get(self, batch_size: Optional[int] = None) -> Generator[RolloutBufferSamples, None, None]:
+        assert self.full, ""
+        indices = np.random.permutation(self.buffer_size * self.n_envs)
+        # Prepare the data
+        if not self.generator_ready:
+            for tensor in ["orig_observations", "observations", "actions", "log_probs",
+                           "codes", "code_posteriors",
+                           "reward_values", "reward_advantages", "reward_returns",
+                           "cost_values", "cost_advantages", "cost_returns"]:
+                self.__dict__[tensor] = self.swap_and_flatten(self.__dict__[tensor])
+            self.generator_ready = True
+
+        # Return everything, don't create minibatches
+        if batch_size is None:
+            batch_size = self.buffer_size * self.n_envs
+
+        start_idx = 0
+        while start_idx < self.buffer_size * self.n_envs:
+            yield self._get_samples(indices[start_idx : start_idx + batch_size])
+            start_idx += batch_size
+
+    def _get_samples(self, batch_inds: np.ndarray, env: Optional[VecNormalize] = None) -> RolloutBufferSamples:
+        data = (
+            self.orig_observations[batch_inds],
+            self.observations[batch_inds],
+            self.actions[batch_inds],
+            self.codes[batch_inds],
+            self.code_posteriors[batch_inds],
+            self.log_probs[batch_inds].flatten(),
+            self.reward_values[batch_inds].flatten(),
+            self.reward_advantages[batch_inds].flatten(),
+            self.reward_returns[batch_inds].flatten(),
+            self.cost_values[batch_inds].flatten(),
+            self.cost_advantages[batch_inds].flatten(),
+            self.cost_returns[batch_inds].flatten(),
+        )
+        return RolloutBufferWithCostCodeSamples(*tuple(map(self.to_torch, data)))
