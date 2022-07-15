@@ -105,7 +105,7 @@ class InfoConstraintNet(ConstraintNet):
         self.posterior_encoder = nn.Sequential(
             *create_mlp(self.input_dims, self.latent_dim, self.hidden_sizes),
             nn.Softmax()
-        )
+        ).to(self.device)
         self.bce_loss = torch.nn.BCELoss()
 
         # Build optimizer
@@ -172,7 +172,10 @@ class InfoConstraintNet(ConstraintNet):
         expert_data = self.prepare_data(self.expert_obs, self.expert_acs)
         assert 'nominal_codes' in other_parameters
         nominal_codes = th.tensor(other_parameters['nominal_codes'], dtype=th.float32).to(self.device)
-        expert_codes = th.tensor(np.eye(self.latent_dim)[np.random.choice(self.latent_dim, expert_data.shape[0])], dtype=th.float32).to(self.device)
+        assert 'expert_codes' in other_parameters
+        expert_codes = th.tensor(other_parameters['expert_codes'], dtype=th.float32).to(self.device)
+        # expert_codes = th.tensor(np.eye(self.latent_dim)[np.random.choice(self.latent_dim, expert_data.shape[0])],
+        #                          dtype=th.float32).to(self.device)
 
         # Save current network predictions if using importance sampling
         if self.importance_sampling:
@@ -184,6 +187,7 @@ class InfoConstraintNet(ConstraintNet):
         discriminator_loss = th.tensor(np.inf)
         for itr in tqdm(range(iterations)):
             # Compute IS weights
+            assert self.importance_sampling is False
             if self.importance_sampling:
                 with th.no_grad():
                     nominal_input = torch.cat([nominal_data, nominal_codes], dim=1)
@@ -214,17 +218,11 @@ class InfoConstraintNet(ConstraintNet):
                 expert_input_batch = torch.cat([expert_data_batch, expert_code_batch], dim=1)
                 expert_preds = self.__call__(expert_input_batch)
 
-                # update discriminator
-                if self.train_gail_lambda:
-                    nominal_loss = self.criterion(nominal_preds, th.zeros(*nominal_preds.size()).to(self.device))
-                    expert_loss = self.criterion(expert_preds, th.ones(*expert_preds.size()).to(self.device))
-                    regularizer_loss = th.tensor(0)
-                    discriminator_loss = nominal_loss + expert_loss
-                else:
-                    expert_loss = th.mean(th.log(expert_preds + self.eps))
-                    nominal_loss = th.mean(is_batch * th.log(nominal_preds + self.eps))
-                    regularizer_loss = self.regularizer_coeff * (th.mean(1 - expert_preds) + th.mean(1 - nominal_preds))
-                    discriminator_loss = (-expert_loss + nominal_loss) + regularizer_loss
+                expert_loss = -th.mean(th.log(expert_preds + self.eps))
+                nominal_loss = th.mean(is_batch * th.log(nominal_preds + self.eps))
+                # regularizer_loss = self.regularizer_coeff * (th.mean(1 - expert_preds) + th.mean(1 - nominal_preds))
+                regularizer_loss = th.tensor(0)
+                discriminator_loss = expert_loss + nominal_loss + regularizer_loss
 
                 # update posterior
                 posterior_output = self.posterior_encoder(nominal_data_batch)
@@ -237,6 +235,7 @@ class InfoConstraintNet(ConstraintNet):
                 self.optimizer.step()
 
         bw_metrics = {"backward/cn_loss": discriminator_loss.item(),
+                      "backward/posterior_loss": posterior_loss.item(),
                       "backward/expert_loss": expert_loss.item(),
                       "backward/unweighted_nominal_loss": th.mean(th.log(nominal_preds + self.eps)).item(),
                       "backward/nominal_loss": nominal_loss.item(),

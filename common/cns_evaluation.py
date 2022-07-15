@@ -5,10 +5,12 @@ from typing import Callable, List, Optional, Tuple, Union, Dict, Any
 import gym
 import numpy
 import numpy as np
+from matplotlib import pyplot as plt
 
 from cirl_stable_baselines3.common.callbacks import EventCallback, BaseCallback
 from cirl_stable_baselines3.common.evaluation import evaluate_policy
 from cirl_stable_baselines3.common.vec_env import VecEnv, DummyVecEnv, sync_envs_normalization, VecNormalize
+from utils.data_utils import process_memory
 from utils.model_utils import build_code
 
 
@@ -110,6 +112,7 @@ def evaluate_meicrl_policy(
         callback: Optional[Callable] = None,
         reward_threshold: Optional[float] = None,
         return_episode_rewards: bool = False,
+        save_path=None
 ):
     if isinstance(env, VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
@@ -136,10 +139,13 @@ def evaluate_meicrl_policy(
         episode_nc_reward = np.asarray([0.0] * env.num_envs)
         is_constraint = [False for i in range(env.num_envs)]
         episode_length = 0
+        # mem_current = process_memory()
+        # print('0', mem_current)
         while not done:
             inputs = np.concatenate([obs, codes], axis=1)
             action, state = model.predict(inputs, state=state, deterministic=deterministic)
-            obs, reward, done, _info = env.step(action)
+            obs, reward, dones, _info = env.step(action)
+            done = dones[0]
             codes = []
             for i in range(env.num_envs):
                 codes.append(_info[i]["code"])
@@ -161,9 +167,16 @@ def evaluate_meicrl_policy(
             episode_length += 1
             if render:
                 env.render()
+        # mem_current = process_memory()
+        # print('1', mem_current)
+        if render:
+            plt.savefig(os.path.join(save_path, "traj_visual_code-{0}.png".format(codes[0])))
+        # mem_current = process_memory()
+        # print('2', mem_current)
         episode_rewards.append(episode_reward)
         episode_nc_rewards.append(episode_nc_reward)
         episode_lengths.append(episode_length)
+
     mean_reward = np.mean(episode_rewards)
     std_reward = np.std(episode_rewards)
     mean_nc_reward = np.mean(episode_nc_rewards)

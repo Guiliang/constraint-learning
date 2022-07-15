@@ -2,25 +2,21 @@ import datetime
 import importlib
 import json
 import os
-import pickle
 import sys
 import time
-import random
 import gym
 import numpy as np
 import yaml
 from matplotlib import pyplot as plt
 
-from cirl_stable_baselines3.ppo_lag.ppo_latent_lag import PPOLagrangianInfo
-from models.constraint_net.info_constraint_net import InfoConstraintNet
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+from cirl_stable_baselines3.ppo_lag.ppo_latent_lag import PPOLagrangianInfo
+from common.cns_visualization import constraint_visualization_2d
+from models.constraint_net.info_constraint_net import InfoConstraintNet
 from common.cns_evaluation import evaluate_meicrl_policy
 from common.cns_env import make_train_env, make_eval_env
-from common.memory_buffer import IRLDataQueue
 from cirl_stable_baselines3.common import logger
-
 from cirl_stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource, load_expert_data_tmp
@@ -57,11 +53,11 @@ def train(config):
         config['PPO']['forward_timesteps'] = 2000  # 2000
         config['PPO']['n_steps'] = 500
         config['PPO']['n_epochs'] = 2
-        config['running']['n_eval_episodes'] = 3
+        # config['running']['n_eval_episodes'] = 3
         config['running']['save_every'] = 1
-        config['running']['sample_rollouts'] = 10
+        config['running']['sample_rollouts'] = 2
         # config['running']['sample_data_num'] = 500
-        config['running']['store_sample_num'] = 1000
+        # config['running']['store_sample_num'] = 1000
         # config['CN']['cn_batch_size'] = 3
         config['CN']['backward_iters'] = 2
         debug_msg = 'debug-'
@@ -75,8 +71,7 @@ def train(config):
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
-    if config['running']['use_buffer']:
-        sample_data_queue = IRLDataQueue(max_rollouts=config['running']['store_sample_rollouts'], seed=seed)
+
     save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}-seed_{6}/'.format(
         config['env']['save_dir'],
         config['task'],
@@ -104,29 +99,30 @@ def train(config):
     with open(os.path.join(save_model_mother_dir, "model_hyperparameters.yaml"), "w") as hyperparam_file:
         yaml.dump(config, hyperparam_file)
 
+    # init computational resource
     mem_prev = process_memory()
     time_prev = start_time = time.time()
-    # Create the vectorized environments
 
-    train_env, env_configs = make_train_env(env_id=config['env']['train_env_id'],
-                                            config_path=config['env']['config_path'],
-                                            save_dir=save_model_mother_dir,
-                                            group=config['group'],
-                                            base_seed=seed,
-                                            num_threads=num_threads,
-                                            use_cost=config['env']['use_cost'],
-                                            normalize_obs=not config['env']['dont_normalize_obs'],
-                                            normalize_reward=not config['env']['dont_normalize_reward'],
-                                            normalize_cost=not config['env']['dont_normalize_cost'],
-                                            cost_info_str=config['env']['cost_info_str'],
-                                            latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config[
-                                                'group'] else None,
-                                            reward_gamma=config['env']['reward_gamma'],
-                                            cost_gamma=config['env']['cost_gamma'],
-                                            multi_env=multi_env,
-                                            part_data=partial_data,
-                                            log_file=log_file,
-                                            )
+    # Create the vectorized environments
+    train_env, env_configs = \
+        make_train_env(env_id=config['env']['train_env_id'],
+                       config_path=config['env']['config_path'],
+                       save_dir=save_model_mother_dir,
+                       group=config['group'],
+                       base_seed=seed,
+                       num_threads=num_threads,
+                       use_cost=config['env']['use_cost'],
+                       normalize_obs=not config['env']['dont_normalize_obs'],
+                       normalize_reward=not config['env']['dont_normalize_reward'],
+                       normalize_cost=not config['env']['dont_normalize_cost'],
+                       cost_info_str=config['env']['cost_info_str'],
+                       latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config['group'] else None,
+                       reward_gamma=config['env']['reward_gamma'],
+                       cost_gamma=config['env']['cost_gamma'],
+                       multi_env=multi_env,
+                       part_data=partial_data,
+                       log_file=log_file,
+                       )
     all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
     print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
 
@@ -137,41 +133,42 @@ def train(config):
 
     sample_num_threads = 1
     sample_multi_env = False
-    sample_env, env_configs = make_eval_env(env_id=config['env']['train_env_id'],
-                                            config_path=config['env']['config_path'],
-                                            save_dir=save_valid_mother_dir,
-                                            group=config['group'],
-                                            num_threads=sample_num_threads,
-                                            mode='sample',
-                                            use_cost=config['env']['use_cost'],
-                                            normalize_obs=not config['env']['dont_normalize_obs'],
-                                            latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config[
-                                                'group'] else None,
-                                            part_data=partial_data,
-                                            multi_env=sample_multi_env,
-                                            log_file=log_file)
+    sample_env, env_configs = \
+        make_eval_env(env_id=config['env']['train_env_id'],
+                      config_path=config['env']['config_path'],
+                      save_dir=save_valid_mother_dir,
+                      group=config['group'],
+                      num_threads=sample_num_threads,
+                      mode='sample',
+                      use_cost=config['env']['use_cost'],
+                      normalize_obs=not config['env']['dont_normalize_obs'],
+                      latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config['group'] else None,
+                      part_data=partial_data,
+                      multi_env=sample_multi_env,
+                      log_file=log_file)
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
         os.mkdir(save_test_mother_dir)
-    eval_env, env_configs = make_eval_env(env_id=config['env']['eval_env_id'],
-                                          config_path=config['env']['config_path'],
-                                          save_dir=save_test_mother_dir,
-                                          group=config['group'],
-                                          num_threads=1,
-                                          mode='test',
-                                          use_cost=config['env']['use_cost'],
-                                          normalize_obs=not config['env']['dont_normalize_obs'],
-                                          cost_info_str=config['env']['cost_info_str'],
-                                          latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config[
-                                              'group'] else None,
-                                          part_data=partial_data,
-                                          multi_env=False,
-                                          log_file=log_file)
+    eval_env, env_configs = \
+        make_eval_env(env_id=config['env']['eval_env_id'],
+                      config_path=config['env']['config_path'],
+                      save_dir=save_test_mother_dir,
+                      group=config['group'],
+                      num_threads=1,
+                      mode='test',
+                      use_cost=config['env']['use_cost'],
+                      normalize_obs=not config['env']['dont_normalize_obs'],
+                      cost_info_str=config['env']['cost_info_str'],
+                      latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config['group'] else None,
+                      part_data=partial_data,
+                      multi_env=False,
+                      log_file=log_file)
 
-    mem_prev, time_prev, load_env_str = print_resource(mem_prev=mem_prev, time_prev=time_prev,
-                                                       process_name='Loading environment', log_file=log_file,
-                                                       print_msg=False)
+    mem_prev, time_prev = print_resource(mem_prev=mem_prev,
+                                         time_prev=time_prev,
+                                         process_name='Loading environment',
+                                         log_file=log_file)
 
     # Set specs
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
@@ -186,26 +183,27 @@ def train(config):
     expert_path = config['running']['expert_path']
     if debug_mode:
         expert_path = expert_path.replace('expert_data/', 'expert_data/debug_')
-    if 'expert_rollouts' in config['running'].keys():
-        expert_rollouts = config['running']['expert_rollouts']
-    else:
-        expert_rollouts = None
-
-    if expert_path.endswith('.pt'):
-        expert_obs, expert_acs = load_expert_data_tmp(expert_path)
-    else:
-        (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
-            expert_path=expert_path,
-            # use_pickle5=is_mujoco(config['env']['train_env_id']),  # True for the Mujoco envs
-            num_rollouts=expert_rollouts,
-            store_by_game=config['running']['store_by_game'],
-            add_next_step=False,
-            log_file=log_file
-        )
+    expert_rollouts = config['running']['expert_rollouts']
+    (expert_obs, expert_acs, expert_rs, expert_cs), expert_mean_reward = load_expert_data(
+        expert_path=expert_path,
+        num_rollouts=expert_rollouts,
+        store_by_game=config['running']['store_by_game'],
+        add_latent_code=True,
+        log_file=log_file
+    )
     if config['running']['store_by_game']:
         expert_obs_mean = np.mean(np.concatenate(expert_obs, axis=0), axis=0).tolist()
     else:
         expert_obs_mean = np.mean(expert_obs, axis=0).tolist()
+
+    # plot expert traj
+    plt.figure(figsize=(6, 6))
+    plt.scatter(expert_obs[:, -2], expert_obs[:, -1], s=10)
+    plt.xlim([-1, 1])
+    plt.ylim([-1, 1])
+    plt.grid()
+    plt.savefig(os.path.join(save_model_mother_dir, "expert_traj_visual.png"))
+
     expert_obs_mean = ['%.5f' % elem for elem in expert_obs_mean]
     if len(all_obs_feature_names) == len(expert_obs_mean):
         expert_obs_name_mean = dict(zip(all_obs_feature_names, expert_obs_mean))
@@ -280,12 +278,12 @@ def train(config):
     create_nominal_agent = lambda: PPOLagrangianInfo(**ppo_parameters)
     nominal_agent = create_nominal_agent()
 
-    mem_prev, time_prev, set_model_str = print_resource(mem_prev=mem_prev, time_prev=time_prev,
-                                                        process_name='Setting model', log_file=log_file,
-                                                        print_msg=False)
+    mem_prev, time_prev = print_resource(mem_prev=mem_prev,
+                                         time_prev=time_prev,
+                                         process_name='Setting model',
+                                         log_file=log_file)
     # Train
     timesteps = 0.
-    # print(utils.colorize("\nBeginning training", color="green", bold=True), flush=True)
     print("\nBeginning training", file=log_file, flush=True)
     best_true_reward, best_true_cost, best_forward_kl, best_reverse_kl = -np.inf, np.inf, np.inf, np.inf
     for itr in range(config['running']['n_iters']):
@@ -293,7 +291,6 @@ def train(config):
             print("\nResetting agent", file=log_file, flush=True)
             nominal_agent = create_nominal_agent()
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
-
         # Update agent
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
             nominal_agent.learn(
@@ -304,11 +301,10 @@ def train(config):
             forward_metrics = logger.Logger.CURRENT.name_to_value
             timesteps += nominal_agent.num_timesteps
 
-        mem_prev, time_prev, train_ppo_str = print_resource(mem_prev=mem_prev,
-                                                            time_prev=time_prev,
-                                                            process_name='Training PPO model',
-                                                            log_file=log_file,
-                                                            print_msg=False)
+        mem_prev, time_prev = print_resource(mem_prev=mem_prev,
+                                             time_prev=time_prev,
+                                             process_name='Training PPO model',
+                                             log_file=log_file)
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sample_env)
         sample_parameters = {}
@@ -323,9 +319,11 @@ def train(config):
                                     code_dim=sample_env.latent_dim,
                                     num_envs=sample_env.num_envs)
         sample_parameters['init_codes'] = init_codes
+
         sample_data = sample_from_agent(
             agent=nominal_agent,
             env=sample_env,
+            deterministic=True,
             rollouts=int(config['running']['sample_rollouts']),
             store_by_game=config['running']['use_buffer'],
             **sample_parameters
@@ -334,12 +332,10 @@ def train(config):
         sample_obs = orig_observations
         sample_acts = actions
         sample_codes = codes
-
-        mem_prev, time_prev, sample_str = print_resource(mem_prev=mem_prev,
-                                                         time_prev=time_prev,
-                                                         process_name='Sampling',
-                                                         log_file=log_file,
-                                                         print_msg=False)
+        mem_prev, time_prev = print_resource(mem_prev=mem_prev,
+                                             time_prev=time_prev,
+                                             process_name='Sampling',
+                                             log_file=log_file)
         # Update constraint net
         mean, var = None, None
         if config['CN']['cn_normalize']:
@@ -347,6 +343,7 @@ def train(config):
 
         cns_parameters = {}
         cns_parameters['nominal_codes'] = sample_codes
+        cns_parameters['expert_codes'] = expert_cs
         backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
                                                    nominal_obs=sample_obs,
                                                    nominal_acs=sample_acts,
@@ -356,9 +353,10 @@ def train(config):
                                                    current_progress_remaining=current_progress_remaining,
                                                    **cns_parameters)
 
-        mem_prev, time_prev, train_cn_str = print_resource(mem_prev=mem_prev, time_prev=time_prev,
-                                                           process_name='Training CN model', log_file=log_file,
-                                                           print_msg=False)
+        mem_prev, time_prev = print_resource(mem_prev=mem_prev,
+                                             time_prev=time_prev,
+                                             process_name='Training CN model',
+                                             log_file=log_file)
 
         # Pass constraint net cost function to cost wrapper
         train_env.set_cost_function(constraint_net.cost_function_with_code)
@@ -372,26 +370,50 @@ def train(config):
         # Evaluate:
         # reward on true environment
         sync_envs_normalization(train_env, eval_env)
+        # model saving path
+        save_path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
+        if itr % config['running']['save_every'] == 0:
+            del_and_make(save_path)
+            # visualized sampled data
+            plt.figure(figsize=(6, 6))
+            plt.scatter(sample_obs[:, -2], sample_obs[:, -1], s=10)
+            plt.xlim([-1, 1])
+            plt.ylim([-1, 1])
+            plt.grid()
+            plt.savefig(os.path.join(save_path, "sample_traj_visual.png"))
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
             evaluate_meicrl_policy(nominal_agent, eval_env,
-                                   record_info_names=config['env']["record_info_names"],
+                                   record_info_names=[],
                                    n_eval_episodes=config['running']['n_eval_episodes'],
-                                   deterministic=False,
-                                   render=True,
+                                   deterministic=True,
+                                   render=True if itr % config['running']['save_every'] == 0 else False,
+                                   save_path=save_path,
                                    )
-        mem_prev, time_prev, eval_str = print_resource(mem_prev=mem_prev, time_prev=time_prev,
-                                                       process_name='Evaluation', log_file=log_file, print_msg=False)
+        mem_prev, time_prev = print_resource(mem_prev=mem_prev,
+                                             time_prev=time_prev,
+                                             process_name='Evaluation',
+                                             log_file=log_file)
 
         # Save
         # (1) periodically
         if itr % config['running']['save_every'] == 0:
-            path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
-            del_and_make(path)
-            nominal_agent.save(os.path.join(path, "nominal_agent"))
-            constraint_net.save(os.path.join(path, "constraint_net"))
+            nominal_agent.save(os.path.join(save_path, "nominal_agent"))
+            constraint_net.save(os.path.join(save_path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
-                train_env.save(os.path.join(path, "train_env_stats.pkl"))
-            plt.savefig(os.path.join(path, "traj_visual.png".format()))
+                train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
+            if len(expert_acs.shape) == 1:
+                empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
+            else:
+                empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
+            constraint_visualization_2d(cost_function_with_code=constraint_net.cost_function_with_code,
+                                        feature_range=config['env']["visualize_info_ranges"],
+                                        select_dims=config['env']["record_info_input_dims"],
+                                        obs_dim=constraint_net.obs_dim,
+                                        acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                        latent_dim=constraint_net.latent_dim,
+                                        empirical_input_means=empirical_input_means,
+                                        save_path=save_path)
+
         # (2) best
         if mean_nc_reward > best_true_reward:
             # print(utils.colorize("Saving new best model", color="green", bold=True), flush=True)
@@ -408,12 +430,12 @@ def train(config):
         # Collect metrics
         metrics = {
             "running time(m)": (time.time() - start_time) / 60,
-            "env loading resource": load_env_str,
-            "model setting resource": set_model_str,
-            "train ppo resource": train_ppo_str,
-            "sample resource": sample_str,
-            "train cns resource": train_cn_str,
-            "evaluate resource": eval_str,
+            # "env loading resource": load_env_str,
+            # "model setting resource": set_model_str,
+            # "train ppo resource": train_ppo_str,
+            # "sample resource": sample_str,
+            # "train cns resource": train_cn_str,
+            # "evaluate resource": eval_str,
             "run_iter": itr,
             "timesteps": timesteps,
             "true/mean_nc_reward": mean_nc_reward,

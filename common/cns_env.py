@@ -134,8 +134,10 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
                     log_dir=os.path.join(save_dir, mode),
                     multi_env=multi_env)
            for i in range(num_threads)]
-
+    # if mode == 'test':
     env = vec_env.DummyVecEnv(env)
+    # else:
+    #     env = vec_env.SubprocVecEnv(env)
 
     if use_cost:
         if group == 'PPO-Lag':

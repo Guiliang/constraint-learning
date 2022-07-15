@@ -63,11 +63,11 @@ class VecCostCodeWrapper(VecEnvWrapper):
         where 'news' is a boolean vector indicating whether each element is new.
         """
         obs, rews, news, infos = self.venv.step_wait()
+        code = build_code(code_axis=self.code_axis, code_dim=self.latent_dim, num_envs=self.num_envs)
         for env_idx in range(self.num_envs):
             if news[env_idx]:
-                print('update code_axis')
+                # print('update code_axis')
                 self.code_axis[env_idx] = update_code(code_dim=self.latent_dim, code_axis=self.code_axis[env_idx])
-        code = build_code(code_axis=self.code_axis, code_dim=self.latent_dim, num_envs=self.num_envs)
         if infos is None:
             infos = {}
         # Cost depends on previous observation and current actions
@@ -118,4 +118,6 @@ class VecCostCodeWrapper(VecEnvWrapper):
         with open(save_path, "wb") as file_handler:
             pickle.dump(self, file_handler)
 
-
+    def get_image(self):
+        print("abc")
+        return None

@@ -1,3 +1,4 @@
+import gc
 import math
 
 import gym
@@ -15,6 +16,8 @@ class CircleEnv(gym.Env):
         self.n_step = 1
         self.sigma1 = sigma1
         self.sigma2 = sigma2
+        self.done = False
+        self.use_render = False
         self.color = [np.array([1.0, 0.0, 0.0])]
         self.p = [0, 0]
         self.xs = []
@@ -24,11 +27,6 @@ class CircleEnv(gym.Env):
                                                 high=np.ones([10], dtype=np.float32))
         self.action_space = gym.spaces.Box(low=np.ones([2], dtype=np.float32) * float('-inf'),
                                            high=np.ones([2], dtype=np.float32) * float('inf'))
-
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111)
-        self.ax.cla()
-        self.ax.set_aspect(aspect=1.0)
 
     # self.fig = plt.figure()
     # self.ax  = self.fig.add_subplot(111)
@@ -60,22 +58,35 @@ class CircleEnv(gym.Env):
 
         reward = 0.0
 
-        # if self.n_step >= 129 or abs(self.p[0]) >= 1 or abs(self.p[1]) >= 1:
-        # if self.n_step >= 129:
-        #     done = True
-        # else:
-        done = False
+        # if self.done:
+        #     fig = plt.figure()
+        #     self.ax = fig.add_subplot(111)
+        #     self.ax.cla()
+        #     self.ax.set_aspect(aspect=1.0)
 
-        return np.copy(self.state.flatten()), reward, done, {}
+        # if self.n_step >= 129 or abs(self.p[0]) >= 1 or abs(self.p[1]) >= 1:
+        if self.n_step >= 1024:
+            self.done = True
+        else:
+            self.done = False
+
+        return np.copy(self.state.flatten()), reward, self.done, {}
 
     # -------------------------
     # Reset
     # -------------------------
     def reset(self, start=(0.0, 0.0)):
+        if self.use_render:
+            self.fig = plt.figure()
+            self.ax = self.fig.add_subplot(111)
+            self.ax.cla()
+            self.ax.set_aspect(aspect=1.0)
+            self.render(mode='reset')
         # self.p[0]   = self.sigma1 * np.random.randn()
         # self.p[1]   = self.sigma1 * np.random.randn()
         self.p[0] = start[0]
         self.p[1] = start[1]
+        del self.xs, self.ys
         self.xs = [self.p[0]]
         self.ys = [self.p[1]]
         self.n_step = 1
@@ -84,16 +95,23 @@ class CircleEnv(gym.Env):
             self.state[i, 0] = self.p[0]
             self.state[i, 1] = self.p[1]
 
+        self.use_render = False
+        gc.collect()
         return np.copy(self.state.flatten())
 
     # -------------------------
     # Render
     # -------------------------
     def render(self, mode="human"):
-        self.ax.scatter(self.xs, self.ys, s=4)
-        plt.grid()
-        plt.xlim(-1, 1)
-        plt.ylim(-1, 1)
+        if self.done and mode == 'reset':
+            self.ax.scatter(self.xs, self.ys, s=4)
+            plt.grid()
+            plt.xlim(-1, 1)
+            plt.ylim(-1, 1)
+        self.use_render = True
+        # return 123
+        # else:
+        #     pass
         # plt.pause(0.002)
 
     # -------------------------
@@ -101,6 +119,14 @@ class CircleEnv(gym.Env):
     # -------------------------
     def get_points(self):
         return self.xs, self.ys
+
+    # -------------------------
+    # Get all points
+    # -------------------------
+    def get_image(self):
+        print("abc")
+        return None
+
 
     # -------------------------
     # Close the environment

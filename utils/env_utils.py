@@ -75,7 +75,7 @@ def multi_threads_sample_from_agent(agent, env, rollouts, num_threads, store_by_
     return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, all_lengths
 
 
-def sample_from_agent(agent, env, rollouts, store_by_game=False, **sample_parameters):
+def sample_from_agent(agent, env, rollouts, deterministic=False, store_by_game=False, **sample_parameters):
     if isinstance(env, vec_env.VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
 
@@ -103,8 +103,10 @@ def sample_from_agent(agent, env, rollouts, store_by_game=False, **sample_parame
                 codes_game = []
         while not done:
             if sample_parameters['store_code']:
-                obs = np.concatenate([obs, codes], axis=1)
-            action, state = agent.predict(obs, state=state, deterministic=False)
+                pred = np.concatenate([obs, codes], axis=1)
+            else:
+                pred = obs
+            action, state = agent.predict(pred, state=state, deterministic=deterministic)
 
             if store_by_game:
                 origin_obs_game.append(env.get_original_obs())
@@ -162,6 +164,7 @@ def sample_from_agent(agent, env, rollouts, store_by_game=False, **sample_parame
         else:
             return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
 
+
 class SaveVecNormalizeCallback(BaseCallback):
     def __init__(self, save_path: str, verbose=1):
         super(SaveVecNormalizeCallback, self).__init__(verbose)
@@ -213,7 +216,6 @@ def is_commonroad(env_id):
 
 
 def get_obs_feature_names(env, env_id):
-    feature_names = []
     if is_commonroad(env_id):
         # try:  # we need to change this setting if you modify the number of env wrappers.
         #     observation_space_dict = env.venv.envs[0].env.env.env.observation_collector.observation_space_dict
@@ -266,11 +268,14 @@ def get_obs_feature_names(env, env_id):
              'route_multilanelet_waypoints_orientations_4', 'route_multilanelet_waypoints_orientations_5',
              'distance_togoal_via_referencepath_0', 'distance_togoal_via_referencepath_1',
              'distance_togoal_via_referencepath_2']
-
-    if is_mujoco(env_id):
-        feature_names.append('(pls visit mujoco xml settings at: {0})'.format(
-            'https://www.gymlibrary.ml/environments/mujoco/'))
-    return feature_names
+        return feature_names
+    elif is_mujoco(env_id):
+        if env_id == 'Circle-v0':
+            feature_names = ["x_t-4", "y_t-4", "x_t-3", "y_t-3", "x_t-2", "y_t-2", "x_t-1", "y_t-1", "x_t", "y_t", ]
+        else:
+            feature_names = ['(pls visit mujoco xml settings at: {0})'.format(
+                'https://www.gymlibrary.ml/environments/mujoco/')]
+        return feature_names
 
 
 def check_if_duplicate_seed(seed, config, current_time_date, save_model_mother_dir, log_file, max_endure_date=1):
@@ -290,8 +295,8 @@ def check_if_duplicate_seed(seed, config, current_time_date, save_model_mother_d
                 if save_model_mother_dir.split('-seed_')[0].replace(current_time_date, '') in task_mother_dir:
                     file_seed = int(save_file_name.split('-seed_')[1])
                     file_date = \
-                    task_mother_dir.replace(save_model_mother_dir.split('-seed_')[0].replace(current_time_date, ''),
-                                            '').split('-seed_')[0]
+                        task_mother_dir.replace(save_model_mother_dir.split('-seed_')[0].replace(current_time_date, ''),
+                                                '').split('-seed_')[0]
                     assert file_seed in all_candidate_seeds
                     try:
                         pass_save_date = dt.strptime(file_date, "%b-%d-%Y-%H:%M")

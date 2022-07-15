@@ -1,3 +1,4 @@
+import itertools
 import os
 
 import numpy as np
@@ -6,12 +7,56 @@ from matplotlib import pyplot as plt
 
 from cirl_stable_baselines3.common import callbacks
 from utils.data_utils import del_and_make
+from utils.model_utils import build_code, update_code
 from utils.plot_utils import plot_curve
 
 
-def plot_constraints(cost_function, feature_range, select_dim, obs_dim, acs_dim,
-                     save_name, device='cpu', feature_data=None, feature_cost=None, feature_name=None,
-                     empirical_input_means=None, num_points=1000, axis_size=24):
+def constraint_visualization_2d(cost_function_with_code, feature_range, select_dims,
+                                obs_dim, acs_dim, latent_dim,
+                                num_points_per_feature=100,
+                                axis_size=20, save_path=None, empirical_input_means=None):
+    import matplotlib as mpl
+    mpl.rcParams['xtick.labelsize'] = axis_size
+    mpl.rcParams['ytick.labelsize'] = axis_size
+
+    selected_feature_1_generation = np.linspace(feature_range[0][0], feature_range[0][1], num_points_per_feature)
+    selected_feature_2_generation = np.linspace(feature_range[1][1], feature_range[1][0], num_points_per_feature)
+    selected_feature_all = np.asarray(
+        [d for d in itertools.product(selected_feature_1_generation, selected_feature_2_generation)])
+    tmp = selected_feature_all.reshape([num_points_per_feature, num_points_per_feature, 2]).transpose(1, 0, 2)
+    if empirical_input_means is None:
+        input_all = np.zeros((num_points_per_feature ** 2, obs_dim + acs_dim))
+    else:
+        assert len(empirical_input_means) == obs_dim + acs_dim
+        input_all = np.expand_dims(empirical_input_means, 0).repeat(num_points_per_feature ** 2, axis=0)
+    input_all[:, select_dims[0]] = selected_feature_all[:, 0]
+    input_all[:, select_dims[1]] = selected_feature_all[:, 1]
+    code_axis = [0]
+    for idx in range(latent_dim):
+        obs = input_all[:, :obs_dim]
+        acs = input_all[:, obs_dim:]
+        codes = build_code(code_axis=code_axis, code_dim=latent_dim, num_envs=1).repeat(
+            repeats=num_points_per_feature ** 2, axis=0)
+        code_axis[0] = update_code(code_axis[0], code_dim=latent_dim)
+
+        with torch.no_grad():
+            preds = cost_function_with_code(obs=obs, acs=acs, codes=codes)
+        fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+        im = ax.imshow(preds.reshape([num_points_per_feature, num_points_per_feature]).transpose(1, 0),
+                       cmap='gray',  # 'cool',
+                       interpolation="nearest",
+                       extent=[feature_range[0][0], feature_range[0][1], feature_range[1][0], feature_range[1][1]])
+        cbar = plt.colorbar(im)
+        cbar.set_label("Constraint")
+        plt.savefig(os.path.join(save_path, "constraint_code-{0}.png".format(codes[0])))
+
+
+def constraint_visualization_1d(cost_function, feature_range, select_dim, obs_dim, acs_dim,
+                                save_name, feature_data=None, feature_cost=None, feature_name=None,
+                                empirical_input_means=None, num_points=1000, axis_size=24):
+    """
+    visualize the constraints with partial dependency plot and (optionally) testing outputs.
+    """
     import matplotlib as mpl
     mpl.rcParams['xtick.labelsize'] = axis_size
     mpl.rcParams['ytick.labelsize'] = axis_size
@@ -93,7 +138,8 @@ class PlotCallback(callbacks.BaseCallback):
         obs = obs.reshape(-1, obs.shape[-1])  # flatten the batch size and num_envs dimensions
         rewards = self.model.rollout_buffer.rewards.copy()
         for record_info_name in self.plot_feature_names_dims.keys():
-            plot_record_infos, plot_costs = zip(*sorted(zip(obs[:, self.plot_feature_names_dims[record_info_name]], rewards)))
+            plot_record_infos, plot_costs = zip(
+                *sorted(zip(obs[:, self.plot_feature_names_dims[record_info_name]], rewards)))
             path = os.path.join(self.plot_save_dir, f"{self.name_prefix}_{self.num_timesteps}_steps")
             if not os.path.exists(path):
                 os.mkdir(path)

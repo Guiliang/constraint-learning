@@ -7,13 +7,13 @@ from torch.nn import functional as F
 
 from cirl_stable_baselines3.common import logger
 from cirl_stable_baselines3.common.dual_variable import DualVariable, PIDLagrangian
-from cirl_stable_baselines3.common.on_policy_algorithm import OnPolicyWithCostCodeAlgorithm
+from cirl_stable_baselines3.common.on_policy_algorithm import OnPolicyWithCostAndCodeAlgorithm
 from cirl_stable_baselines3.common.policies import ActorCriticPolicy
 from cirl_stable_baselines3.common.type_aliases import GymEnv, MaybeCallback
 from cirl_stable_baselines3.common.utils import explained_variance, get_schedule_fn
 
 
-class PPOLagrangianInfo(OnPolicyWithCostCodeAlgorithm):
+class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
     """
     Proximal Policy Optimization algorithm (PPO) augmented with a Lagrangian (clip version)
 

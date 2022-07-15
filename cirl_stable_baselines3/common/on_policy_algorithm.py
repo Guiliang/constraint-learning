@@ -515,7 +515,7 @@ class OnPolicyWithCostAlgorithm(BaseAlgorithm):
         return state_dicts, []
 
 
-class OnPolicyWithCostCodeAlgorithm(BaseAlgorithm):
+class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
     def __init__(
             self,
             policy: Union[str, Type[ActorCriticPolicy]],
@@ -543,7 +543,7 @@ class OnPolicyWithCostCodeAlgorithm(BaseAlgorithm):
             _init_setup_model: bool = True,
     ):
 
-        super(OnPolicyWithCostCodeAlgorithm, self).__init__(
+        super(OnPolicyWithCostAndCodeAlgorithm, self).__init__(
             policy=policy,
             env=env,
             policy_base=ActorCriticPolicy,
@@ -666,6 +666,9 @@ class OnPolicyWithCostCodeAlgorithm(BaseAlgorithm):
                     orig_costs = env.get_original_cost()
                 else:
                     orig_costs = costs
+                # apply logarithm
+                costs = np.log(costs + 0.00001)
+                orig_costs = np.log(orig_costs + 0.00001)
             else:
                 raise ValueError("This part is not yet done.")
                 # costs = cost_function(orig_obs.copy(), clipped_actions)
@@ -717,7 +720,7 @@ class OnPolicyWithCostCodeAlgorithm(BaseAlgorithm):
             tb_log_name: str = "OnPolicyWithCostCodeAlgorithm",
             eval_log_path: Optional[str] = None,
             reset_num_timesteps: bool = True,
-    ) -> "OnPolicyWithCostCodeAlgorithm":
+    ) -> "OnPolicyWithCostAndCodeAlgorithm":
 
         iteration = 0
 

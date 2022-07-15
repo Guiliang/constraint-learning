@@ -13,17 +13,17 @@ import yaml
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_evaluation import evaluate_icrl_policy
-from common.cns_visualization import plot_constraints
+from common.cns_visualization import constraint_visualization_1d
 from common.cns_env import make_train_env, make_eval_env
 from common.memory_buffer import IRLDataQueue
-from constraint_models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
-from constraint_models.constraint_net.variational_constraint_net import VariationalConstraintNet
-from constraint_models.constraint_net.constraint_net import ConstraintNet
+from models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
+from models.constraint_net.variational_constraint_net import VariationalConstraintNet
+from models.constraint_net.constraint_net import ConstraintNet
 from exploration.exploration import ExplorationRewardCallback
-from stable_baselines3 import PPOLagrangian
-from stable_baselines3.common import logger
+from cirl_stable_baselines3 import PPOLagrangian
+from cirl_stable_baselines3.common import logger
 
-from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
+from cirl_stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource, load_expert_data_tmp
 from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names, is_mujoco, \
@@ -417,17 +417,16 @@ def train(config):
                     empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
                 else:
                     empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
-                plot_constraints(cost_function=constraint_net.cost_function,
-                                 feature_range=config['env']["visualize_info_ranges"][record_info_idx],
-                                 select_dim=config['env']["record_info_input_dims"][record_info_idx],
-                                 obs_dim=constraint_net.obs_dim,
-                                 acs_dim=1 if is_discrete else constraint_net.acs_dim,
-                                 device=constraint_net.device,
-                                 save_name=os.path.join(path, "{0}_visual.png".format(record_info_name)),
-                                 feature_data=plot_record_infos,
-                                 feature_cost=plot_costs,
-                                 feature_name=record_info_name,
-                                 empirical_input_means=empirical_input_means)
+                constraint_visualization_1d(cost_function=constraint_net.cost_function,
+                                            feature_range=config['env']["visualize_info_ranges"][record_info_idx],
+                                            select_dim=config['env']["record_info_input_dims"][record_info_idx],
+                                            obs_dim=constraint_net.obs_dim,
+                                            acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                            save_name=os.path.join(path, "{0}_visual.png".format(record_info_name)),
+                                            feature_data=plot_record_infos,
+                                            feature_cost=plot_costs,
+                                            feature_name=record_info_name,
+                                            empirical_input_means=empirical_input_means)
 
         # (2) best
         if mean_nc_reward > best_true_reward:

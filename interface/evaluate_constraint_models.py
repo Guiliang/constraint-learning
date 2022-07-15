@@ -12,7 +12,7 @@ from gym import Env
 
 from common.cns_env import make_env
 from common.cns_evaluation import evaluate_with_synthetic_data
-from common.cns_visualization import plot_constraints
+from common.cns_visualization import constraint_visualization_1d
 from models.constraint_net.variational_constraint_net import VariationalConstraintNet
 from cirl_stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from cirl_stable_baselines3 import PPOLagrangian

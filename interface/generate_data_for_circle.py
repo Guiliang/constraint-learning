@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import pickle as pkl
-
+# from mujuco_environment.custom_envs.envs.circle import plt
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
@@ -46,13 +46,12 @@ env = gym.make(id='Circle-v0')
 rs = [0.4, 0.2, 0.2]
 cs = [True, True, False]
 us = [True, True, False]
-n_episode = 1024
 idx = 0
 
 for i in range(len(rs)):
     print("r = {:.2f}".format(rs[i]))
 
-    for j in tqdm(range(128)):  # default: 128
+    for j in tqdm(range(2)):  # default 50
         state = env.reset()
         # s_traj.append([])
         # a_traj.append([])
@@ -72,23 +71,25 @@ for i in range(len(rs)):
             c_traj.append(one_hot_code)
 
             state, reward, done, info = env.step(action)
+            env.render()
 
             if done:
                 s_traj = np.array(s_traj, dtype=np.float32)
                 a_traj = np.array(a_traj, dtype=np.float32)
                 c_traj = np.array(c_traj, dtype=int)
                 idx += 1
-                # env.render()
+                plt.savefig('tmp{0}.png'.format(str(one_hot_code)))
                 break
 
-        pkl.dump({'original_observations': s_traj,
-                  'actions': a_traj,
-                  'codes': c_traj,
-                  'reward': r_traj,
-                  'reward_sum': 0,
-                  },
-                 open("../data/expert_data/Circle-v0/scene-{0}_len-{1}.pkl".format(
-                     idx,
-                     len(s_traj)
-                 ), "wb"))
-plt.show()
+        # pkl.dump({'original_observations': s_traj,
+        #           'actions': a_traj,
+        #           'codes': c_traj,
+        #           'reward': r_traj,
+        #           'reward_sum': 0,
+        #           },
+        #          open("../data/expert_data/Circle-v0/"
+        #               "scene-{0}_code-{1}_len-{2}.pkl".format(idx,
+        #                                                       str(one_hot_code),
+        #                                                       len(s_traj)
+        #                                                       ),
+        #               "wb"))
