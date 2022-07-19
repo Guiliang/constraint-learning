@@ -8,7 +8,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch1/PycharmProjects/constraint-lea
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 cd ./interface/
 nohup python train_meicrl.py ../config/others/train_MEICRL_Circle.yaml -n 5 -l "$log_dir" > nohup.out 2>&1 &
-#nohup python train_meicrl.py ../config/others/train_MEICRL_Circle_dim2.yaml -n 5 -l "$log_dir" > nohup.out 2>&1 &
-#nohup python train_meicrl.py ../config/others/train_MEICRL_Circle_dim3.yaml -n 5 -l "$log_dir" > nohup.out 2>&1 &
-#nohup python train_meicrl.py ../config/others/train_MEICRL_Circle_clr-0.001.yaml -n 5 -l "$log_dir" > nohup.out 2>&1 &
+#nohup python train_meicrl.py ../config/others/train_InfoICRL_Circle_dim2.yaml -n 5 -l "$log_dir" > nohup.out 2>&1 &
+#nohup python train_meicrl.py ../config/others/train_InfoICRL_Circle_dim3.yaml -n 5 -l "$log_dir" > nohup.out 2>&1 &
+#nohup python train_meicrl.py ../config/others/train_InfoICRL_Circle_clr-0.001.yaml -n 5 -l "$log_dir" > nohup.out 2>&1 &
 cd ../

@@ -24,11 +24,13 @@ def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0)
             # from mujuco_environment.custom_envs.envs import half_cheetah
             import mujuco_environment.custom_envs
         env_configs_copy = copy(env_configs)
-        if multi_env and 'commonroad' in env_id:
+        if multi_env and 'commonroad' in env_id:  # update data path for the multi-env setting.
             env_configs_copy.update(
                 {'train_reset_config_path': env_configs['train_reset_config_path'] + '/{0}'.format(rank)}),
-        if 'external_reward' in env_configs:
-            del env_configs_copy['external_reward']
+        if 'external_reward' in env_configs:  # TODO: maybe rename it as constraint instead of rewards.
+            del env_configs_copy['external_reward']  # this info is for the external wrapper.
+        if 'constraint_id' in env_configs:
+            del env_configs_copy['constraint_id']  # this info is for the external wrapper.
         env = gym.make(id=env_id,
                        **env_configs_copy)
         env.seed(seed + rank)
@@ -68,6 +70,8 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
                 env_configs['meta_scenario_path'] += '_debug'
     else:
         env_configs = {}
+    if 'constraint_id' in kwargs:  # the environments contain a mixture of constraints
+        env_configs['constraint_id'] = kwargs['constraint_id']
     env = [make_env(env_id=env_id,
                     env_configs=env_configs,
                     rank=i,

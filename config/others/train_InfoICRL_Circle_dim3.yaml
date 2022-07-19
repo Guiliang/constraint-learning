@@ -1,5 +1,5 @@
-task: 'MEICRL-Circle'
-group: 'MEICRL'
+task: 'InfoICRL-Circle'
+group: 'InfoICRL'
 device: 'cuda'
 verbose: 2
 env:

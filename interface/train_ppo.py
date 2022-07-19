@@ -101,6 +101,7 @@ def train(args):
                                             log_file=log_file,
                                             part_data=partial_data,
                                             multi_env=multi_env,
+                                            constraint_id=config['env']['constraint_id'],
                                             )
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
@@ -115,7 +116,9 @@ def train(args):
                                           normalize_obs=not config['env']['dont_normalize_obs'],
                                           cost_info_str=config['env']['cost_info_str'],
                                           log_file=log_file,
-                                          part_data=partial_data)
+                                          part_data=partial_data,
+                                          constraint_id=config['env']['constraint_id'],
+                                          )
 
     mem_loading_environment = process_memory()
     time_loading_environment = time.time()

@@ -229,7 +229,7 @@ def load_ppo_config(config, train_env, seed, log_file):
 def build_code(code_axis, code_dim, num_envs):
     code = np.zeros((num_envs, code_dim), dtype=np.float32)
     for env_idx in range(num_envs):
-        code[:, code_axis[env_idx]] = 1
+        code[env_idx, code_axis[env_idx]] = 1
     return code
 
 

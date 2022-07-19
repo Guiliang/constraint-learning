@@ -8,9 +8,9 @@ import gym
 import numpy as np
 import yaml
 from matplotlib import pyplot as plt
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+from models.constraint_net.mixture_constraint_net import MixtureConstraintNet
 from cirl_stable_baselines3.ppo_lag.ppo_latent_lag import PPOLagrangianInfo
 from common.cns_visualization import constraint_visualization_2d
 from models.constraint_net.info_constraint_net import InfoConstraintNet
@@ -19,10 +19,9 @@ from common.cns_env import make_train_env, make_eval_env
 from cirl_stable_baselines3.common import logger
 from cirl_stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
-    get_input_features_dim, process_memory, print_resource, load_expert_data_tmp
-from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names, is_mujoco, \
-    check_if_duplicate_seed, is_commonroad
-from utils.model_utils import get_net_arch, load_ppo_config, build_code
+    get_input_features_dim, process_memory, print_resource
+from utils.env_utils import sample_from_agent, get_obs_feature_names, check_if_duplicate_seed, is_commonroad
+from utils.model_utils import load_ppo_config, build_code
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -50,7 +49,7 @@ def train(config):
     if debug_mode:
         config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 2000  # 2000
+        config['PPO']['forward_timesteps'] = 3000  # 2000
         config['PPO']['n_steps'] = 500
         config['PPO']['n_epochs'] = 2
         # config['running']['n_eval_episodes'] = 3
@@ -121,6 +120,7 @@ def train(config):
                        cost_gamma=config['env']['cost_gamma'],
                        multi_env=multi_env,
                        part_data=partial_data,
+                       constraint_id=config['env']['constraint_id'],
                        log_file=log_file,
                        )
     all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
@@ -145,6 +145,7 @@ def train(config):
                       latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config['group'] else None,
                       part_data=partial_data,
                       multi_env=sample_multi_env,
+                      constraint_id=config['env']['constraint_id'],
                       log_file=log_file)
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
@@ -163,6 +164,7 @@ def train(config):
                       latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config['group'] else None,
                       part_data=partial_data,
                       multi_env=False,
+                      constraint_id=config['env']['constraint_id'],
                       log_file=log_file)
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev,
@@ -260,9 +262,12 @@ def train(config):
         'task': config['task'],
     }
 
-    if 'MEICRL' == config['group']:
+    if 'InfoICRL' == config['group']:
         cn_parameters.update({'latent_dim': config['CN']['latent_dim'], })
         constraint_net = InfoConstraintNet(**cn_parameters)
+    elif 'MEICRL' == config['group']:
+        cn_parameters.update({'latent_dim': config['CN']['latent_dim'], })
+        constraint_net = MixtureConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown group: {0}".format(config['group']))
 
@@ -341,8 +346,10 @@ def train(config):
         if config['CN']['cn_normalize']:
             mean, var = sample_env.obs_rms.mean, sample_env.obs_rms.var
 
+        # add the background information
         cns_parameters = {}
         cns_parameters['nominal_codes'] = sample_codes
+        # TODO: the expert codes are for temporal usage. Remove it in the formal implementation.
         cns_parameters['expert_codes'] = expert_cs
         backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
                                                    nominal_obs=sample_obs,
