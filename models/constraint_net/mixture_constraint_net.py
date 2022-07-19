@@ -252,6 +252,7 @@ class MixtureConstraintNet(ConstraintNet):
                 discriminator_loss = expert_loss + (1-self.eta)*nominal_loss
 
                 # update posterior
+                # TODO: need to consider the history
                 posterior_output = self.posterior_encoder(nominal_data_batch)
                 posterior_loss = self.bce_loss(posterior_output, nominal_code_batch)
 
