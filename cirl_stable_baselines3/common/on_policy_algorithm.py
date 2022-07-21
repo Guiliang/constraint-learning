@@ -575,13 +575,13 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             self._setup_model()
 
         if isinstance(self.env, VecNormalize):
-            self._last_codes = build_code(code_axis=self.env.venv.code_axis,
-                                          code_dim=self.env.venv.latent_dim,
-                                          num_envs=self.env.venv.num_envs)
+            self._last_latent_codes = build_code(code_axis=self.env.venv.code_axis,
+                                                 code_dim=self.env.venv.latent_dim,
+                                                 num_envs=self.env.venv.num_envs)
         else:
-            self._last_codes = build_code(code_axis=self.env.code_axis,
-                                          code_dim=self.env.latent_dim,
-                                          num_envs=self.env.num_envs)
+            self._last_latent_codes = build_code(code_axis=self.env.code_axis,
+                                                 code_dim=self.env.latent_dim,
+                                                 num_envs=self.env.num_envs)
 
     def _setup_model(self) -> None:
         self._setup_lr_schedule()
@@ -610,8 +610,8 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
         self.policy = self.policy.to(self.device)
 
     def collect_rollouts(
-            self, env: VecEnv, callback: BaseCallback, rollout_buffer: RolloutBufferWithCostCode, n_rollout_steps: int,
-            cost_function: Union[str, Callable]
+            self, env: VecEnv, callback: BaseCallback, rollout_buffer: RolloutBufferWithCostCode,
+            n_rollout_steps: int, cost_info_str: str, latent_info_str: str
     ) -> bool:
         """
         Collect rollouts using the current policy and fill a `RolloutBuffer`.
@@ -620,10 +620,9 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
         :param callback: (BaseCallback) Callback that will be called at each step
             (and at the beginning and end of the rollout)
         :param rollout_buffer: (RolloutBufferWithCost) Buffer to fill with rollouts
-        :param n_steps: (int) Number of experiences to collect per environment
-        :param cost_function: (str, Callable) Either a callable that returns the cost
-            of a state-action marginal, or the key in the info dict corresponding to
-            the cost
+        :param n_rollout_steps: (int) Number of experiences to collect per environment
+        :param cost_info_str: the key in the info dict corresponding to the cost
+        :param latent_info_str: the key in the info dict corresponding to the latent code
         :return: (bool) True if function returned with at least `n_rollout_steps`
             collected, False if callback terminated rollout prematurely.
         """
@@ -644,7 +643,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             with th.no_grad():
                 # Convert to pytorch tensor
                 obs_tensor = th.as_tensor(self._last_obs).to(self.device)
-                codes_tensor = th.as_tensor(self._last_codes).to(self.device)
+                codes_tensor = th.as_tensor(self._last_latent_codes).to(self.device)
                 input_tensor = th.cat([obs_tensor, codes_tensor], dim=1)
                 actions, reward_values, cost_values, log_probs = self.policy.forward(input_tensor)
             actions = actions.cpu().numpy()
@@ -657,11 +656,11 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
 
             new_obs, rewards, dones, infos = env.step(clipped_actions)
             orig_obs = env.get_original_obs() if isinstance(env, VecNormalize) else new_obs
-            if type(cost_function) is str:
+            if type(cost_info_str) is str:
                 # Need to get cost from environment.
-                costs = np.array([info.get(cost_function, 0) for info in infos])
-                codes = np.array([info.get('code', 0) for info in infos])
-                code_posteriors = np.array([info.get('code_posterior', 0) for info in infos])
+                costs = np.array([info[cost_info_str] for info in infos])
+                latent_codes = np.array([info['code'] for info in infos])
+                latent_posteriors = np.array([info[latent_info_str] for info in infos])
                 if isinstance(env, VecNormalizeWithCost):
                     orig_costs = env.get_original_cost()
                 else:
@@ -688,12 +687,12 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
                 # Reshape in case of discrete action
                 actions = actions.reshape(-1, 1)
             rollout_buffer.add(self._last_obs, self._last_original_obs, new_obs, orig_obs, actions,
-                               codes, code_posteriors, rewards, costs, orig_costs, self._last_dones, reward_values,
-                               cost_values, log_probs)
+                               latent_codes, latent_posteriors, rewards, costs, orig_costs,
+                               self._last_dones, reward_values, cost_values, log_probs)
             self._last_obs = new_obs
             self._last_original_obs = orig_obs
             self._last_dones = dones
-            self._last_codes = codes
+            self._last_latent_codes = latent_codes
 
         rollout_buffer.compute_returns_and_advantage(reward_values, cost_values, dones=dones)
 
@@ -711,7 +710,8 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
     def learn(
             self,
             total_timesteps: int,
-            cost_function: Union[str, Callable],
+            cost_info_str: str,
+            latent_info_str: str,
             callback: MaybeCallback = None,
             log_interval: int = 1,
             eval_env: Optional[GymEnv] = None,
@@ -764,7 +764,8 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
                                                       callback=callback,
                                                       rollout_buffer=self.rollout_buffer,
                                                       n_rollout_steps=self.n_steps,
-                                                      cost_function=cost_function)
+                                                      cost_info_str=cost_info_str,
+                                                      latent_info_str=latent_info_str, )
             if continue_training is False:
                 break
 

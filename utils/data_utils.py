@@ -1,4 +1,5 @@
 import argparse
+import copy
 import os
 import pickle
 import shutil
@@ -478,3 +479,27 @@ def print_resource(mem_prev, time_prev, process_name, log_file, print_msg=True):
         return mem_current, time_current
     else:
         return mem_current, time_current, print_str
+
+
+def build_rnn_input(max_seq_length, input_data_list):
+    input_seqs = []
+    input_t_seq = []
+    if torch.is_tensor(input_data_list[0]):
+        device = input_data_list[0].device
+        padding = torch.zeros([len(input_data_list[0])]).to(device)
+    else:
+        padding = np.zeros([len(input_data_list[0])])
+    for data in input_data_list:
+        if len(input_t_seq) < max_seq_length:
+            input_t_seq.append(data)
+            store_seq = copy.copy([padding]*(max_seq_length-len(input_t_seq)) + input_t_seq)
+        else:
+            input_t_seq.pop(0)
+            input_t_seq.append(data)
+            store_seq = copy.copy(input_t_seq)
+        if torch.is_tensor(input_data_list[0]):
+            input_seqs.append(torch.stack(store_seq, dim=0))
+        else:
+            input_seqs.append(np.stack(store_seq, dim=0))
+    tmp = torch.stack(input_seqs, dim=0)
+    return torch.stack(input_seqs, dim=0)

@@ -6,8 +6,10 @@ env:
   config_path: null
   train_env_id : 'Circle-v0'
   eval_env_id: 'Circle-v0'
+  constraint_id: null
   save_dir: '../save_model'
   cost_info_str: 'cost'
+  latent_info_str: 'latent_posterior_history'
   use_cost: True
   reward_gamma: 0.99
   cost_gamma: 0.99  # no cost
@@ -22,12 +24,13 @@ running:
   n_iters: 300
   n_eval_episodes: 3
   save_every: 5
+  max_seq_length: 10
   expert_rollouts: 150
   sample_rollouts: 150
   store_sample_num: null
   expert_path: '../data/expert_data/Circle-v0/'
   use_buffer: False
-  store_by_game: False
+  store_by_game: True
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'

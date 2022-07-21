@@ -6,7 +6,7 @@ env:
   config_path: null
   train_env_id : 'HCWithPos-v0'
   eval_env_id: 'HCWithPos-v0'  # 'HCWithPosTest-v0'
-  constraint_id: 1  # the id of constraint, 0: the first constraint, 2: the second constraint, -1: dynamic constraints
+  constraint_id: 1  # the id of constraint, 0: the first constraint, 1: the second constraint, -1: dynamic constraints
   save_dir: '../save_model'
   cost_info_str: 'cost'
   use_cost: True

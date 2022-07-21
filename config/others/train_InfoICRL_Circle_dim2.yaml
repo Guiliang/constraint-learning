@@ -6,8 +6,10 @@ env:
   config_path: null
   train_env_id : 'Circle-v0'
   eval_env_id: 'Circle-v0'
+  constraint_id: null
   save_dir: '../save_model'
   cost_info_str: 'cost'
+  latent_info_str: 'latent_posterior'
   use_cost: True
   reward_gamma: 0.99
   cost_gamma: 0.99  # no cost
@@ -22,6 +24,7 @@ running:
   n_iters: 300
   n_eval_episodes: 3
   save_every: 5
+  max_seq_length: null
   expert_rollouts: 150
   sample_rollouts: 150
   store_sample_num: null

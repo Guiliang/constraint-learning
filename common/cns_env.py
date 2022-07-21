@@ -72,6 +72,8 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
         env_configs = {}
     if 'constraint_id' in kwargs:  # the environments contain a mixture of constraints
         env_configs['constraint_id'] = kwargs['constraint_id']
+    else:
+        env_configs['constraint_id'] = 0
     env = [make_env(env_id=env_id,
                     env_configs=env_configs,
                     rank=i,
@@ -86,10 +88,12 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     if use_cost:
         if group == 'PPO-Lag':
             env = InternalVecCostWrapper(venv=env, cost_info_str=kwargs['cost_info_str'])  # internal cost
-        elif group == 'MEICRL':
+        elif group == 'MEICRL' or group == 'InfoICRL':
             env = vec_env.VecCostCodeWrapper(venv=env,
                                              latent_dim=kwargs['latent_dim'],
-                                             cost_info_str=kwargs['cost_info_str'])  # cost with code
+                                             cost_info_str=kwargs['cost_info_str'],
+                                             latent_info_str=kwargs['latent_info_str'],
+                                             max_seq_len=kwargs['max_seq_len'])  # cost with code
         else:
             env = vec_env.VecCostWrapper(venv=env, cost_info_str=kwargs['cost_info_str'])  # external cost
 
@@ -115,7 +119,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
 
 
 def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
-                  mode='test', use_cost=False, normalize_obs=True, cost_info_str='cost',
+                  mode='test', use_cost=False, normalize_obs=True,
                   part_data=False, multi_env=False, log_file=None,**kwargs):
     if config_path is not None:
         with open(config_path, "r") as config_file:
@@ -130,7 +134,10 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
             env_configs["test_env"] = True
     else:
         env_configs = {}
-
+    if 'constraint_id' in kwargs:  # the environments contain a mixture of constraints
+        env_configs['constraint_id'] = kwargs['constraint_id']
+    else:
+        env_configs['constraint_id'] = 0
     env = [make_env(env_id=env_id,
                     env_configs=env_configs,
                     rank=i,
@@ -145,13 +152,15 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
 
     if use_cost:
         if group == 'PPO-Lag':
-            env = InternalVecCostWrapper(venv=env, cost_info_str=cost_info_str)  # internal cost
-        elif group == 'MEICRL':
+            env = InternalVecCostWrapper(venv=env, cost_info_str=kwargs['cost_info_str'])  # internal cost
+        elif group == 'MEICRL' or group == 'InfoICRL':
             env = vec_env.VecCostCodeWrapper(venv=env,
                                              latent_dim=kwargs['latent_dim'],
-                                             cost_info_str=cost_info_str)  # cost with code
+                                             cost_info_str=kwargs['cost_info_str'],
+                                             latent_info_str=kwargs['latent_info_str'],
+                                             max_seq_len=kwargs['max_seq_len'])  # cost with code
         else:
-            env = vec_env.VecCostWrapper(venv=env, cost_info_str=cost_info_str)  # external cost, must be learned
+            env = vec_env.VecCostWrapper(venv=env, cost_info_str=kwargs['cost_info_str'])  # external cost, must be learned
     # print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
     if group == 'PPO' or group == 'GAIL':
         env = vec_env.VecNormalize(env, training=False, norm_obs=normalize_obs, norm_reward=False)

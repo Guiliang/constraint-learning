@@ -6,6 +6,7 @@ env:
   config_path: "../config/inD_environment_configurations_ppo.yaml"
   train_env_id : 'commonroad-v1'
   eval_env_id: 'commonroad-v1'
+  constraint_id: null
   save_dir: '../save_model'
   expert_path: 'expert_data'
   expert_rollouts: 10

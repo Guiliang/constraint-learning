@@ -4,10 +4,7 @@ import numpy as np
 
 def get_true_cost_function(env_id, env_configs={}):
     """Returns the cost function correpsonding to provided env)"""
-    if 'constraint_id' in env_configs:
-        c_id = env_configs['constraint_id']
-    else:
-        c_id = 0
+    c_id = env_configs['constraint_id']
     if env_id in ["HCWithPosTest-v0",
                   "AntWallTest-v0",
                   "HCWithPos-v0",
@@ -16,25 +13,35 @@ def get_true_cost_function(env_id, env_configs={}):
         if c_id == 0:
             return partial(wall_behind, -3)
         elif c_id == 1:
-            return partial(wall_behind, 3)
+            return partial(wall_infront, 3)
+        else:
+            raise ValueError("Unknown cid {0}.".format(c_id))
     elif env_id in ["SwimmerWithPos-v0",
                     "SwimmerWithPosTest-v0"
                     ]:
         if c_id == 0:
             return partial(wall_infront, 0.5)  # -0.1
+        else:
+            raise ValueError("Unknown cid {0}.".format(c_id))
     elif env_id in ["InvertedPendulumWall-v0",
                     "InvertedPendulumWallTest-v0",
                     ]:
         if c_id == 0:
             return partial(wall_behind, -0.015)
+        else:
+            raise ValueError("Unknown cid {0}.".format(c_id))
     elif env_id in ["WalkerWithPos-v0",
                     "WalkerWithPosTest-v0", ]:
         if c_id == 0:
             return partial(wall_behind, -3)
+        else:
+            raise ValueError("Unknown cid {0}.".format(c_id))
     elif env_id in ["WGW-v0"]:
         if c_id == 0:
             unsafe_states = env_configs['unsafe_states']
             return partial(wall_in, unsafe_states)
+        else:
+            raise ValueError("Unknown cid {0}.".format(c_id))
     elif env_id in ["Circle-v0",]:
         return null_cost
     else:

@@ -115,12 +115,14 @@ def train(config):
                        normalize_reward=not config['env']['dont_normalize_reward'],
                        normalize_cost=not config['env']['dont_normalize_cost'],
                        cost_info_str=config['env']['cost_info_str'],
-                       latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config['group'] else None,
+                       latent_info_str=config['env']['latent_info_str'],
+                       latent_dim=config['CN']['latent_dim'],
                        reward_gamma=config['env']['reward_gamma'],
                        cost_gamma=config['env']['cost_gamma'],
                        multi_env=multi_env,
                        part_data=partial_data,
                        constraint_id=config['env']['constraint_id'],
+                       max_seq_len=config['running']['max_seq_length'],
                        log_file=log_file,
                        )
     all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
@@ -141,11 +143,14 @@ def train(config):
                       num_threads=sample_num_threads,
                       mode='sample',
                       use_cost=config['env']['use_cost'],
+                      cost_info_str=config['env']['cost_info_str'],
+                      latent_info_str=config['env']['latent_info_str'],
                       normalize_obs=not config['env']['dont_normalize_obs'],
-                      latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config['group'] else None,
+                      latent_dim=config['CN']['latent_dim'],
                       part_data=partial_data,
                       multi_env=sample_multi_env,
                       constraint_id=config['env']['constraint_id'],
+                      max_seq_len=config['running']['max_seq_length'],
                       log_file=log_file)
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
@@ -161,10 +166,12 @@ def train(config):
                       use_cost=config['env']['use_cost'],
                       normalize_obs=not config['env']['dont_normalize_obs'],
                       cost_info_str=config['env']['cost_info_str'],
-                      latent_dim=config['CN']['latent_dim'] if 'MEICRL' == config['group'] else None,
+                      latent_info_str=config['env']['latent_info_str'],
+                      latent_dim=config['CN']['latent_dim'],
                       part_data=partial_data,
                       multi_env=False,
                       constraint_id=config['env']['constraint_id'],
+                      max_seq_len=config['running']['max_seq_length'],
                       log_file=log_file)
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev,
@@ -200,7 +207,10 @@ def train(config):
 
     # plot expert traj
     plt.figure(figsize=(6, 6))
-    plt.scatter(expert_obs[:, -2], expert_obs[:, -1], s=10)
+    if config['running']['store_by_game']:
+        plt.scatter(np.concatenate(expert_obs, axis=0)[:, -2], np.concatenate(expert_obs, axis=0)[:, -1], s=10)
+    else:
+        plt.scatter(expert_obs[:, -2], expert_obs[:, -1], s=10)
     plt.xlim([-1, 1])
     plt.ylim([-1, 1])
     plt.grid()
@@ -267,6 +277,7 @@ def train(config):
         constraint_net = InfoConstraintNet(**cn_parameters)
     elif 'MEICRL' == config['group']:
         cn_parameters.update({'latent_dim': config['CN']['latent_dim'], })
+        cn_parameters.update({'max_seq_length': config['running']['max_seq_length'], })
         constraint_net = MixtureConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown group: {0}".format(config['group']))
@@ -300,7 +311,8 @@ def train(config):
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
             nominal_agent.learn(
                 total_timesteps=config['PPO']['forward_timesteps'],
-                cost_function="cost",  # Cost should come from cost wrapper
+                cost_info_str=config['env']['cost_info_str'],
+                latent_info_str=config['env']['latent_info_str'],
                 callback=[callback]
             )
             forward_metrics = logger.Logger.CURRENT.name_to_value
@@ -330,7 +342,7 @@ def train(config):
             env=sample_env,
             deterministic=True,
             rollouts=int(config['running']['sample_rollouts']),
-            store_by_game=config['running']['use_buffer'],
+            store_by_game=config['running']['store_by_game'],
             **sample_parameters
         )
         orig_observations, observations, actions, rewards, codes, sum_rewards, lengths = sample_data
@@ -383,7 +395,10 @@ def train(config):
             del_and_make(save_path)
             # visualized sampled data
             plt.figure(figsize=(6, 6))
-            plt.scatter(sample_obs[:, -2], sample_obs[:, -1], s=10)
+            if config['running']['store_by_game']:
+                plt.scatter(np.concatenate(sample_obs, axis=0)[:, -2], np.concatenate(sample_obs, axis=0)[:, -1], s=10)
+            else:
+                plt.scatter(sample_obs[:, -2], sample_obs[:, -1], s=10)
             plt.xlim([-1, 1])
             plt.ylim([-1, 1])
             plt.grid()
@@ -408,10 +423,21 @@ def train(config):
             constraint_net.save(os.path.join(save_path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
-            if len(expert_acs.shape) == 1:
-                empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
+
+            if config['running']['store_by_game']:
+                if len(np.concatenate(expert_acs, axis=0).shape) == 1:
+                    empirical_input_means = np.concatenate([np.concatenate(expert_obs, axis=0),
+                                                            np.expand_dims(np.concatenate(expert_acs, axis=0), 1)],
+                                                           axis=1).mean(0)
+                else:
+                    empirical_input_means = np.concatenate([np.concatenate(expert_obs, axis=0),
+                                                            np.concatenate(expert_acs, axis=0)], axis=1).mean(0)
             else:
-                empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
+                if len(expert_acs.shape) == 1:
+                    empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
+                else:
+                    empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
+
             constraint_visualization_2d(cost_function_with_code=constraint_net.cost_function_with_code,
                                         feature_range=config['env']["visualize_info_ranges"],
                                         select_dims=config['env']["record_info_input_dims"],

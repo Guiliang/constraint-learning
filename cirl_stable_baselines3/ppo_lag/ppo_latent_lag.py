@@ -65,42 +65,42 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
     """
 
     def __init__(
-        self,
-        policy: Union[str, Type[ActorCriticPolicy]],
-        env: Union[GymEnv, str],
-        latent_dim: int,
-        algo_type: str = 'lagrangian',         # lagrangian or pidlagrangian
-        learning_rate: Union[float, Callable] = 3e-4,
-        n_steps: int = 2048,
-        batch_size: Optional[int] = 64,
-        n_epochs: int = 10,
-        reward_gamma: float = 0.99,
-        reward_gae_lambda: float = 0.95,
-        cost_gamma: float = 0.99,
-        cost_gae_lambda: float = 0.95,
-        clip_range: float = 0.2,
-        clip_range_reward_vf: Optional[float] = None,
-        clip_range_cost_vf: Optional[float] = None,
-        ent_coef: float = 0.0,
-        reward_vf_coef: float = 0.5,
-        cost_vf_coef: float = 0.5,
-        max_grad_norm: float = 0.5,
-        use_sde: bool = False,
-        sde_sample_freq: int = -1,
-        target_kl: Optional[float] = None,
-        penalty_initial_value: float = 1,
-        penalty_learning_rate: float = 0.01,
-        penalty_min_value: Optional[float] = None,
-        update_penalty_after: int = 1,
-        budget: float = 0.,
-        tensorboard_log: Optional[str] = None,
-        create_eval_env: bool = False,
-        pid_kwargs: Optional[Dict[str, Any]] = None,
-        policy_kwargs: Optional[Dict[str, Any]] = None,
-        verbose: int = 0,
-        seed: Optional[int] = None,
-        device: Union[th.device, str] = "auto",
-        _init_setup_model: bool = True,
+            self,
+            policy: Union[str, Type[ActorCriticPolicy]],
+            env: Union[GymEnv, str],
+            latent_dim: int,
+            algo_type: str = 'lagrangian',  # lagrangian or pidlagrangian
+            learning_rate: Union[float, Callable] = 3e-4,
+            n_steps: int = 2048,
+            batch_size: Optional[int] = 64,
+            n_epochs: int = 10,
+            reward_gamma: float = 0.99,
+            reward_gae_lambda: float = 0.95,
+            cost_gamma: float = 0.99,
+            cost_gae_lambda: float = 0.95,
+            clip_range: float = 0.2,
+            clip_range_reward_vf: Optional[float] = None,
+            clip_range_cost_vf: Optional[float] = None,
+            ent_coef: float = 0.0,
+            reward_vf_coef: float = 0.5,
+            cost_vf_coef: float = 0.5,
+            max_grad_norm: float = 0.5,
+            use_sde: bool = False,
+            sde_sample_freq: int = -1,
+            target_kl: Optional[float] = None,
+            penalty_initial_value: float = 1,
+            penalty_learning_rate: float = 0.01,
+            penalty_min_value: Optional[float] = None,
+            update_penalty_after: int = 1,
+            budget: float = 0.,
+            tensorboard_log: Optional[str] = None,
+            create_eval_env: bool = False,
+            pid_kwargs: Optional[Dict[str, Any]] = None,
+            policy_kwargs: Optional[Dict[str, Any]] = None,
+            verbose: int = 0,
+            seed: Optional[int] = None,
+            device: Union[th.device, str] = "auto",
+            _init_setup_model: bool = True,
     ):
 
         super(PPOLagrangianInfo, self).__init__(
@@ -150,7 +150,8 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
         super(PPOLagrangianInfo, self)._setup_model()
 
         if self.algo_type == 'lagrangian':
-            self.dual = DualVariable(self.budget, self.penalty_learning_rate, self.penalty_initial_value, self.penalty_min_value)
+            self.dual = DualVariable(self.budget, self.penalty_learning_rate, self.penalty_initial_value,
+                                     self.penalty_min_value)
         elif self.algo_type == 'pidlagrangian':
             self.dual = PIDLagrangian(alpha=self.pid_kwargs['alpha'],
                                       penalty_init=self.pid_kwargs['penalty_init'],
@@ -223,7 +224,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
 
                 # Center but NOT rescale cost advantages
                 cost_advantages = rollout_data.cost_advantages - rollout_data.cost_advantages.mean()
-                #cost_advantages /= (rollout_data.cost_advantages.std() + 1e-8)
+                # cost_advantages /= (rollout_data.cost_advantages.std() + 1e-8)
 
                 # Ratio between old and new policy, should be one at the first iteration
                 ratio = th.exp(log_prob - rollout_data.old_log_prob)
@@ -307,14 +308,16 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
         # TODO: Experiment with discounted cost.
         average_cost = np.mean(self.rollout_buffer.orig_costs)
         total_cost = np.sum(self.rollout_buffer.orig_costs)
-        if self.update_penalty_after is None or ((self._n_updates/self.n_epochs) % self.update_penalty_after == 0):
+        if self.update_penalty_after is None or ((self._n_updates / self.n_epochs) % self.update_penalty_after == 0):
             self.dual.update_parameter(average_cost)
 
         mean_reward_advantages = np.mean(self.rollout_buffer.reward_advantages.flatten())
         mean_cost_advantages = np.mean(self.rollout_buffer.cost_advantages.flatten())
 
-        explained_reward_var = explained_variance(self.rollout_buffer.reward_returns.flatten(), self.rollout_buffer.reward_values.flatten())
-        explained_cost_var = explained_variance(self.rollout_buffer.cost_returns.flatten(), self.rollout_buffer.cost_values.flatten())
+        explained_reward_var = explained_variance(self.rollout_buffer.reward_returns.flatten(),
+                                                  self.rollout_buffer.reward_values.flatten())
+        explained_cost_var = explained_variance(self.rollout_buffer.cost_returns.flatten(),
+                                                self.rollout_buffer.cost_values.flatten())
 
         # Logs
         logger.record("train/entropy_loss", np.mean(entropy_losses))
@@ -343,22 +346,24 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
             logger.record("train/clip_range_cost_vf", clip_range_cost_vf)
 
     def learn(
-        self,
-        total_timesteps: int,
-        cost_function: Union[str,Callable],
-        callback: MaybeCallback = None,
-        log_interval: int = 1,
-        eval_env: Optional[GymEnv] = None,
-        eval_freq: int = -1,
-        n_eval_episodes: int = 5,
-        tb_log_name: str = "PPOLagrangian",
-        eval_log_path: Optional[str] = None,
-        reset_num_timesteps: bool = True,
+            self,
+            total_timesteps: int,
+            cost_info_str: str,
+            latent_info_str: str,
+            callback: MaybeCallback = None,
+            log_interval: int = 1,
+            eval_env: Optional[GymEnv] = None,
+            eval_freq: int = -1,
+            n_eval_episodes: int = 5,
+            tb_log_name: str = "PPOLagrangian",
+            eval_log_path: Optional[str] = None,
+            reset_num_timesteps: bool = True,
     ) -> "PPOLagrangian":
 
         return super(PPOLagrangianInfo, self).learn(
             total_timesteps=total_timesteps,
-            cost_function=cost_function,
+            cost_info_str=cost_info_str,
+            latent_info_str=latent_info_str,
             callback=callback,
             log_interval=log_interval,
             eval_env=eval_env,

@@ -1,7 +1,7 @@
 import os
 import random
 from itertools import accumulate
-from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Type, Union, List
 import numpy as np
 import torch
 import torch as th
@@ -12,6 +12,7 @@ from cirl_stable_baselines3.common.utils import update_learning_rate
 from torch import nn
 from tqdm import tqdm
 
+from utils.data_utils import build_rnn_input
 from utils.model_utils import build_code
 
 
@@ -43,6 +44,7 @@ class MixtureConstraintNet(ConstraintNet):
             target_kl_old_new: float = -1,
             target_kl_new_old: float = -1,
             train_gail_lambda: Optional[bool] = False,
+            max_seq_length: float = 10,
             eps: float = 1e-5,
             eta: float = 0.1,
             device: str = "cpu",
@@ -77,6 +79,7 @@ class MixtureConstraintNet(ConstraintNet):
                                                    log_file=log_file,
                                                    build_net=False)
         self.latent_dim = latent_dim
+        self.max_seq_length = max_seq_length
         self.eta = eta
         self._build()
 
@@ -100,14 +103,16 @@ class MixtureConstraintNet(ConstraintNet):
 
         # Create constraint function and add sigmoid at the end
         self.constraint_function = nn.Sequential(
-            *create_mlp(self.input_dims + self.latent_dim, 1, self.hidden_sizes),
+            *create_mlp(self.input_dims + self.latent_dim, 1, list(self.hidden_sizes)),
             nn.Sigmoid()
         )
         self.constraint_function.to(self.device)
 
-        # Create the posterior of latent code encoder. The code should be in a one-hot format, so we use softmax
+        # Create the posterior of latent code encoder. The code should be in a one-hot format, so we use
+        self.rnn = nn.GRUCell(self.input_dims, self.hidden_sizes[0]).to(self.device)
         self.posterior_encoder = nn.Sequential(
-            *create_mlp(self.input_dims, self.latent_dim, self.hidden_sizes),
+            *create_mlp(self.hidden_sizes[0], self.latent_dim,
+                        list(self.hidden_sizes[1:]) if len(self.hidden_sizes) > 1 else self.hidden_sizes),
             nn.Softmax()
         ).to(self.device)
         self.bce_loss = th.nn.BCELoss()
@@ -136,16 +141,24 @@ class MixtureConstraintNet(ConstraintNet):
         cost = 1 - out.detach().cpu().numpy()
         return cost.squeeze(axis=-1)
 
-    def latent_function(self, obs: np.ndarray, acs: np.ndarray) -> np.ndarray:
-        assert obs.shape[-1] == self.obs_dim, ""
-        if not self.is_discrete:
-            assert acs.shape[-1] == self.acs_dim, ""
-
-        data = self.prepare_data(obs, acs)
+    def latent_function(self, obs: List[np.ndarray], acs: List[np.ndarray]) -> np.ndarray:
+        """
+        obs: [env_len, seq_len, obs_dim]
+        acs: [env_len, seq_len, obs_dim]
+        """
+        assert len(obs) == len(acs)
+        data_games = [self.prepare_data(obs[i], acs[i]) for i in range(len(obs))]
+        seq_games = [build_rnn_input(max_seq_length=self.max_seq_length,
+                                     input_data_list=data_games[i])[-1, :]
+                     for i in range(len(data_games))]
+        seqs = torch.stack(seq_games, dim=0)  # [env_len, seq_len, obs_dim]
+        rnn_batch_hidden_states = None
         with th.no_grad():
-            out = self.posterior_encoder(data)
-        code_posterior = out.detach().cpu().numpy()
-        return code_posterior
+            for i in range(int(self.max_seq_length)):
+                rnn_input = seqs[:, i, :]
+                rnn_batch_hidden_states = self.rnn(input=rnn_input, hx=rnn_batch_hidden_states)
+            latent_posterior = self.posterior_encoder(rnn_batch_hidden_states).detach().cpu().numpy()
+        return latent_posterior
 
     def call_forward(self, x: np.ndarray):
         with th.no_grad():
@@ -172,67 +185,65 @@ class MixtureConstraintNet(ConstraintNet):
         self.current_obs_var = obs_var
 
         # Prepare data
-        nominal_data = self.prepare_data(nominal_obs, nominal_acs)
-        expert_data = self.prepare_data(self.expert_obs, self.expert_acs)
+        nominal_games = [self.prepare_data(nominal_obs[i], nominal_acs[i]) for i in range(len(nominal_obs))]
+        expert_games = [self.prepare_data(self.expert_obs[i], self.expert_acs[i]) for i in range(len(self.expert_obs))]
+
+        # build rnn input:
+        nominal_seq_games = [build_rnn_input(max_seq_length=self.max_seq_length,
+                                             input_data_list=nominal_games[i])
+                             for i in range(len(nominal_obs))]
+        nominal_seqs = torch.cat(nominal_seq_games, dim=0)  # [data_num, seq_len, input_dim]
+        expert_seq_games = [build_rnn_input(max_seq_length=self.max_seq_length,
+                                            input_data_list=expert_games[i])
+                            for i in range(len(expert_games))]
+        expert_seqs = torch.cat(expert_seq_games, dim=0)  # [data_num, seq_len, input_dim]
+
         assert 'nominal_codes' in other_parameters
-        nominal_codes = th.tensor(other_parameters['nominal_codes'], dtype=th.float32).to(self.device)
+        nominal_codes = th.tensor(other_parameters['nominal_codes'], dtype=th.float32).\
+            reshape([-1, self.latent_dim]).to(self.device)
         assert 'expert_codes' in other_parameters
-        expert_codes = th.tensor(other_parameters['expert_codes'], dtype=th.float32).to(self.device)
+        expert_codes = th.tensor(other_parameters['expert_codes'], dtype=th.float32).\
+            reshape([-1, self.latent_dim]).to(self.device)
 
         expert_candidate_code = build_code(code_axis=[i for i in range(self.latent_dim)],
                                            code_dim=self.latent_dim,
                                            num_envs=self.latent_dim)
-        expert_candidate_codes = np.expand_dims(expert_candidate_code, axis=0).repeat(len(expert_data), axis=0)
+        expert_candidate_codes = np.expand_dims(expert_candidate_code, axis=0).repeat(len(expert_seqs), axis=0)
         expert_candidate_codes = th.tensor(expert_candidate_codes, dtype=th.float32).to(self.device)
 
-        # Save current network predictions if using importance sampling
-        if self.importance_sampling:
-            with th.no_grad():
-                nominal_input = th.cat([nominal_data, nominal_codes], dim=1)
-                start_preds = self.forward(nominal_input).detach()
-
-        early_stop_itr = iterations
-        discriminator_loss = th.tensor(np.inf)
         for itr in tqdm(range(iterations)):
-            # Compute IS weights
-            assert self.importance_sampling is False
-            if self.importance_sampling:
-                with th.no_grad():
-                    nominal_input = th.cat([nominal_data, nominal_codes], dim=1)
-                    current_preds = self.forward(nominal_input).detach()
-                is_weights, kl_old_new, kl_new_old = self.compute_is_weights(start_preds.clone(),
-                                                                             current_preds.clone(),
-                                                                             episode_lengths)
-                # Break if kl is very large
-                if ((self.target_kl_old_new != -1 and kl_old_new > self.target_kl_old_new) or
-                        (self.target_kl_new_old != -1 and kl_new_old > self.target_kl_new_old)):
-                    early_stop_itr = itr
-                    break
-            else:
-                is_weights = th.ones(nominal_data.shape[0]).to(self.device)
-
-            # classify the expert data with posterior
-            latent_prediction = self.posterior_encoder(expert_data).argmax(dim=1)
+            # # classify the expert data with posterior
+            # rnn_batch_hidden_states = None
+            # for i in range(int(self.max_seq_length)):
+            #     rnn_input = expert_seqs[:, i, :]
+            #     rnn_batch_hidden_states = self.rnn(input=rnn_input, hx=rnn_batch_hidden_states)
+            # latent_prediction = self.posterior_encoder(rnn_batch_hidden_states).argmax(dim=1)
 
             # Do a complete pass on data
-            for nom_batch_indices, exp_batch_indices in self.get(nominal_data.shape[0], expert_data.shape[0]):
+            for nom_batch_indices, exp_batch_indices in self.get(nominal_seqs.shape[0], expert_seqs.shape[0]):
                 # Get batch data
-                nominal_data_batch = nominal_data[nom_batch_indices]
+                nominal_data_batch = nominal_seqs[nom_batch_indices][:, -1, :]  # [data_num, input_dim]
+                nominal_seqs_batch = nominal_seqs[nom_batch_indices]
                 nominal_code_batch = nominal_codes[nom_batch_indices]
-                expert_data_batch = expert_data[exp_batch_indices]
+                expert_data_batch = expert_seqs[exp_batch_indices][:, -1, :]  # [data_num, input_dim]
+                expert_seqs_batch = expert_seqs[exp_batch_indices]  # [data_num, seq_len, input_dim]
                 expert_candidate_code_batch = expert_candidate_codes[exp_batch_indices]
-                is_batch = is_weights[nom_batch_indices][..., None]
 
                 # Nominal predictions
                 nominal_input_batch = th.cat([nominal_data_batch, nominal_code_batch], dim=1)
                 nominal_preds = self.__call__(nominal_input_batch)
-                nominal_loss = th.mean(is_batch * th.log(nominal_preds + self.eps))
+                nominal_loss = th.mean(th.log(nominal_preds + self.eps))
 
                 # Latent predictions
-                latent_pred_prob = self.posterior_encoder(expert_data_batch).detach()
-                latent_prediction = latent_pred_prob.argmax(dim=1)
-                latent_max_mask = F.one_hot(latent_prediction, num_classes=self.latent_dim).to(self.device)
-                latent_others_mask = torch.ones([expert_data_batch.shape[0], self.latent_dim]).to(self.device) - latent_max_mask
+                rnn_batch_hidden_states = None
+                for i in range(int(self.max_seq_length)):
+                    rnn_batch_input = expert_seqs_batch[:, i, :]
+                    rnn_batch_hidden_states = self.rnn(input=rnn_batch_input, hx=rnn_batch_hidden_states)
+                expert_latent_prob = self.posterior_encoder(rnn_batch_hidden_states).detach()
+                expert_latent_pred = expert_latent_prob.argmax(dim=1)
+                expert_latent_max_mask = F.one_hot(expert_latent_pred, num_classes=self.latent_dim).to(self.device)
+                expert_latent_others_mask = torch.ones([expert_latent_prob.shape[0], self.latent_dim]).to(
+                    self.device) - expert_latent_max_mask
 
                 # Expert predictions
                 expert_candidate_batch = expert_data_batch.unsqueeze(dim=1).repeat(1, self.latent_dim, 1)
@@ -240,21 +251,25 @@ class MixtureConstraintNet(ConstraintNet):
                 expert_preds = self.__call__(expert_input_batch.reshape(
                     shape=[-1, self.latent_dim + self.input_dims])).reshape(shape=[-1, self.latent_dim])
 
-                tmp1 = th.log(expert_preds + self.eps) * latent_max_mask
-                expert_loss_1 = -th.sum(th.log(expert_preds + self.eps) * latent_max_mask, dim=1)
-                tmp2 = th.log(expert_preds + self.eps) * latent_others_mask
-                expert_loss_2 = 1/(self.latent_dim-1)*th.sum(th.log(expert_preds + self.eps) * latent_others_mask, dim=1)
-                expert_loss = (expert_loss_1 + self.eta*expert_loss_2).mean()
+                tmp1 = th.log(expert_preds + self.eps) * expert_latent_max_mask
+                expert_loss_1 = -th.sum(th.log(expert_preds + self.eps) * expert_latent_max_mask, dim=1)
+                tmp2 = th.log(expert_preds + self.eps) * expert_latent_others_mask
+                expert_loss_2 = 1 / (self.latent_dim - 1) * th.sum(
+                    th.log(expert_preds + self.eps) * expert_latent_others_mask, dim=1)
+                expert_loss = (expert_loss_1 + self.eta * expert_loss_2).mean()
 
                 # add regularization
                 # regularizer_loss = self.regularizer_coeff * (th.mean(1 - expert_preds) + th.mean(1 - nominal_preds))
                 regularizer_loss = th.tensor(0)
-                discriminator_loss = expert_loss + (1-self.eta)*nominal_loss
+                discriminator_loss = expert_loss + (1 - self.eta) * nominal_loss
 
                 # update posterior
-                # TODO: need to consider the history
-                posterior_output = self.posterior_encoder(nominal_data_batch)
-                posterior_loss = self.bce_loss(posterior_output, nominal_code_batch)
+                rnn_batch_hidden_states = None
+                for i in range(int(self.max_seq_length)):
+                    rnn_batch_input = nominal_seqs_batch[:, i, :]
+                    rnn_batch_hidden_states = self.rnn(input=rnn_batch_input, hx=rnn_batch_hidden_states)
+                nominal_latent_prob = self.posterior_encoder(rnn_batch_hidden_states)
+                posterior_loss = self.bce_loss(nominal_latent_prob, nominal_code_batch)
 
                 # Update
                 self.optimizer.zero_grad()
@@ -268,21 +283,12 @@ class MixtureConstraintNet(ConstraintNet):
                       "backward/unweighted_nominal_loss": th.mean(th.log(nominal_preds + self.eps)).item(),
                       "backward/nominal_loss": nominal_loss.item(),
                       "backward/regularizer_loss": regularizer_loss.item(),
-                      "backward/is_mean": th.mean(is_weights).detach().item(),
-                      "backward/is_max": th.max(is_weights).detach().item(),
-                      "backward/is_min": th.min(is_weights).detach().item(),
                       "backward/nominal_preds_max": th.max(nominal_preds).item(),
                       "backward/nominal_preds_min": th.min(nominal_preds).item(),
                       "backward/nominal_preds_mean": th.mean(nominal_preds).item(),
                       "backward/expert_preds_max": th.max(expert_preds).item(),
                       "backward/expert_preds_min": th.min(expert_preds).item(),
                       "backward/expert_preds_mean": th.mean(expert_preds).item(), }
-        if self.importance_sampling:
-            stop_metrics = {"backward/kl_old_new": kl_old_new.item(),
-                            "backward/kl_new_old": kl_new_old.item(),
-                            "backward/early_stop_itr": early_stop_itr}
-            bw_metrics.update(stop_metrics)
-
         return bw_metrics
 
     def save(self, save_path):
