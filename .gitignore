@@ -166,5 +166,6 @@ tmp*
 *.out
 slurm*
 .mujoco
+.mujoco-bak
 
 
