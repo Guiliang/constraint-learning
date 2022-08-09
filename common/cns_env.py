@@ -29,8 +29,7 @@ def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0)
                 {'train_reset_config_path': env_configs['train_reset_config_path'] + '/{0}'.format(rank)}),
         if 'external_reward' in env_configs:
             del env_configs_copy['external_reward']
-        env = gym.make(id=env_id,
-                       **env_configs_copy)
+        env = gym.make(id=env_id, **env_configs_copy)
         env.seed(seed + rank)
         del env_configs_copy
         if is_commonroad(env_id) and 'external_reward' in env_configs:
@@ -76,8 +75,10 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
                     multi_env=multi_env,
                     seed=base_seed)
            for i in range(num_threads)]
+    # monitor_logger = [sub_env.get_logger() for sub_env in env]
     # if 'HC' in env_id:
     env = vec_env.SubprocVecEnv(env)
+    # env.set_attr('write_marker', 'True')
     # elif 'commonroad' in env_id:
     # env = vec_env.DummyVecEnv(env)
     # else:

@@ -146,7 +146,7 @@ def compute_moving_average(result_all, average_num=100):
     return result_moving_all[:-average_num]
 
 
-def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_episodes):
+def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_episodes, constraint_key='constraint'):
     read_running_logs = {}
 
     # handle the keys
@@ -157,9 +157,11 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
     # if len(record_keys) > 10:
     #     raise ValueError("Something wrong with the file {0}".format(monitor_path_all[0]))
     for key in read_keys:
+        read_running_logs.update({key: []})
+        if key == 'reward_valid':
+            continue
         key_idx = record_keys.index(key)
         key_indices.update({key: key_idx})
-        read_running_logs.update({key: []})
 
     # read all the logs
     running_logs_all = []
@@ -173,6 +175,9 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
     max_len = min(float(max_episodes / len(monitor_path_all)), max_len)
     # iteratively read the logs
     line_num = 0
+    episode = 0
+    valid_rewards = []
+    valid_episodes = []
     while line_num < max_len:
         old_results = None
         for i in range(len(monitor_path_all)):
@@ -180,26 +185,38 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
                 continue
             running_performance = running_logs_all[i][line_num]
             log_items = running_performance.split(',')
-            if len(log_items) != len(record_keys):
-                # continue
-                results = old_results
-            else:
-                try:
-                    results = [item.replace("\n", "") for item in log_items]
-                    if float(results[key_indices['reward']]) > max_reward or float(
-                            results[key_indices['reward']]) < min_reward:
-                        # continue
-                        results = old_results
-                except:
-                    results = old_results
-                    # continue
+            results = [item.replace("\n", "") for item in log_items]
+            # if len(log_items) != len(record_keys):
+            #     # continue
+            #     results = old_results
+            # else:
+            #     try:
+            #         results = [item.replace("\n", "") for item in log_items]
+            #         if float(results[key_indices['reward']]) > max_reward or float(
+            #                 results[key_indices['reward']]) < min_reward:
+            #             # continue
+            #             results = old_results
+            #     except:
+            #         results = old_results
+            #         # continue
             if results is None:
                 continue
             for key in read_keys:
-                read_running_logs[key].append(float(results[key_indices[key]]))
+                if key == 'reward_valid':
+                    tmp = int(results[key_indices[constraint_key]])
+                    if int(results[key_indices[constraint_key]]) == 0:  # if constraint is not broken at this episode
+                        valid_episodes.append(episode)
+                        # valid_rewards.append(float(results[key_indices['reward']]))
+                        read_running_logs[key].append(float(results[key_indices['reward']]))
+                    else:
+                        read_running_logs[key].append(float(0))
+                else:
+                    read_running_logs[key].append(float(results[key_indices[key]]))
+            # all_episodes.append(episode)
+            episode += 1
         line_num += 1
 
-    return read_running_logs
+    return read_running_logs, valid_rewards, valid_episodes
 
 
 def save_game_record(info, file, type, cost=None):
@@ -402,9 +419,48 @@ def get_input_features_dim(feature_select_names, all_feature_names):
     return feature_select_dim
 
 
+def mean_std_plot_valid_rewards(all_valid_rewards, all_valid_episodes):
+    max_episode = 0
+    mean_valid_rewards = []
+    std_valid_rewards = []
+    valid_episodes = []
+    for i in range(len(all_valid_episodes)):
+        if all_valid_episodes[i][-1] > max_episode:
+            max_episode = all_valid_episodes[i][-1]
+
+    for episode in range(max_episode):
+        valid_rewards_episode = []
+        for i in range(len(all_valid_episodes)):
+            if episode in all_valid_episodes[i]:
+                index = all_valid_episodes[i].index(episode)
+                valid_rewards_episode.append(all_valid_rewards[i][index])
+        if len(valid_rewards_episode) > 0:
+            valid_episodes.append(episode)
+            mean_valid_reward = np.mean(np.asarray(valid_rewards_episode))
+            std_valid_reward = np.std(np.asarray(valid_rewards_episode))
+            mean_valid_rewards.append(mean_valid_reward)
+            std_valid_rewards.append(std_valid_reward)
+
+    return mean_valid_rewards, std_valid_rewards, valid_episodes
+
+
+def mean_std_test_results(all_results, method_name, testing_times=10):
+    key = 'reward_valid'
+    # for key in all_results[0]:
+    key_results_all = []
+    for results in all_results:
+        tmp = results[key][-testing_times:]
+        key_results_all += tmp
+    # key_results_all += [-40]
+    print(key_results_all)
+    print(method_name, key, np.mean(key_results_all), np.std(key_results_all)/2)
+    print('\n')
+
+
 def mean_std_plot_results(all_results):
     mean_results = {}
     std_results = {}
+    episodes = {}
     for key in all_results[0]:
         all_plot_values = []
         max_len = 0
@@ -420,23 +476,24 @@ def mean_std_plot_results(all_results):
         plot_value_all = []
         for plot_values in all_plot_values:
             plot_value_all.append(plot_values[:min_len])
-        for i in range(min_len, max_len):
-            plot_value_t = []
-            for plot_values in all_plot_values:
-                if len(plot_values) > i:
-                    plot_value_t.append(plot_values[i])
-
-            if 0 < len(plot_value_t) < len(all_plot_values):
-                for j in range(len(all_plot_values) - len(plot_value_t)):
-                    plot_value_t.append(plot_value_t[j % len(plot_value_t)])  # filling in values
-            for j in range(len(plot_value_t)):
-                plot_value_all[j].append(plot_value_t[j])
+        # for i in range(min_len, max_len):
+        #     plot_value_t = []
+        #     for plot_values in all_plot_values:
+        #         if len(plot_values) > i:
+        #             plot_value_t.append(plot_values[i])
+        #
+        #     if 0 < len(plot_value_t) < len(all_plot_values):
+        #         for j in range(len(all_plot_values) - len(plot_value_t)):
+        #             plot_value_t.append(plot_value_t[j % len(plot_value_t)])  # filling in values
+        #     for j in range(len(plot_value_t)):
+        #         plot_value_all[j].append(plot_value_t[j])
         mean_plot_values = np.mean(np.asarray(plot_value_all), axis=0)
         std_plot_values = np.std(np.asarray(plot_value_all), axis=0)
         mean_results.update({key: mean_plot_values})
         std_results.update({key: std_plot_values})
+        episodes.update({key: [i for i in range(min_len)]})
 
-    return mean_results, std_results
+    return mean_results, std_results, episodes
 
 
 def print_resource(mem_prev, time_prev, process_name, log_file):

@@ -32,6 +32,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             filename += 'r{0}_{1}'.format(rank, "monitor.csv")
 
         self.t_start = time.time()
+        self.write_marker = False
         if filename is None:
             self.file_handler = None
             self.logger = None
@@ -77,6 +78,9 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             self.info_saving_file = None
             self.info_saving_items = []
 
+    def get_logger(self):
+        return self.logger
+
     def set_info_saving_file(self, info_saving_file, info_saving_items):
         if self.info_saving_file is not None:
             self.info_saving_file.close()
@@ -106,6 +110,15 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
         return self.env.reset(**kwargs)
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
+
+        if self.write_marker and self.logger:
+            marker_dict = {}
+            for filename in self.logger.fieldnames:
+                marker_dict.update({filename: '='})
+            self.logger.writerow(marker_dict)
+            self.file_handler.flush()
+            self.write_marker = False
+
         if self.needs_reset:
             raise RuntimeError("Tried to step environment that needs reset")
         observation, reward, done, info = self.env.step(action)

@@ -102,6 +102,7 @@ def plot_shadow_curve(draw_keys,
         plt.show()
     else:
         plt.savefig('{0}_shadow.png'.format(plot_name))
+    plt.close()
 
 
 def pngs2gif(png_dir):

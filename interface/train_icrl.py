@@ -54,9 +54,9 @@ def train(config):
         log_file = None
     debug_msg = ''
     if debug_mode:
-        config['device'] = 'cpu'
+        # config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 200  # 2000
+        config['PPO']['forward_timesteps'] = 2000  # 2000
         config['PPO']['n_steps'] = 32
         config['PPO']['n_epochs'] = 2
         config['running']['n_eval_episodes'] = 10
@@ -311,9 +311,10 @@ def train(config):
     print("\nBeginning training", file=log_file, flush=True)
     best_true_reward, best_true_cost, best_forward_kl, best_reverse_kl = -np.inf, np.inf, np.inf, np.inf
     for itr in range(config['running']['n_iters']):
-        if config['PPO']['reset_policy'] and itr != 0:
+        if config['PPO']['reset_policy'] and itr % config['PPO']['reset_every'] == 0:
             print("\nResetting agent", file=log_file, flush=True)
             nominal_agent = create_nominal_agent()
+            train_env.add_reset_marker()
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
         # Update agent
