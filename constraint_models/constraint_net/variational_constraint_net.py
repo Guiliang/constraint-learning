@@ -122,8 +122,9 @@ class VariationalConstraintNet(ConstraintNet):
                 beta = alpha_beta[:, 1]
                 out = alpha / (alpha + beta)  # the mean of beta distribution
                 out = out.unsqueeze(-1)
-            elif mode == 'risk':
-                pass
+            elif mode == 'hard':
+                out = self.__call__(x)
+                out = torch.round(out)
             else:
                 raise ValueError("Unknown cost mode {0}".format(mode))
         cost = 1 - out.detach().cpu().numpy()

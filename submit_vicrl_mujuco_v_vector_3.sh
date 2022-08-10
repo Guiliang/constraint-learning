@@ -6,7 +6,7 @@
 #SBATCH --time=36:00:00
 #SBATCH --mem=24GB
 #SBATCH --job-name=VICRL
-task_name="train-Mojuco-VICRL_2"
+task_name="train-Mojuco-VICRL_3"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 export PATH=/pkgs/anaconda3/bin:$PATH
@@ -17,5 +17,5 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface
-python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard.yaml -n 5 -s 123 -l "$log_dir"
 echo shell finish running
