@@ -22,8 +22,8 @@ running:
   n_iters: 30
   n_eval_episodes: 10
   save_every: 5
-  expert_rollouts: 10
-  sample_rollouts: 10
+  expert_rollouts: 3
+  sample_rollouts: 3
   store_sample_rollouts: 500
   expert_path: '../data/expert_data/BlockedHalf-cheetah/'
   use_buffer: True
@@ -86,5 +86,5 @@ CN:
   backward_iters: 10
   anneal_clr_by_factor: 0.9
   di_prior: [0.9, 0.1]
-  mode: 'hard'
+  mode: 'sample'
 
