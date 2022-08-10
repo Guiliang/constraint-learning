@@ -203,7 +203,8 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
                 continue
             for key in read_keys:
                 if key == 'reward_valid':
-                    tmp = int(results[key_indices[constraint_key]])
+                    if results[key_indices[constraint_key]] == '=':
+                        continue
                     if int(results[key_indices[constraint_key]]) == 0:  # if constraint is not broken at this episode
                         valid_episodes.append(episode)
                         # valid_rewards.append(float(results[key_indices['reward']]))
@@ -211,6 +212,8 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
                     else:
                         read_running_logs[key].append(float(0))
                 else:
+                    if results[key_indices[key]] == '=':
+                        continue
                     read_running_logs[key].append(float(results[key_indices[key]]))
             # all_episodes.append(episode)
             episode += 1
