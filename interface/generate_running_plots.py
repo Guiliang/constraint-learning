@@ -74,11 +74,13 @@ def generate_plots():
     #     "PPO_lag_Pos": 'PPO_lag',
     # }
     # ================= reset model ====================
-    max_episodes = 30000
+    max_episodes = 6000
     img_size = (10, 5)
     method_names_labels_dict = {
-        "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting1": "VCIRL1",
-        "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": "VCIRL2",
+        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting1": "VCIRL1",
+        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": "VCIRL2",
+        "VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard": "VCIRL1",
+        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard": "VCIRL2",
         "PPO_Pos": 'PPO',
         "PPO_lag_Pos": 'PPO_lag',
     }

@@ -772,6 +772,12 @@ def get_plot_results_dir(env_id):
             "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": [
                 '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2-multi_env-Aug-09-2022-07:17-seed_123/',
             ],
+            "VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard": [
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard-multi_env-Aug-10-2022-09:31-seed_123/',
+            ],
+            "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard": [
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard-multi_env-Aug-10-2022-09:31-seed_123/',
+            ],
             "Binary_HCWithPos-v0_with-action": [
                 '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-21-2022-04:49-seed_123/',
                 '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-21-2022-06:27-seed_321/',
