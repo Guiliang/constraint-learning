@@ -986,6 +986,13 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1-multi_env-May-16-2022-03:43-seed_654/',
                 '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1-multi_env-May-16-2022-08:48-seed_666/',
             ],
+            "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_hard": [
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_hard-multi_env-Aug-11-2022-04:24-seed_123/',
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_hard-multi_env-Aug-11-2022-09:45-seed_321/',
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_hard-multi_env-Aug-11-2022-15:14-seed_456/',
+                # '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_hard-multi_env-Aug-11-2022-20:41-seed_654/',
+                # '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_hard-multi_env-Aug-12-2022-02:01-seed_666/',
+            ],
             'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2': [
                 '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-May-15-2022-04:43-seed_123/',
                 '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2-multi_env-May-15-2022-10:40-seed_123/',

@@ -54,76 +54,87 @@ def generate_plots():
     axis_size = None
     save = True
 
-    env_id = 'HCWithPos-v0'
-    max_episodes = 6000
-    average_num = 100
-    max_reward = 10000
-    min_reward = -10000
-    plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-    label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
-    label_key = [None, None, None, None]
-    img_size = None
-    title = 'Blocked Half-Cheetah'
-    constraint_key = 'constraint'
-    plot_y_lim_dict = {'reward': (0, 7000),
-                       'reward_nc': (0, 5000),
-                       'constraint': (0, 1.1),
-                       'reward_valid': (0, 5000),
-                       }
+    # env_id = 'HCWithPos-v0'
+    # max_episodes = 6000
+    # average_num = 100
+    # max_reward = 10000
+    # min_reward = -10000
+    # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
+    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    # label_key = [None, None, None, None]
+    # img_size = None
+    # title = 'Blocked Half-Cheetah'
+    # constraint_key = 'constraint'
+    # plot_y_lim_dict = {'reward': (0, 7000),
+    #                    'reward_nc': (0, 5000),
+    #                    'constraint': (0, 1.1),
+    #                    'reward_valid': (0, 5000),
+    #                    }
+    # # method_names_labels_dict = {
+    # #     "GAIL_HCWithPos-v0_with-action": 'GACL',  # 'GAIL',
+    # #     "Binary_HCWithPos-v0_with-action": 'BC2L',  # 'Binary',
+    # #     "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
+    # #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VCIRL",
+    # #     "PPO_Pos": 'PPO',
+    # #     "PPO_lag_Pos": 'PPO_lag',
+    # # }
+    # # ================= rebuttal ====================
+    # max_episodes = 5000
+    # img_size = None
+    # save = False
     # method_names_labels_dict = {
-    #     "GAIL_HCWithPos-v0_with-action": 'GACL',  # 'GAIL',
-    #     "Binary_HCWithPos-v0_with-action": 'BC2L',  # 'Binary',
-    #     "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
-    #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VCIRL",
+    #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting1": "VCIRL1",
+    #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": "VCIRL2",
+    #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting3": "VCIRL3",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1_no_is": "VCIRL1",
+    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1_no_is": "VCIRL-0.3",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1_no_is": "VCIRL3",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1-b_no_is": "VCIRL1",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1-b_no_is": "VCIRL2",
+    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1-b_no_is": "VCIRL-0.5",
+    #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VCIRL-Full",
+    #     # "VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard": "VCIRL1",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard": "VCIRL2",
+    #     # 'VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random': 'VCIRL_Random',
     #     "PPO_Pos": 'PPO',
     #     "PPO_lag_Pos": 'PPO_lag',
     # }
-    # ================= reset model ====================
-    max_episodes = 6000
-    img_size = None
+
+    env_id = 'AntWall-V0'
+    max_episodes = 15000
+    average_num = 300
+    title = 'Blocked Ant'
+    max_reward = float('inf')
+    min_reward = -float('inf')
+    plot_key = ['reward', 'constraint', 'reward_valid', 'reward_nc']
+    # label_key = ['reward', 'Constraint Violation Rate', 'reward_valid', 'reward_nc']
+    label_key = [None, None, None, None]
+    img_size = (6.7, 5.6)
+    save = False
+    plot_y_lim_dict = {'reward': None,
+                       'reward_nc': None,
+                       'constraint': (0, 0.5),
+                       'reward_valid': None}
+    constraint_key = 'constraint'
+    method_names_labels_dict = {
+        "GAIL_AntWall-v0_with-action": 'GACL',  # 'GAIL',
+        "Binary_AntWall-v0_with-action_nit-50": 'BC2L',  # 'Binary',
+        "ICRL_AntWall_with-action_nit-50": 'MECL',  # 'ICRL',
+        "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1": "VCIRL",
+        # VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2
+        "PPO-AntWall": 'PPO',
+        "PPO-Lag-AntWall": 'PPO_lag',
+    }
+    # ================= rebuttal ====================
+    max_episodes = 15000
+    img_size = (6.7, 5.6)
     save = False
     method_names_labels_dict = {
-        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting1": "VCIRL1",
-        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": "VCIRL2",
-        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting3": "VCIRL3",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1_no_is": "VCIRL1",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1_no_is": "VCIRL-0.3",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1_no_is": "VCIRL3",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1-b_no_is": "VCIRL1",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1-b_no_is": "VCIRL2",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1-b_no_is": "VCIRL-0.5",
-        "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VCIRL-Full",
-        # "VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard": "VCIRL1",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard": "VCIRL2",
-        # 'VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random': 'VCIRL_Random',
-        "PPO_Pos": 'PPO',
-        "PPO_lag_Pos": 'PPO_lag',
+        "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1": "VCIRL",
+        "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_hard": "VCIRL_Hard",
+        "PPO-AntWall": 'PPO',
+        "PPO-Lag-AntWall": 'PPO_lag',
     }
-
-    # env_id = 'AntWall-V0'
-    # max_episodes = 15000
-    # average_num = 300
-    # title = 'Blocked Ant'
-    # max_reward = float('inf')
-    # min_reward = -float('inf')
-    # plot_key = ['reward', 'constraint', 'reward_valid', 'reward_nc']
-    # # label_key = ['reward', 'Constraint Violation Rate', 'reward_valid', 'reward_nc']
-    # label_key = [None, None, None, None]
-    # img_size = (6.7, 5.6)
-    # plot_y_lim_dict = {'reward': None,
-    #                    'reward_nc': None,
-    #                    'constraint': (0, 0.5),
-    #                    'reward_valid': None}
-    # constraint_key = 'constraint'
-    # method_names_labels_dict = {
-    #     "GAIL_AntWall-v0_with-action": 'GACL',  # 'GAIL',
-    #     "Binary_AntWall-v0_with-action_nit-50": 'BC2L',  # 'Binary',
-    #     "ICRL_AntWall_with-action_nit-50": 'MECL',  # 'ICRL',
-    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1": "VCIRL",
-    #     # VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2
-    #     "PPO-AntWall": 'PPO',
-    #     "PPO-Lag-AntWall": 'PPO_lag',
-    # }
 
     # env_id = 'InvertedPendulumWall-v0'
     # max_episodes = 80000
@@ -460,7 +471,8 @@ def generate_plots():
         "VCIRL-0.3": "-",
         "VCIRL-0.5": "-",
         "VCIRL-Full": "-",
-        "VCIRL_Random": "-"
+        "VCIRL_Random": "-",
+        "VCIRL_Hard": "-",
     }
 
     linestyle_dict = {}
