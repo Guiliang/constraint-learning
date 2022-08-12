@@ -80,18 +80,22 @@ def generate_plots():
     # }
     # ================= reset model ====================
     max_episodes = 6000
-    img_size = (10, 5)
+    img_size = None
     save = False
     method_names_labels_dict = {
         # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting1": "VCIRL1",
         # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": "VCIRL2",
         # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting3": "VCIRL3",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1_no_is": "VCIRL1",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1_no_is": "VCIRL2",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1_no_is": "VCIRL3",
-        "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VCIRL",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1_no_is": "VCIRL1",
+        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1_no_is": "VCIRL-0.3",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1_no_is": "VCIRL3",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1-b_no_is": "VCIRL1",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1-b_no_is": "VCIRL2",
+        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1-b_no_is": "VCIRL-0.5",
+        "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VCIRL-Full",
         # "VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard": "VCIRL1",
         # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard": "VCIRL2",
+        # 'VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random': 'VCIRL_Random',
         "PPO_Pos": 'PPO',
         "PPO_lag_Pos": 'PPO_lag',
     }
@@ -453,6 +457,10 @@ def generate_plots():
         "VCIRL3": "-",
         "VCIRL4": "-",
         "VCIRL5": "-",
+        "VCIRL-0.3": "-",
+        "VCIRL-0.5": "-",
+        "VCIRL-Full": "-",
+        "VCIRL_Random": "-"
     }
 
     linestyle_dict = {}
@@ -578,6 +586,7 @@ def generate_plots():
                 save_label = os.path.join(env_id, plot_key[idx] + '_' + mode + '_' + env_id + '_' + plot_mode)
             else:
                 save_label = None
+
             plot_results(mean_results_moving_avg_dict=mean_results_moving_avg_dict,
                          std_results_moving_avg_dict=std_results_moving_avg_dict,
                          episode_plots=espisode_dict,
