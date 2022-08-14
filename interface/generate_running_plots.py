@@ -54,79 +54,81 @@ def generate_plots():
     axis_size = None
     save = True
 
-    env_id = 'HCWithPos-v0'
-    max_episodes = 6000
-    average_num = 100
-    max_reward = 10000
-    min_reward = -10000
-    plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-    label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
-    label_key = [None, None, None, None]
-    img_size = None
-    title = 'Blocked Half-Cheetah'
-    constraint_key = 'constraint'
-    plot_y_lim_dict = {'reward': (0, 7000),
-                       'reward_nc': (0, 5000),
-                       'constraint': (0, 1.1),
-                       'reward_valid': (0, 5000),
-                       }
-    method_names_labels_dict = {
-        "GAIL_HCWithPos-v0_with-action": 'GACL',  # 'GAIL',
-        "Binary_HCWithPos-v0_with-action": 'BC2L',  # 'Binary',
-        "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
-        "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VCIRL",
-        # "PPO_Pos": 'PPO',
-        "PPO_lag_Pos": 'PPO_lag',
-    }
-    # ================= rebuttal ====================
-    max_episodes = 5000
-    img_size = None
-    save = False
-    title = 'Dataset with Noise'
-    method_names_labels_dict = {
-        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting1": "VCIRL1",
-        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": "VCIRL2",
-        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting3": "VCIRL3",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1_no_is": "VCIRL1",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1_no_is": "VCIRL-0.3",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1_no_is": "VCIRL3",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1-b_no_is": "VCIRL1",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1-b_no_is": "VCIRL2",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1-b_no_is": "VCIRL-0.5",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-1": "Ram-1",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-8e-1": "Ram-0.8",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-5e-1": "Ram-0.5",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1": "Ram-0.2",
-        "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "Ram-0",
-        # "VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard": "VCIRL1",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard": "VCIRL2",
-        # 'VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random': 'VCIRL_Random',
-        # "PPO_Pos": 'PPO',
-        "PPO_lag_Pos": 'PPO_lag',
-    }
+    # env_id = 'HCWithPos-v0'
+    # max_episodes = 6000
+    # average_num = 100
+    # max_reward = 10000
+    # min_reward = -10000
+    # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
+    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    # label_key = [None, None, None, None]
+    # img_size = None
+    # title = 'Blocked Half-Cheetah'
+    # constraint_key = 'constraint'
+    # plot_y_lim_dict = {'reward': (0, 7000),
+    #                    'reward_nc': (0, 5000),
+    #                    'constraint': (0, 1.1),
+    #                    'reward_valid': (0, 5000),
+    #                    }
+    # method_names_labels_dict = {
+    #     "GAIL_HCWithPos-v0_with-action": 'GACL',  # 'GAIL',
+    #     "Binary_HCWithPos-v0_with-action": 'BC2L',  # 'Binary',
+    #     "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
+    #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VCIRL",
+    #     # "PPO_Pos": 'PPO',
+    #     "PPO_lag_Pos": 'PPO_lag',
+    # }
+    # # ================= rebuttal ====================
+    # max_episodes = 5000
+    # img_size = None
+    # save = False
+    # title = 'Dataset with Noise'
+    # method_names_labels_dict = {
+    #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting1": "VCIRL1",
+    #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": "VCIRL2",
+    #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting3": "VCIRL3",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1_no_is": "VCIRL1",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1_no_is": "VCIRL-0.3",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1_no_is": "VCIRL3",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1-b_no_is": "VCIRL1",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1-b_no_is": "VCIRL2",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1-b_no_is": "VCIRL-0.5",
+    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-1": "Ram-1",
+    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-8e-1": "Ram-0.8",
+    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-5e-1": "Ram-0.5",
+    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1": "Ram-0.2",
+    #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "Ram-0",
+    #     # "VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard": "VCIRL1",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard": "VCIRL2",
+    #     # 'VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random': 'VCIRL_Random',
+    #     # "PPO_Pos": 'PPO',
+    #     "PPO_lag_Pos": 'PPO_lag',
+    # }
 
     # env_id = 'AntWall-V0'
-    # max_episodes = 15000
+    # max_episodes = 20000
     # average_num = 300
     # title = 'Blocked Ant'
     # max_reward = float('inf')
     # min_reward = -float('inf')
-    # plot_key = ['reward', 'constraint', 'reward_valid', 'reward_nc']
+    # # plot_key = ['reward', 'constraint', 'reward_valid', 'reward_nc']
+    # plot_key = ['reward', 'constraint', 'reward_valid']
     # # label_key = ['reward', 'Constraint Violation Rate', 'reward_valid', 'reward_nc']
     # label_key = [None, None, None, None]
     # img_size = (6.7, 5.6)
+    # save = False
     # plot_y_lim_dict = {'reward': None,
     #                    'reward_nc': None,
     #                    'constraint': None,
     #                    'reward_valid': None}
     # constraint_key = 'constraint'
     # method_names_labels_dict = {
-    #     "GAIL_AntWall-v0_with-action": 'GACL',  # 'GAIL',
-    #     "Binary_AntWall-v0_with-action_nit-50": 'BC2L',  # 'Binary',
-    #     "ICRL_AntWall_with-action_nit-50": 'MECL',  # 'ICRL',
-    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1": "VCIRL",
+    #     # "GAIL_AntWall-v0_with-action": 'GACL',  # 'GAIL',
+    #     # "Binary_AntWall-v0_with-action_nit-50": 'BC2L',  # 'Binary',
+    #     # "ICRL_AntWall_with-action_nit-50": 'MECL',  # 'ICRL',
+    #     # "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1": "VCIRL",
     #     # VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2
-    #     # "PPO-AntWall": 'PPO',
+    #     "PPO-AntWall": 'PPO',
     #     "PPO-Lag-AntWall": 'PPO_lag',
     # }
     # ================= rebuttal ====================
@@ -226,12 +228,14 @@ def generate_plots():
     # min_reward = -50
     # axis_size = 20
     # img_size = [8.5, 6.5]
+    # # save = False
     # title = 'HighD Velocity Constraint'
     # constraint_key = 'is_over_speed'
     # plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
-    #             'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
+    #             'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'success_rate']
     # label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
-    #              'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Speed Constraint Violation Rate']
+    #              'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Speed Constraint Violation Rate',
+    #              'Success Rate']
     # plot_y_lim_dict = {'reward': None,
     #                    'reward_nc': None,
     #                    'reward_valid': None,
@@ -240,7 +244,8 @@ def generate_plots():
     #                    'is_goal_reached': None,
     #                    'is_time_out': None,
     #                    'avg_velocity': None,
-    #                    'is_over_speed': None}
+    #                    'is_over_speed': None,
+    #                    'success_rate': None}
     # bound_results = {
     #     'reward': 50,
     #     'reward_nc': 50,
@@ -249,7 +254,8 @@ def generate_plots():
     #     'is_off_road': 0,
     #     'is_goal_reached': 0,
     #     'is_time_out': 0,
-    #     'is_over_speed': 0
+    #     'is_over_speed': 0,
+    #     'success_rate': 1,
     # }
     # method_names_labels_dict = {
     #     "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GACL',
@@ -271,9 +277,10 @@ def generate_plots():
     # title = 'Simplified HighD Velocity Constraint'
     # constraint_key = 'is_over_speed'
     # plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
-    #             'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
+    #             'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'success_rate']
     # label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
-    #              'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Speed Constraint Violation Rate']
+    #              'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Speed Constraint Violation Rate',
+    #              'Success Rate']
     # # plot_y_lim_dict = {'reward': (-50, 50),
     # #                    'reward_nc': (0, 50),
     # #                    'is_collision': (0, 1),
@@ -290,7 +297,8 @@ def generate_plots():
     #                    'is_goal_reached': None,
     #                    'is_time_out': None,
     #                    'avg_velocity': None,
-    #                    'is_over_speed': None}
+    #                    'is_over_speed': None,
+    #                    'success_rate': None}
     # bound_results = {
     #     'reward': 50,
     #     'reward_nc': 50,
@@ -299,7 +307,8 @@ def generate_plots():
     #     'is_off_road': 0,
     #     'is_goal_reached': 0,
     #     'is_time_out': 0,
-    #     'is_over_speed': 0
+    #     'is_over_speed': 0,
+    #     'success_rate': 1,
     # }
     # method_names_labels_dict = {
     #     "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GACL',
@@ -334,10 +343,10 @@ def generate_plots():
     # constraint_key = 'is_too_closed'
     # plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
     #             'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance',
-    #             'is_too_closed']
+    #             'is_too_closed', 'success_rate']
     # label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
     #              'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Over Speed Rate', 'Avg. Distance',
-    #              'Distance Constraint Violation Rate']
+    #              'Distance Constraint Violation Rate', 'Success Rate']
     # plot_y_lim_dict = {'reward': None,
     #                    'reward_nc': None,
     #                    'reward_valid': None,
@@ -348,7 +357,8 @@ def generate_plots():
     #                    'avg_velocity': None,
     #                    'avg_distance': None,
     #                    'is_over_speed': None,
-    #                    'is_too_closed': None}
+    #                    'is_too_closed': None,
+    #                    'success_rate': None}
     # # plot_y_lim_dict = {'reward': (-50, 50),
     # #                    'reward_nc': (0, 50),
     # #                    'is_collision': (0, 1),
@@ -369,6 +379,7 @@ def generate_plots():
     #     'is_time_out': 0,
     #     'is_too_closed': 0,
     #     'is_over_speed': 0,
+    #     'success_rate': 1
     # }
     # method_names_labels_dict = {
     #     'GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20': 'GACL',
@@ -380,62 +391,64 @@ def generate_plots():
     #     "Bound": 'Bound'
     # }
 
-    # env_id = 'highD_distance_constraint_dim6'
-    # max_episodes = 5000
-    # average_num = 200
-    # max_reward = 50
-    # min_reward = -50
-    # axis_size = 20
-    # img_size = [8.5, 6.5]
-    # title = 'HighD Distance Constraint'
-    # constraint_key = 'is_too_closed'
-    # plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
-    #             'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance',
-    #             'is_too_closed']
-    # label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
-    #              'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Over Speed Rate', 'Avg. Distance',
-    #              'Distance Constraint Violation Rate']
-    # plot_y_lim_dict = {'reward': None,
-    #                    'reward_nc': None,
-    #                    'reward_valid': None,
-    #                    'is_collision': None,
-    #                    'is_off_road': None,
-    #                    'is_goal_reached': None,
-    #                    'is_time_out': None,
-    #                    'avg_velocity': None,
-    #                    'avg_distance': None,
-    #                    'is_over_speed': None,
-    #                    'is_too_closed': None}
-    # # plot_y_lim_dict = {'reward': (-50, 50),
-    # #                    'reward_nc': (0, 50),
-    # #                    'is_collision': (0, 1),
-    # #                    'is_off_road': (0, 1),
-    # #                    'is_goal_reached': (0, 1),
-    # #                    'is_time_out': (0, 1),
-    # #                    'avg_velocity': (20, 50),
-    # #                    'is_over_speed': (0, 1),
-    # #                    'avg_distance': (50, 100),
-    # #                    'is_too_closed': (0, 0.5)}
-    # bound_results = {
-    #     'reward': 50,
-    #     'reward_nc': 50,
-    #     'reward_valid': 50,
-    #     'is_collision': 0,
-    #     'is_off_road': 0,
-    #     'is_goal_reached': 0,
-    #     'is_time_out': 0,
-    #     'is_too_closed': 0,
-    #     'is_over_speed': 0,
-    # }
-    # method_names_labels_dict = {
-    #     "GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20_dim-6": 'GACL',
-    #     "Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'BC2L',
-    #     "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'MECL',
-    #     "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'VCIRL',
-    #     # "ppo_highD_no_slo_distance_dm-20": 'PPO',
-    #     "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
-    #     "Bound": 'Bound'
-    # }
+    env_id = 'highD_distance_constraint_dim6'
+    max_episodes = 5000
+    average_num = 200
+    max_reward = 50
+    min_reward = -50
+    axis_size = 20
+    img_size = [8.5, 6.5]
+    title = 'HighD Distance Constraint'
+    constraint_key = 'is_too_closed'
+    plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
+                'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance',
+                'is_too_closed', 'success_rate']
+    label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
+                 'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Over Speed Rate', 'Avg. Distance',
+                 'Distance Constraint Violation Rate', 'Success Rate']
+    plot_y_lim_dict = {'reward': None,
+                       'reward_nc': None,
+                       'reward_valid': None,
+                       'is_collision': None,
+                       'is_off_road': None,
+                       'is_goal_reached': None,
+                       'is_time_out': None,
+                       'avg_velocity': None,
+                       'avg_distance': None,
+                       'is_over_speed': None,
+                       'is_too_closed': None,
+                       'success_rate': None}
+    # plot_y_lim_dict = {'reward': (-50, 50),
+    #                    'reward_nc': (0, 50),
+    #                    'is_collision': (0, 1),
+    #                    'is_off_road': (0, 1),
+    #                    'is_goal_reached': (0, 1),
+    #                    'is_time_out': (0, 1),
+    #                    'avg_velocity': (20, 50),
+    #                    'is_over_speed': (0, 1),
+    #                    'avg_distance': (50, 100),
+    #                    'is_too_closed': (0, 0.5)}
+    bound_results = {
+        'reward': 50,
+        'reward_nc': 50,
+        'reward_valid': 50,
+        'is_collision': 0,
+        'is_off_road': 0,
+        'is_goal_reached': 0,
+        'is_time_out': 0,
+        'is_too_closed': 0,
+        'is_over_speed': 0,
+        'success_rate': 1,
+    }
+    method_names_labels_dict = {
+        "GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20_dim-6": 'GACL',
+        "Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'BC2L',
+        "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'MECL',
+        "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'VCIRL',
+        # "ppo_highD_no_slo_distance_dm-20": 'PPO',
+        "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
+        "Bound": 'Bound'
+    }
 
     # env_id = 'highD_distance_constraint_dm-40'
     # method_names_labels_dict = {
@@ -454,7 +467,7 @@ def generate_plots():
     # }
 
     modes = ['train']
-    plot_mode = 'all-random'
+    plot_mode = 'all-methods'
     if plot_mode == 'part':
         for method_name in method_names_labels_dict.copy().keys():
             if 'PPO' not in method_names_labels_dict[method_name]:
@@ -608,6 +621,7 @@ def generate_plots():
                 #     print(method_name, plot_key[idx],
                 #           all_mean_dict[method_name][plot_key[idx]][-1],
                 #           all_std_dict[method_name][plot_key[idx]][-1])
+                print(plot_key[idx], method_name, mean_results_moving_avg_dict[method_name][-1])
             if save:
                 save_label = os.path.join(env_id, plot_key[idx] + '_' + mode + '_' + env_id + '_' + plot_mode)
             else:

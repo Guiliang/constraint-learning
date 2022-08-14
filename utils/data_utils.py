@@ -158,7 +158,7 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
     #     raise ValueError("Something wrong with the file {0}".format(monitor_path_all[0]))
     for key in read_keys:
         read_running_logs.update({key: []})
-        if key == 'reward_valid':
+        if key == 'reward_valid' or key == 'success_rate':
             continue
         key_idx = record_keys.index(key)
         key_indices.update({key: key_idx})
@@ -209,6 +209,13 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
                         valid_episodes.append(episode)
                         # valid_rewards.append(float(results[key_indices['reward']]))
                         read_running_logs[key].append(float(results[key_indices['reward']]))
+                    else:
+                        read_running_logs[key].append(float(0))
+                elif key == 'success_rate':
+                    if results[key_indices[constraint_key]] == '=':
+                        continue
+                    if float(results[0]) == 50:
+                        read_running_logs[key].append(float(1))
                     else:
                         read_running_logs[key].append(float(0))
                 else:
