@@ -57,6 +57,7 @@ render_configs:
   render_static_extrapolated_positions: false
   render_surrounding_area: false
   render_surrounding_obstacles_lane_based: false
+  render_follow_ego: false
 #reward_configs_hybrid:  # we are not using the hybrid rewards
 #  reward_collision: 0.0
 #  reward_friction: 0.0

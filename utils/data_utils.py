@@ -146,7 +146,7 @@ def compute_moving_average(result_all, average_num=100):
     return result_moving_all[:-average_num]
 
 
-def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_episodes, constraint_key='constraint'):
+def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_episodes, constraint_keys='constraint'):
     read_running_logs = {}
 
     # handle the keys
@@ -203,17 +203,20 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
                 continue
             for key in read_keys:
                 if key == 'reward_valid':
-                    if results[key_indices[constraint_key]] == '=':
-                        continue
-                    if int(results[key_indices[constraint_key]]) == 0:  # if constraint is not broken at this episode
+                    valid_flag = True
+                    # continue_flag = False
+                    for constraint_key in constraint_keys:
+                        if results[key_indices[constraint_key]] == '=':
+                            valid_flag = False
+                        if int(results[key_indices[constraint_key]]) != 0:  # if constraint is not broken at this episode
+                            valid_flag = False
+                    if valid_flag:
                         valid_episodes.append(episode)
                         # valid_rewards.append(float(results[key_indices['reward']]))
                         read_running_logs[key].append(float(results[key_indices['reward']]))
                     else:
-                        read_running_logs[key].append(float(0))
+                        read_running_logs[key].append(float(min_reward))
                 elif key == 'success_rate':
-                    if results[key_indices[constraint_key]] == '=':
-                        continue
                     if float(results[0]) == 50:
                         read_running_logs[key].append(float(1))
                     else:

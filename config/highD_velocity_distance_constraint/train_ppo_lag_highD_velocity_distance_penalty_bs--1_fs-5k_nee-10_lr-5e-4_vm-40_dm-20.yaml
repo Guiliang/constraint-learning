@@ -1,4 +1,4 @@
-task: 'PPO-Lag-highD-velocity'
+task: 'PPO-Lag-highD-velocity-distance'
 group: 'PPO-Lag'
 device: 'cuda'
 verbose: 1

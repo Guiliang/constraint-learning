@@ -45,18 +45,30 @@ lanelet_configs:
 max_lane_merge_range: 5000.0
 meta_scenario_path: ../data/highD/pickles/meta_scenario
 render_configs:
-  render_combine_frames: false
-  render_dynamic_extrapolated_positions: false
-  render_ego_lanelet_center_vertices: false
-  render_global_ccosy: false
-  render_lidar_circle_surrounding_beams: false
-  render_lidar_circle_surrounding_obstacles: false
-  render_local_ccosy: false
-  render_road_boundaries: false
+  # Render settings (only if corresponding observations are available)
+  render_road_boundaries: False # whether to render the road boundaries
+  render_ego_lanelet_center_vertices: False # whether to render the center vertices of the ego lane
+  # whether to colorize detected surrounding obstacles in
+  # (lane-based rectangle, lane-based circle, lidar-based) detection methods
+  render_surrounding_obstacles_lane_based: False
+  render_lidar_circle_surrounding_obstacles: False
+  # whether to render the sensing area/lidar beams in the three detection methods
+  render_surrounding_area: False
+  render_lidar_circle_surrounding_beams: False
+  # whether to render the future positions of the static/dynamic extrapolations
+  render_static_extrapolated_positions: False
+  render_dynamic_extrapolated_positions: False
+  # whether to render the global and local curvilinear coordinate system
+  render_global_ccosy: False
+  render_local_ccosy: False
+  render_ccosy_nav_observations: False
+  # Render settings regarding the kind of printed results
   render_skip_timesteps: 1
-  render_static_extrapolated_positions: false
-  render_surrounding_area: false
-  render_surrounding_obstacles_lane_based: false
+  render_combine_frames: False
+  # set plot limits to follow current ego position
+  render_follow_ego: True
+  render_range: [100., 15.]
+
 #reward_configs_hybrid:  # we are not using the hybrid rewards
 #  reward_collision: 0.0
 #  reward_friction: 0.0

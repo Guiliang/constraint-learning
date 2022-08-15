@@ -171,9 +171,9 @@ def evaluate():
     num_threads = 1
     if_testing_env = False
 
-    load_model_name = 'train_Binary_HCWithPos-v0_with-action-multi_env-Apr-21-2022-04:49-seed_123/'
-    task_name = 'Binary-HC'
-    iteration_msg = 25
+    load_model_name = 'train_ppo_lag_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-20-multi_env-May-24-2022-00:53-seed_123'
+    task_name = 'PPO-Lag-highD-distance'
+    iteration_msg = 'best'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
     with open(os.path.join(model_loading_path, 'model_hyperparameters.yaml')) as reader:

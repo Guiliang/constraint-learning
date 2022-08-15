@@ -1,26 +1,5 @@
 def get_plot_results_dir(env_id):
     if env_id == 'highD_velocity_constraint':
-        max_episodes = 5000
-        average_num = 200
-        max_reward = 50
-        min_reward = -50
-        axis_size = 20
-        img_size = [8.5, 6.5]
-        title = 'HighD Velocity Constraint'
-        constraint_key = 'is_over_speed'
-        plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
-                    'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed']
-        label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
-                     'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Speed Constraint Violation Rate']
-        plot_y_lim_dict = {'reward': None,
-                           'reward_nc': None,
-                           'reward_valid': None,
-                           'is_collision': None,
-                           'is_off_road': None,
-                           'is_goal_reached': None,
-                           'is_time_out': None,
-                           'avg_velocity': None,
-                           'is_over_speed': None}
         log_path_dict = {
             "PPO_highD_velocity": [
                 '../save_model/PPO-highD-velocity/train_ppo_highD_velocity_penalty-multi_env-Mar-20-2022-10:21-seed_123/',
@@ -563,41 +542,6 @@ def get_plot_results_dir(env_id):
             ],
         }
     elif env_id == 'highD_distance_constraint_dm-60':
-        max_episodes = 5000
-        average_num = 200
-        max_reward = 50
-        min_reward = -50
-        axis_size = 20
-        img_size = [8.5, 6.5]
-        title = 'HighD Distance Constraint (Distance>60m)'
-        constraint_key = 'is_too_closed'
-        plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
-                    'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance',
-                    'is_too_closed']
-        label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
-                     'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Over Speed Rate', 'Avg. Distance',
-                     'Distance Constraint Violation Rate']
-        plot_y_lim_dict = {'reward': None,
-                           'reward_nc': None,
-                           'reward_valid': None,
-                           'is_collision': None,
-                           'is_off_road': None,
-                           'is_goal_reached': None,
-                           'is_time_out': None,
-                           'avg_velocity': None,
-                           'avg_distance': None,
-                           'is_over_speed': None,
-                           'is_too_closed': None}
-        # plot_y_lim_dict = {'reward': (-50, 50),
-        #                    'reward_nc': (0, 50),
-        #                    'is_collision': (0, 1),
-        #                    'is_off_road': (0, 1),
-        #                    'is_goal_reached': (0, 1),
-        #                    'is_time_out': (0, 1),
-        #                    'avg_velocity': (20, 50),
-        #                    'is_over_speed': (0, 1),
-        #                    'avg_distance': (50, 100),
-        #                    'is_too_closed': (0, 0.5)}
         log_path_dict = {
             "ppo_highD_no_slo_distance_dm-60": [
                 '../save_model/PPO-highD-distance/train_ppo_highD_no_slo_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_dm-60-multi_env-Jun-05-2022-13:01-seed_123/',
@@ -622,6 +566,12 @@ def get_plot_results_dir(env_id):
             'VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-60': [
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-2-1e-2_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-60-multi_env-Jun-04-2022-11:31-seed_123/'
             ]
+        }
+    elif env_id == 'highD_velocity_distance_constraint':
+        log_path_dict = {
+            "ppo_lag_highD_velocity_distance_vm-40_dm-20": [
+                '../save_model/PPO-Lag-highD-velocity-distance/train_ppo_lag_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20-multi_env-Aug-14-2022-13:27-seed_123/',
+            ],
         }
     elif env_id == 'HCWithPos-v0':
         gap = 1

@@ -13,7 +13,7 @@ from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 from stable_baselines3 import PPO
 from commonroad_environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model
-from utils.env_utils import get_obs_feature_names
+from utils.env_utils import get_obs_feature_names, is_commonroad
 from utils.plot_utils import pngs2gif
 
 
@@ -57,52 +57,51 @@ class CommonRoadVecEnv(DummyVecEnv):
 LOGGER = logging.getLogger(__name__)
 
 
-def create_environments(env_id: str, viz_path: str, test_path: str, model_path: str,
-                        normalize=True, env_kwargs=None, testing_env=False, debug_mode=False) -> CommonRoadVecEnv:
-
+def create_environments(env_id: str, viz_path: str, test_path: str, model_path: str, group: str, num_threads: int = 1,
+                        normalize=True, env_kwargs=None, testing_env=False, part_data=False) -> CommonRoadVecEnv:
     """
     Create CommonRoad vectorized environment
-
-    :param env_id: Environment gym id
-    :param test_path: Path to the test files
-    # :param meta_path: Path to the meta-scenarios
-    :param model_path: Path to the trained model
-    :param viz_path: Output path for rendered images
-    # :param hyperparam_filename: The filename of the hyperparameters
-    :param env_kwargs: Keyword arguments to be passed to the environment
     """
-    env_kwargs.update({"visualization_path": viz_path,})
-                       # "play": True})
-    if testing_env:
-        env_kwargs["test_env"] = True
-    if debug_mode:
-        env_kwargs['train_reset_config_path'] += '_debug'
-        env_kwargs['test_reset_config_path'] += '_debug'
+    if is_commonroad(env_id):
+        if viz_path is not None:
+            env_kwargs.update({"visualization_path": viz_path})
+        if testing_env:
+            env_kwargs.update({"play": False})
+            env_kwargs["test_env"] = True
+        multi_env = True if num_threads > 1 else False
+        if multi_env:
+            env_kwargs['train_reset_config_path'] += '_split'
+        if part_data:
+            env_kwargs['train_reset_config_path'] += '_debug'
+            env_kwargs['test_reset_config_path'] += '_debug'
+            env_kwargs['meta_scenario_path'] += '_debug'
+
     # Create environment
-    # note that CommonRoadVecEnv is inherited from DummyVecEnv
-    env = CommonRoadVecEnv([make_env(env_id, env_kwargs,
-                                     group=env_kwargs["env_kwargs"],
-                                     rank=0,
-                                     log_dir=test_path,
-                                     seed=0)])
+    envs = [make_env(env_id=env_id,
+                     env_configs=env_kwargs,
+                     rank=i,
+                     log_dir=test_path,
+                     multi_env=True if num_threads > 1 else False,
+                     group=group,
+                     seed=0)
+            for i in range(num_threads)]
+    env = CommonRoadVecEnv(envs)
 
-    # env_fn = lambda: gym.make(env_id, play=True, **env_kwargs)
-    # env = CommonRoadVecEnv([env_fn])
-
-    def on_reset_callback(env: Union[Env, CommonroadEnv], elapsed_time: float):
-        # reset callback called before resetting the env
-        if env.observation_dict["is_goal_reached"][-1]:
-            LOGGER.info("Goal reached")
-        else:
-            LOGGER.info("Goal not reached")
-        env.render()
-
-    env.set_on_reset(on_reset_callback)
+    # def on_reset_callback(env: Union[Env, CommonroadEnv], elapsed_time: float):
+    #     # reset callback called before resetting the env
+    #     if env.observation_dict["is_goal_reached"][-1]:
+    #         LOGGER.info("Goal reached")
+    #     else:
+    #         LOGGER.info("Goal not reached")
+    #     # env.render()
+    #
+    # env.set_on_reset(on_reset_callback)
     if normalize:
         LOGGER.info("Loading saved running average")
         vec_normalize_path = os.path.join(model_path, "train_env_stats.pkl")
         if os.path.exists(vec_normalize_path):
             env = VecNormalize.load(vec_normalize_path, env)
+            print("Loading vecnormalize.pkl from {0}".format(model_path))
         else:
             raise FileNotFoundError("vecnormalize.pkl not found in {0}".format(model_path))
         # env = VecNormalize(env, norm_obs=True, norm_reward=False)
@@ -121,8 +120,8 @@ def evaluate():
     if_testing_env = False
 
     # load_model_name = 'train_ppo_highD_no_collision-multi_env-Mar-10-2022-00:18'
-    load_model_name = 'train_ppo_highD-multi_env-Mar-10-2022-04:37'
-    task_name = 'PPO-highD'
+    load_model_name = 'train_ppo_lag_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20-multi_env-Aug-14-2022-13:27-seed_123'
+    task_name = 'PPO-Lag-highD-velocity-distance'
     iteration_msg = 'best'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
@@ -157,20 +156,19 @@ def evaluate():
         env_stats_loading_path = model_loading_path
     else:
         env_stats_loading_path = os.path.join(model_loading_path, 'model_{0}_itrs'.format(iteration_msg))
-    env = create_environments(env_id="commonroad-v1",
-                              viz_path=viz_path,
+    env = create_environments(env_id=config['env']['train_env_id'],
+                              viz_path=None,
                               test_path=evaluation_path,
                               model_path=env_stats_loading_path,
+                              group=config['group'],
+                              num_threads=1,
                               normalize=not config['env']['dont_normalize_obs'],
                               env_kwargs=env_configs,
                               testing_env=if_testing_env,
-                              debug_mode=debug_mode)
+                              part_data=debug_mode)
 
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
-
-    feature_names = get_obs_feature_names(env)
-    print("The observed features are: {0}".format(feature_names))
 
     model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
     num_collisions, num_off_road, num_goal_reaching, num_timeout, total_scenarios = 0, 0, 0, 0, 0
@@ -196,6 +194,8 @@ def evaluate():
             benchmark_id_all.append(benchmark_id)
         print('senario id', benchmark_id, file=log_file, flush=True)
         env.render()
+        if not os.path.exists(os.path.join(viz_path, benchmark_id)):
+            os.mkdir(os.path.join(viz_path, benchmark_id))
         game_info_file = open(os.path.join(viz_path, benchmark_id, 'info_record.txt'), 'w')
         game_info_file.write('current_step, velocity, is_collision, is_time_out, is_off_road, is_goal_reached\n')
         obs_all = []
@@ -211,7 +211,7 @@ def evaluate():
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
             original_obs_all.append(original_obs)
             action_all.append(action)
-            save_game_record(info[0], game_info_file)
+            save_game_record(info[0], game_info_file, type='')
             env.render()
             obs = new_obs
             running_step += 1
