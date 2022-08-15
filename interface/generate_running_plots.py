@@ -221,51 +221,51 @@ def generate_plots():
     #     "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
     # }
 
-    # env_id = 'highD_velocity_constraint'
-    # max_episodes = 5000
-    # average_num = 200
-    # max_reward = 50
-    # min_reward = -50
-    # axis_size = 20
-    # img_size = [8.5, 6.5]
-    # # save = False
-    # title = 'HighD Velocity Constraint'
-    # constraint_key = 'is_over_speed'
-    # plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
-    #             'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'success_rate']
-    # label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
-    #              'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Speed Constraint Violation Rate',
-    #              'Success Rate']
-    # plot_y_lim_dict = {'reward': None,
-    #                    'reward_nc': None,
-    #                    'reward_valid': None,
-    #                    'is_collision': None,
-    #                    'is_off_road': None,
-    #                    'is_goal_reached': None,
-    #                    'is_time_out': None,
-    #                    'avg_velocity': None,
-    #                    'is_over_speed': None,
-    #                    'success_rate': None}
-    # bound_results = {
-    #     'reward': 50,
-    #     'reward_nc': 50,
-    #     'reward_valid': 50,
-    #     'is_collision': 0,
-    #     'is_off_road': 0,
-    #     'is_goal_reached': 0,
-    #     'is_time_out': 0,
-    #     'is_over_speed': 0,
-    #     'success_rate': 1,
-    # }
-    # method_names_labels_dict = {
-    #     "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GACL',
-    #     "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'BC2L',
-    #     "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'MECL',
-    #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VCIRL",
-    #     # "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO',
-    #     "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
-    #     "Bound": 'Bound'
-    # }
+    env_id = 'highD_velocity_constraint'
+    max_episodes = 5000
+    average_num = 200
+    max_reward = 50
+    min_reward = -50
+    axis_size = 20
+    img_size = [8.5, 6.5]
+    # save = False
+    title = 'HighD Velocity Constraint'
+    constraint_key = 'is_over_speed'
+    plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
+                'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'success_rate']
+    label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
+                 'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Speed Constraint Violation Rate',
+                 'Success Rate']
+    plot_y_lim_dict = {'reward': None,
+                       'reward_nc': None,
+                       'reward_valid': None,
+                       'is_collision': None,
+                       'is_off_road': None,
+                       'is_goal_reached': None,
+                       'is_time_out': None,
+                       'avg_velocity': None,
+                       'is_over_speed': None,
+                       'success_rate': None}
+    bound_results = {
+        'reward': 50,
+        'reward_nc': 50,
+        'reward_valid': 50,
+        'is_collision': 0,
+        'is_off_road': 0,
+        'is_goal_reached': 0,
+        'is_time_out': 0,
+        'is_over_speed': 0,
+        'success_rate': 1,
+    }
+    method_names_labels_dict = {
+        "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GACL',
+        "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'BC2L',
+        "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'MECL',
+        "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VCIRL",
+        # "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO',
+        "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
+        "Bound": 'Bound'
+    }
 
     # env_id = 'highD_velocity_constraint_dim2'
     # max_episodes = 5000
