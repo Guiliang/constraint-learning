@@ -160,6 +160,7 @@ commonroad_environment/*
 bak-environment/*
 data/highD/*
 data/inD/*
+data/exiD/*
 data/expert_data/*
 tmp*
 *.zip
