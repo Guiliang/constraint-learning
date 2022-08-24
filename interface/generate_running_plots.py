@@ -457,7 +457,7 @@ def generate_plots():
     min_reward = -50
     axis_size = 20
     img_size = [9, 6.5]
-    # save = False
+    save = False
     title = 'HighD Velocity and Distance Constraint'
     constraint_keys = ['is_too_closed', 'is_over_speed']
     plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
@@ -492,7 +492,8 @@ def generate_plots():
         'success_rate': 1,
     }
     method_names_labels_dict = {
-        "ppo_lag_highD_velocity_distance_vm-40_dm-20": 'PPO_lag',
+        "ppo_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20": 'PPO',
+        "ppo_lag_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20": 'PPO_lag',
         "Bound": 'Bound'
     }
 
