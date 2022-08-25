@@ -3,6 +3,8 @@ import numpy as np
 from functools import partial
 
 from tree_search.abstract import AbstractTreeSearchAgent, AbstractPlanner, Node
+from tree_search.olop import OLOP
+from tree_search.tree_common import safe_deepcopy_env
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +125,7 @@ class MCTS(AbstractPlanner):
     def reset(self):
         self.root = MCTSNode(parent=None, planner=self)
 
-    def run(self, state, observation):
+    def run(self, env, observation):
         """
             Run an iteration of Monte-Carlo Tree Search, starting from a given state
         :param state: the initial environment state
@@ -133,10 +135,10 @@ class MCTS(AbstractPlanner):
         total_reward = 0
         depth = 0
         terminal = False
-        state.seed(self.np_random.randint(2**30))
+        env.seed(self.np_random.randint(2**30))
         while depth < self.config['horizon'] and node.children and not terminal:
             action = node.sampling_rule(temperature=self.config['temperature'])
-            observation, reward, terminal, _ = self.step(state, action)
+            observation, reward, terminal, _ = self.step(env, action)
             total_reward += self.config["gamma"] ** depth * reward
             node_observation = observation if self.config["closed_loop"] else None
             node = node.get_child(action, observation=node_observation)
@@ -145,10 +147,10 @@ class MCTS(AbstractPlanner):
         if not node.children \
                 and depth < self.config['horizon'] \
                 and (not terminal or node == self.root):
-            node.expand(self.prior_policy(state, observation))
+            node.expand(self.prior_policy(env, observation))
 
         if not terminal:
-            total_reward = self.evaluate(state, observation, total_reward, depth=depth)
+            total_reward = self.evaluate(env, observation, total_reward, depth=depth)
         node.update_branch(total_reward)
 
     def evaluate(self, state, observation, total_reward=0, depth=0):

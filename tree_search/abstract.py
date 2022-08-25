@@ -6,7 +6,7 @@ import numpy as np
 from gym.utils import seeding
 
 from tree_search.graphics import TreePlot
-from tree_search.tree_common import Configurable, AbstractAgent
+from tree_search.tree_common import Configurable, AbstractAgent, preprocess_env
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class AbstractTreeSearchAgent(AbstractAgent):
                  env,
                  config=None):
         """
-            A new Tree Search agent.
+        A new Tree Search agent.
         :param env: The environment
         :param config: The agent configuration. Use default if None.
         """
@@ -55,7 +55,8 @@ class AbstractTreeSearchAgent(AbstractAgent):
         self.steps += 1
         replanning_required = self.step(self.previous_actions)
         if replanning_required:
-            env = self.env  # env = preprocess_env(self.env, self.config["env_preprocessors"])
+            # env = self.env
+            env = preprocess_env(self.env, self.config["env_preprocessors"])
             actions = self.planner.plan(state=env, observation=observation)
         else:
             actions = self.previous_actions[1:]
