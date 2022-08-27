@@ -1,6 +1,6 @@
 import gym
 
-from tree_search.mcts import MCTSAgent
+from planner.tree_search.mcts import MCTSAgent
 
 
 def test_cartpole():

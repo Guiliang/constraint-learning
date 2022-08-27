@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from tree_search.tree_utils import constrain, remap
+from planner.tree_search.tree_utils import constrain, remap
 
 
 class TreePlot(object):

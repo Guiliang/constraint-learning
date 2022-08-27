@@ -1,7 +1,9 @@
 import logging
 import numpy as np
 
-from tree_search.abstract import AbstractPlanner, Node, AbstractTreeSearchAgent
+from planner.planning_agent import safe_deepcopy_env
+from planner.tree_search.abstract import AbstractPlanner, Node, AbstractTreeSearchAgent
+from planner.tree_search.tree_utils import kl_upper_bound
 
 logger = logging.getLogger(__name__)
 

@@ -84,13 +84,14 @@ class AbstractAgent(Configurable, ABC):
         """
         raise NotImplementedError()
 
-    def plan(self, state):
+    def plan(self, previous_actions, prior_policy):
         """
-            Plan an optimal trajectory from an initial state.
-        :param state: s, the initial state of the agent
+        Plan an optimal trajectory from an initial state.
+        :param prior_policy: the prior policy
+        :param previous_actions: previously performed actions
         :return: [a0, a1, a2...], a sequence of actions to perform
         """
-        return [self.act(state)]
+        return None
 
     @abstractmethod
     def reset(self):

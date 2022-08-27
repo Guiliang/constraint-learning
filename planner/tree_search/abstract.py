@@ -1,12 +1,10 @@
 import logging
 from collections import defaultdict
-
-import gym
 import numpy as np
 from gym.utils import seeding
 
-from tree_search.graphics import TreePlot
-from tree_search.tree_common import Configurable, AbstractAgent, preprocess_env
+from planner.planning_agent import AbstractAgent, preprocess_env, Configurable, safe_deepcopy_env
+from planner.tree_search.graphics import TreePlot
 
 logger = logging.getLogger(__name__)
 
@@ -45,11 +43,11 @@ class AbstractTreeSearchAgent(AbstractAgent):
         else:
             raise NotImplementedError()
 
-    def plan(self, observation):
+    def plan(self, state, prior_policy):
         """
             Plan an optimal sequence of actions.
             Start by updating the previously found tree with the last action performed.
-        :param observation: the current state
+        :param prior_policy:
         :return: the list of actions
         """
         self.steps += 1
@@ -57,7 +55,7 @@ class AbstractTreeSearchAgent(AbstractAgent):
         if replanning_required:
             # env = self.env
             env = preprocess_env(self.env, self.config["env_preprocessors"])
-            actions = self.planner.plan(state=env, observation=observation)
+            actions = self.planner.plan(state=env, prior_policy=prior)
         else:
             actions = self.previous_actions[1:]
         self.write_tree()
@@ -91,7 +89,7 @@ class AbstractTreeSearchAgent(AbstractAgent):
         pass
 
     def act(self, state):
-        return self.plan(state)[0]
+        return self.plan(state, prior)[0]
 
     def save(self, filename):
         return False

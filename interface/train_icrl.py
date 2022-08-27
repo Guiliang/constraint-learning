@@ -10,6 +10,8 @@ import gym
 import numpy as np
 import yaml
 
+from common.cns_sampler import ConstrainedRLSampler
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_evaluation import evaluate_icrl_policy
@@ -26,7 +28,7 @@ from stable_baselines3.common import logger
 from stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource, load_expert_data_tmp
-from utils.env_utils import multi_threads_sample_from_agent, sample_from_agent, get_obs_feature_names, is_mujoco, \
+from utils.env_utils import multi_threads_sample_from_agent, get_obs_feature_names, is_mujoco, \
     check_if_duplicate_seed, is_commonroad
 from utils.model_utils import get_net_arch, load_ppo_config
 import warnings
@@ -146,11 +148,22 @@ def train(config):
                                               group=config['group'],
                                               num_threads=sample_num_threads,
                                               mode='sample',
-                                              use_cost=False,
+                                              use_cost=config['env']['use_cost'],
                                               normalize_obs=not config['env']['dont_normalize_obs'],
+                                              cost_info_str=config['env']['cost_info_str'],
                                               part_data=partial_data,
                                               multi_env=sample_multi_env,
                                               log_file=log_file)
+    sampler = ConstrainedRLSampler(rollouts=int(config['running']['sample_rollouts']),
+                                   store_by_game=config['running']['use_buffer'],
+                                   cost_info_str=config['env']['cost_info_str'],
+                                   env=sampling_env,
+                                   planning_config=None if "planning" not in config['running'].keys()
+                                                           or not config['running']['planning'] else config['Plan'])
+
+    rollouts = int(config['running']['sample_rollouts']),
+    store_by_game = config['running']['use_buffer'],
+
     # We don't need cost when during evaluation
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
@@ -232,7 +245,8 @@ def train(config):
     print("Selecting acs features are : {0}".format(cn_acs_select_name if cn_acs_select_name is not None else 'all'),
           file=log_file, flush=True)
     cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
-                                               all_feature_names=['a_ego_0', 'a_ego_1'] if is_commonroad(env_id=config['env']['train_env_id']) else None)
+                                               all_feature_names=['a_ego_0', 'a_ego_1'] if is_commonroad(
+                                                   env_id=config['env']['train_env_id']) else None)
 
     cn_parameters = {
         'obs_dim': obs_dim,
@@ -277,8 +291,10 @@ def train(config):
     else:
         raise ValueError("Unknown group: {0}".format(config['group']))
 
-    # Pass constraint net cost function to cost wrapper (train env)
+    # Pass updated cost_function to cost wrapper (train_env, eval_env, sampling_env)
     train_env.set_cost_function(constraint_net.cost_function)
+    sampling_env.set_cost_function(constraint_net.cost_function)
+    eval_env.set_cost_function(constraint_net.cost_function)
 
     # Init ppo agent
     ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
@@ -342,11 +358,9 @@ def train(config):
                 store_by_game=config['running']['use_buffer'],
             )
         else:
-            orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_from_agent(
-                agent=nominal_agent,
-                env=sampling_env,
-                rollouts=int(config['running']['sample_rollouts']),
-                store_by_game=config['running']['use_buffer'],
+            orig_observations, observations, actions, rewards, sum_rewards, lengths = sampler.sample_from_agent(
+                policy_agent=nominal_agent,
+                new_env=sampling_env,
             )
         if config['running']['use_buffer']:
             sample_data_queue.put(obs=orig_observations,
@@ -379,8 +393,9 @@ def train(config):
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Training CN model', log_file=log_file)
 
-        # Pass updated cost_function to cost wrapper (train_env, eval_env, but not sampling_env)
+        # Pass updated cost_function to cost wrapper (train_env, eval_env, sampling_env)
         train_env.set_cost_function(constraint_net.cost_function)
+        sampling_env.set_cost_function(constraint_net.cost_function)
         eval_env.set_cost_function(constraint_net.cost_function)
 
         # Evaluate:
@@ -390,7 +405,8 @@ def train(config):
             evaluate_icrl_policy(nominal_agent, eval_env,
                                  record_info_names=config['env']["record_info_names"],
                                  n_eval_episodes=config['running']['n_eval_episodes'],
-                                 deterministic=False)
+                                 deterministic=False,
+                                 cost_info_str=config['env']['cost_info_str'])
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Evaluation', log_file=log_file)
 

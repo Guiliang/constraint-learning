@@ -18,6 +18,7 @@ def evaluate_icrl_policy(
         record_info_names: list,
         n_eval_episodes: int = 10,
         deterministic: bool = True,
+        cost_info_str: str = 'cost',
         render: bool = False,
         callback: Optional[Callable] = None,
         reward_threshold: Optional[float] = None,
@@ -27,6 +28,7 @@ def evaluate_icrl_policy(
     Runs policy for ``n_eval_episodes`` episodes and returns average reward.
     This is made to work only with one env.
 
+    :param cost_info_str: The key of cost in Info.
     :param model: The RL agent you want to evaluate.
     :param env: The gym environment. In the case of a ``VecEnv``
         this must contain only one environment.

@@ -2,9 +2,9 @@ import logging
 import numpy as np
 from functools import partial
 
-from tree_search.abstract import AbstractTreeSearchAgent, AbstractPlanner, Node
-from tree_search.olop import OLOP
-from tree_search.tree_common import safe_deepcopy_env
+from planner.planning_agent import safe_deepcopy_env
+from planner.tree_search.abstract import AbstractTreeSearchAgent, AbstractPlanner, Node
+from planner.tree_search.olop import OLOP
 
 logger = logging.getLogger(__name__)
 

@@ -204,11 +204,9 @@ def train(args):
         # reward on true environment
         sync_envs_normalization_ppo(train_env, eval_env)
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
-            evaluate_icrl_policy(model=ppo_agent,
-                                 env=eval_env,
-                                 record_info_names=config['env']["record_info_names"],
-                                 n_eval_episodes=config['running']['n_eval_episodes'],
-                                 deterministic=False)
+            evaluate_icrl_policy(model=ppo_agent, env=eval_env, record_info_names=config['env']["record_info_names"],
+                                 n_eval_episodes=config['running']['n_eval_episodes'], deterministic=False,
+                                 cost_info_str=the)
 
         # Save
         if itr % config['running']['save_every'] == 0:
