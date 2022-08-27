@@ -93,5 +93,4 @@ Plan:
   planner: 'CEM'
   horizon: 1000
   candidates: 20
-  top_candidates: 10
   iterations: 100

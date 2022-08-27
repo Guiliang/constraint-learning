@@ -9,11 +9,9 @@ import random
 import gym
 import numpy as np
 import yaml
-
-from common.cns_sampler import ConstrainedRLSampler
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+from common.cns_sampler import ConstrainedRLSampler
 from common.cns_evaluation import evaluate_icrl_policy
 from common.cns_visualization import plot_constraints
 from common.cns_env import make_train_env, make_eval_env
@@ -71,6 +69,8 @@ def train(config):
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
+        if "planning" in config['running'].keys() and not config['running']['planning']:
+            config['Plan']['  iterations'] = 2
     if partial_data:
         debug_msg += 'part-'
 
@@ -154,15 +154,16 @@ def train(config):
                                               part_data=partial_data,
                                               multi_env=sample_multi_env,
                                               log_file=log_file)
+    if "planning" in config['running'].keys() and not config['running']['planning']:
+        planning_config = config['Plan']
+        config['Plan']['top_candidates'] = int(config['running']['sample_rollouts'])
+    else:
+        planning_config = None
     sampler = ConstrainedRLSampler(rollouts=int(config['running']['sample_rollouts']),
                                    store_by_game=config['running']['use_buffer'],
                                    cost_info_str=config['env']['cost_info_str'],
                                    env=sampling_env,
-                                   planning_config=None if "planning" not in config['running'].keys()
-                                                           or not config['running']['planning'] else config['Plan'])
-
-    rollouts = int(config['running']['sample_rollouts']),
-    store_by_game = config['running']['use_buffer'],
+                                   planning_config=planning_config)
 
     # We don't need cost when during evaluation
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")

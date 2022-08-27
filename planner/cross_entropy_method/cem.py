@@ -1,5 +1,6 @@
 import math
 
+import numpy as np
 import torch
 from torch.distributions import Normal
 from planner.planning_agent import AbstractAgent, safe_deepcopy_env
@@ -32,6 +33,9 @@ class CEMAgent(AbstractAgent):
         action_distribution = Normal(
             torch.zeros(self.config["horizon"], self.action_size),
             torch.tensor(self.config["std"]).repeat(self.config["horizon"], self.action_size))
+        all_orig_obs, all_obs, all_acs, all_rs = [], [], [], []
+        sum_rewards, lengths = [], []
+        best_orig_obs, best_obs, best_acs, best_rs, best_length, best_sum_rewards = None, None, None, None, None, None
         for i in range(self.config["iterations"]):
             sampled_actions = action_distribution.sample([self.config["candidates"]])
             returns = torch.zeros(self.config["candidates"])
@@ -39,28 +43,46 @@ class CEMAgent(AbstractAgent):
                 obs = self.env.reset()
                 state = None
                 done = False
+                origin_obs_game, obs_game, acs_game, rs_game = [], [], [], []
                 for previous_action in previous_actions:
                     pred_action, state = prior_policy.predict(obs, state=state, deterministic=False)
                     obs, reward, done, _info = self.env.step(previous_action)
                 for t in range(self.config["horizon"]):
                     if done:
-                        break
+                        lengths.append(t)
                         # returns[c] += self.config["done_penalty"]
                     else:
                         prior_action, state = prior_policy.predict(obs, state=state, deterministic=False)
                         sampled_action = sampled_actions[c, t, :]
                         prior_lambda = self.config['prior_lambda']
-                        sampled_action_with_prior = (sampled_action + prior_lambda * prior_action) / (1 + prior_lambda)
-                        sampled_actions[c, t, :] = sampled_action_with_prior
-                        obs, reward, done, info = self.env.step(sampled_action_with_prior.detach().numpy())
+                        action = (sampled_action + prior_lambda * prior_action) / (1 + prior_lambda)
+                        sampled_actions[c, t, :] = action
+                        if i == self.config["iterations"] - 1:
+                            origin_obs_game.append(self.env.get_original_obs())
+                            obs_game.append(obs)
+                            acs_game.append(action)
+                        obs, reward, done, info = self.env.step(action.detach().numpy())
+                        if i == self.config["iterations"] - 1:
+                            rs_game.append(reward)
                         returns[c] += self.config["gamma"] ** t * (reward + math.log(1 - info[0][self.cost_info_str]))
+                if i == self.config["iterations"] - 1:
+                    all_orig_obs.append(np.squeeze(np.array(origin_obs_game), axis=1))
+                    all_obs.append(np.squeeze(np.array(obs_game), axis=1))
+                    all_acs.append(np.squeeze(np.array(acs_game), axis=1))
+                    all_rs.append(np.squeeze(np.asarray(rs_game)))
             # Re-fit belief to the K best action sequences
             _, topk = returns.topk(self.config["top_candidates"], largest=True, sorted=False)  # K ← argsort({R(j)}
             best_actions = sampled_actions[topk]
+            best_orig_obs = all_orig_obs[topk]
+            best_obs = all_obs[topk]
+            best_acs = all_acs[topk]
+            best_rs = all_rs[topk]
+            best_length = lengths[topk]
+            best_sum_rewards = returns[topk]
             # Update belief with new means and standard deviations
             action_distribution = Normal(best_actions.mean(dim=0), best_actions.std(dim=0, unbiased=False))
         # Return first action mean µ_t
-        return action_distribution.mean.tolist(), best_actions
+        return best_orig_obs, best_obs, best_acs, best_rs, best_length, best_sum_rewards
 
     def record(self, state, action, reward, next_state, done, info):
         pass

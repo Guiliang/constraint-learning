@@ -32,9 +32,9 @@ class ConstrainedRLSampler:
             self.planner.env = new_env
 
         if self.apply_planning:
-            self.planner.plan(previous_actions=[], prior_policy=policy_agent)
+            return self.planner.plan(previous_actions=[], prior_policy=policy_agent)
         else:
-            self.sample_with_policy()
+            return self.sample_with_policy()
 
     def sample_with_policy(self):
         all_orig_obs, all_obs, all_acs, all_rs = [], [], [], []
