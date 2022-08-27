@@ -70,7 +70,7 @@ def train(config):
         partial_data = True
         # debug_msg += 'part-'
         if "planning" in config['running'].keys() and not config['running']['planning']:
-            config['Plan']['  iterations'] = 2
+            config['Plan']['iterations'] = 2
     if partial_data:
         debug_msg += 'part-'
 
