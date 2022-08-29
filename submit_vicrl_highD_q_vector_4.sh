@@ -6,7 +6,7 @@
 #SBATCH --time=36:00:00
 #SBATCH --mem=200GB
 #SBATCH --job-name=VICRL
-task_name="train-highD-VICRL_3"
+task_name="train-highD-VICRL_4"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
