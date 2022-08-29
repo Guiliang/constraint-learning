@@ -568,7 +568,6 @@ def get_plot_results_dir(env_id):
             ]
         }
     elif env_id == 'highD_velocity_distance_constraint':
-
         log_path_dict = {
             "ppo_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20": [
                 '../save_model/PPO-highD-velocity-distance/train_ppo_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20-multi_env-Aug-23-2022-05:41-seed_123/',
@@ -580,6 +579,20 @@ def get_plot_results_dir(env_id):
                 # '../save_model/PPO-Lag-highD-velocity-distance/train_ppo_lag_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20-multi_env-Aug-15-2022-07:55-seed_123/',
                 '../save_model/PPO-Lag-highD-velocity-distance/train_ppo_lag_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20-multi_env-Aug-23-2022-05:41-seed_321/',
                 '../save_model/PPO-Lag-highD-velocity-distance/train_ppo_lag_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20-multi_env-Aug-15-2022-07:57-seed_666/',
+            ],
+            "ICRL_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20": [
+                '../save_model/ICRL-highD-velocity-distance/train_ICRL_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20-multi_env-Aug-25-2022-08:19-seed_123/',
+                '../save_model/ICRL-highD-velocity-distance/train_ICRL_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20-multi_env-Aug-25-2022-08:19-seed_321/',
+                '../save_model/ICRL-highD-velocity-distance/train_ICRL_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20-multi_env-Aug-25-2022-08:19-seed_666/',
+            ],
+            "VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_no-buffer_vm-40_dm-20": [
+                '../save_model/VICRL-highD-velocity-distance/train_VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_no-buffer_vm-40_dm-20-multi_env-Aug-28-2022-00:05-seed_123/',
+            ],
+            "VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40_dm-20": [
+                '../save_model/VICRL-highD-velocity-distance/train_VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40_dm-20-multi_env-Aug-28-2022-00:05-seed_123/',
+            ],
+            "VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20": [
+                '../save_model/VICRL-highD-velocity-distance/train_VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20-multi_env-Aug-27-2022-08:05-seed_123/',
             ],
         }
     elif env_id == 'HCWithPos-v0':

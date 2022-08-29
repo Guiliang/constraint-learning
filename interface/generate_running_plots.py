@@ -391,75 +391,15 @@ def generate_plots():
     #     "Bound": 'Bound'
     # }
 
-    env_id = 'highD_distance_constraint_dim6'
-    max_episodes = 5000
-    average_num = 200
-    max_reward = 50
-    min_reward = -50
-    axis_size = 20
-    img_size = [8.5, 6.5]
-    title = 'Simplified HighD Distance Constraint'
-    constraint_keys = ['is_too_closed']
-    plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
-                'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance',
-                'is_too_closed', 'success_rate']
-    label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
-                 'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Over Speed Rate', 'Avg. Distance',
-                 'Distance Constraint Violation Rate', 'Success Rate']
-    plot_y_lim_dict = {'reward': None,
-                       'reward_nc': None,
-                       'reward_valid': None,
-                       'is_collision': None,
-                       'is_off_road': None,
-                       'is_goal_reached': None,
-                       'is_time_out': None,
-                       'avg_velocity': None,
-                       'avg_distance': None,
-                       'is_over_speed': None,
-                       'is_too_closed': None,
-                       'success_rate': None}
-    # plot_y_lim_dict = {'reward': (-50, 50),
-    #                    'reward_nc': (0, 50),
-    #                    'is_collision': (0, 1),
-    #                    'is_off_road': (0, 1),
-    #                    'is_goal_reached': (0, 1),
-    #                    'is_time_out': (0, 1),
-    #                    'avg_velocity': (20, 50),
-    #                    'is_over_speed': (0, 1),
-    #                    'avg_distance': (50, 100),
-    #                    'is_too_closed': (0, 0.5)}
-    bound_results = {
-        'reward': 50,
-        'reward_nc': 50,
-        'reward_valid': 50,
-        'is_collision': 0,
-        'is_off_road': 0,
-        'is_goal_reached': 0,
-        'is_time_out': 0,
-        'is_too_closed': 0,
-        'is_over_speed': 0,
-        'success_rate': 1,
-    }
-    method_names_labels_dict = {
-        "GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20_dim-6": 'GACL',
-        "Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'BC2L',
-        "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'MECL',
-        "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'VCIRL',
-        # "ppo_highD_no_slo_distance_dm-20": 'PPO',
-        "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
-        "Bound": 'Bound'
-    }
-    #
-    # env_id = 'highD_velocity_distance_constraint'
+    # env_id = 'highD_distance_constraint_dim6'
     # max_episodes = 5000
     # average_num = 200
     # max_reward = 50
     # min_reward = -50
     # axis_size = 20
-    # img_size = [9, 6.5]
-    # save = False
-    # title = 'HighD Velocity and Distance Constraint'
-    # constraint_keys = ['is_too_closed', 'is_over_speed']
+    # img_size = [8.5, 6.5]
+    # title = 'Simplified HighD Distance Constraint'
+    # constraint_keys = ['is_too_closed']
     # plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
     #             'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance',
     #             'is_too_closed', 'success_rate']
@@ -478,7 +418,16 @@ def generate_plots():
     #                    'is_over_speed': None,
     #                    'is_too_closed': None,
     #                    'success_rate': None}
-    #
+    # # plot_y_lim_dict = {'reward': (-50, 50),
+    # #                    'reward_nc': (0, 50),
+    # #                    'is_collision': (0, 1),
+    # #                    'is_off_road': (0, 1),
+    # #                    'is_goal_reached': (0, 1),
+    # #                    'is_time_out': (0, 1),
+    # #                    'avg_velocity': (20, 50),
+    # #                    'is_over_speed': (0, 1),
+    # #                    'avg_distance': (50, 100),
+    # #                    'is_too_closed': (0, 0.5)}
     # bound_results = {
     #     'reward': 50,
     #     'reward_nc': 50,
@@ -492,10 +441,65 @@ def generate_plots():
     #     'success_rate': 1,
     # }
     # method_names_labels_dict = {
-    #     "ppo_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20": 'PPO',
-    #     "ppo_lag_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20": 'PPO_lag',
+    #     "GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-5e-4_no-buffer_dm-20_dim-6": 'GACL',
+    #     "Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'BC2L',
+    #     "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'MECL',
+    #     "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_no-buffer_dm-20_dim-6": 'VCIRL',
+    #     # "ppo_highD_no_slo_distance_dm-20": 'PPO',
+    #     "ppo_lag_highD_no_slo_distance_dm-20": 'PPO_lag',
     #     "Bound": 'Bound'
     # }
+    #
+    env_id = 'highD_velocity_distance_constraint'
+    max_episodes = 5000
+    average_num = 200
+    max_reward = 50
+    min_reward = -50
+    axis_size = 20
+    img_size = [9, 6.5]
+    save = False
+    title = 'HighD Velocity and Distance Constraint'
+    constraint_keys = ['is_too_closed', 'is_over_speed']
+    plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
+                'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance',
+                'is_too_closed', 'success_rate']
+    label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
+                 'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Over Speed Rate', 'Avg. Distance',
+                 'Distance Constraint Violation Rate', 'Success Rate']
+    plot_y_lim_dict = {'reward': None,
+                       'reward_nc': None,
+                       'reward_valid': None,
+                       'is_collision': None,
+                       'is_off_road': None,
+                       'is_goal_reached': None,
+                       'is_time_out': None,
+                       'avg_velocity': None,
+                       'avg_distance': None,
+                       'is_over_speed': None,
+                       'is_too_closed': None,
+                       'success_rate': None}
+
+    bound_results = {
+        'reward': 50,
+        'reward_nc': 50,
+        'reward_valid': 50,
+        'is_collision': 0,
+        'is_off_road': 0,
+        'is_goal_reached': 0,
+        'is_time_out': 0,
+        'is_too_closed': 0,
+        'is_over_speed': 0,
+        'success_rate': 1,
+    }
+    method_names_labels_dict = {
+        "ppo_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20": 'PPO',
+        "ppo_lag_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20": 'PPO_lag',
+        'ICRL_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20': 'MECL',
+        'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_no-buffer_vm-40_dm-20': 'VCIRL',
+        'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40_dm-20': 'VCIRL1',
+        'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20': 'VCIRL2',
+        "Bound": 'Bound'
+    }
 
     # env_id = 'highD_distance_constraint_dm-40'
     # method_names_labels_dict = {
