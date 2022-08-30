@@ -69,7 +69,7 @@ def train(config):
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
-        if "planning" in config['running'].keys() and not config['running']['planning']:
+        if "planning" in config['running'].keys() and config['running']['planning']:
             config['Plan']['iterations'] = 2
     if partial_data:
         debug_msg += 'part-'
@@ -154,7 +154,7 @@ def train(config):
                                               part_data=partial_data,
                                               multi_env=sample_multi_env,
                                               log_file=log_file)
-    if "planning" in config['running'].keys() and not config['running']['planning']:
+    if "planning" in config['running'].keys() and config['running']['planning']:
         planning_config = config['Plan']
         config['Plan']['top_candidates'] = int(config['running']['sample_rollouts'])
     else:

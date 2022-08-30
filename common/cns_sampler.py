@@ -18,7 +18,10 @@ class ConstrainedRLSampler:
         self.policy_agent = None
         if self.planning_config is not None:
             self.apply_planning = True
-            self.planner = CEMAgent(config=self.planning_config, env=self.env, cost_info_str=cost_info_str)
+            self.planner = CEMAgent(config=self.planning_config,
+                                    env=self.env,
+                                    cost_info_str=cost_info_str,
+                                    store_by_game=self.store_by_game)
         else:
             self.apply_planning = False
 

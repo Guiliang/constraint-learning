@@ -12,11 +12,12 @@ class CEMAgent(AbstractAgent):
         The environment is copied and used as an oracle model to sample trajectories.
     """
 
-    def __init__(self, env, config, cost_info_str='cost'):
+    def __init__(self, env, config, cost_info_str='cost', store_by_game=False):
         super(CEMAgent, self).__init__(config)
         self.env = env
         self.action_size = env.action_space.shape[0]
         self.cost_info_str = cost_info_str
+        self.store_by_game = store_by_game
 
     @classmethod
     def default_config(cls):
@@ -48,7 +49,7 @@ class CEMAgent(AbstractAgent):
                     pred_action, state = prior_policy.predict(obs, state=state, deterministic=False)
                     obs, reward, done, _info = self.env.step(previous_action)
                 for t in range(self.config["horizon"]):
-                    if done:
+                    if done or t == self.config["horizon"]-1:
                         lengths.append(t)
                         # returns[c] += self.config["done_penalty"]
                     else:
@@ -57,32 +58,44 @@ class CEMAgent(AbstractAgent):
                         prior_lambda = self.config['prior_lambda']
                         action = (sampled_action + prior_lambda * prior_action) / (1 + prior_lambda)
                         sampled_actions[c, t, :] = action
+                        action = action.detach().numpy()
                         if i == self.config["iterations"] - 1:
                             origin_obs_game.append(self.env.get_original_obs())
                             obs_game.append(obs)
                             acs_game.append(action)
-                        obs, reward, done, info = self.env.step(action.detach().numpy())
+                        obs, reward, done, info = self.env.step(action)
                         if i == self.config["iterations"] - 1:
                             rs_game.append(reward)
                         returns[c] += self.config["gamma"] ** t * (reward + math.log(1 - info[0][self.cost_info_str]))
                 if i == self.config["iterations"] - 1:
                     all_orig_obs.append(np.squeeze(np.array(origin_obs_game), axis=1))
                     all_obs.append(np.squeeze(np.array(obs_game), axis=1))
+                    # tmp = np.array(acs_game)
                     all_acs.append(np.squeeze(np.array(acs_game), axis=1))
                     all_rs.append(np.squeeze(np.asarray(rs_game)))
             # Re-fit belief to the K best action sequences
             _, topk = returns.topk(self.config["top_candidates"], largest=True, sorted=False)  # K ← argsort({R(j)}
             best_actions = sampled_actions[topk]
-            best_orig_obs = all_orig_obs[topk]
-            best_obs = all_obs[topk]
-            best_acs = all_acs[topk]
-            best_rs = all_rs[topk]
-            best_length = lengths[topk]
-            best_sum_rewards = returns[topk]
+            if i == self.config["iterations"] - 1:
+                best_orig_obs = [all_orig_obs[idx] for idx in topk]
+                best_obs = [all_obs[idx] for idx in topk]
+                best_acs = [all_acs[idx] for idx in topk]
+                best_rs = [all_rs[idx] for idx in topk]
+                best_length = [lengths[idx] for idx in topk]
+                best_sum_rewards = [returns[idx] for idx in topk]
             # Update belief with new means and standard deviations
             action_distribution = Normal(best_actions.mean(dim=0), best_actions.std(dim=0, unbiased=False))
         # Return first action mean µ_t
-        return best_orig_obs, best_obs, best_acs, best_rs, best_length, best_sum_rewards
+        if self.store_by_game:
+            return best_orig_obs, best_obs, best_acs, best_rs, best_length, best_sum_rewards
+        else:
+            best_orig_obs = np.squeeze(np.array(best_orig_obs), axis=1)
+            best_obs = np.squeeze(np.array(best_obs), axis=1)
+            best_acs = np.squeeze(np.array(best_acs), axis=1)
+            best_rs = np.array(best_rs)
+            best_sum_rewards = np.squeeze(np.array(best_sum_rewards), axis=1)
+            best_length = np.array(best_length)
+            return best_orig_obs, best_obs, best_acs, best_rs, best_length, best_sum_rewards
 
     def record(self, state, action, reward, next_state, done, info):
         pass
