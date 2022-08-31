@@ -12,8 +12,9 @@ class CEMAgent(AbstractAgent):
         The environment is copied and used as an oracle model to sample trajectories.
     """
 
-    def __init__(self, env, config, cost_info_str='cost', store_by_game=False):
+    def __init__(self, env, config, cost_info_str='cost', store_by_game=False, eps=0.00001):
         super(CEMAgent, self).__init__(config)
+        self.eps = eps
         self.env = env
         self.action_size = env.action_space.shape[0]
         self.cost_info_str = cost_info_str
@@ -32,8 +33,8 @@ class CEMAgent(AbstractAgent):
 
     def plan(self, previous_actions, prior_policy):
         action_distribution = Normal(
-            torch.zeros(self.config["horizon"], self.action_size),
-            torch.tensor(self.config["std"]).repeat(self.config["horizon"], self.action_size))
+            loc=torch.zeros(self.config["horizon"], self.action_size),
+            scale=torch.tensor(self.config["std"]).repeat(self.config["horizon"], self.action_size))
         all_orig_obs, all_obs, all_acs, all_rs = [], [], [], []
         sum_rewards, lengths = [], []
         best_orig_obs, best_obs, best_acs, best_rs, best_length, best_sum_rewards = None, None, None, None, None, None
@@ -46,14 +47,16 @@ class CEMAgent(AbstractAgent):
                 done = False
                 origin_obs_game, obs_game, acs_game, rs_game = [], [], [], []
                 for previous_action in previous_actions:
-                    pred_action, state = prior_policy.predict(obs, state=state, deterministic=False)
+                    # pred_action, state = prior_policy.predict(obs, state=state, deterministic=False)
+                    pred_action, state = prior_policy.predict(obs, state=state, deterministic=True)
                     obs, reward, done, _info = self.env.step(previous_action)
                 for t in range(self.config["horizon"]):
                     if done or t == self.config["horizon"]-1:
                         lengths.append(t)
                         # returns[c] += self.config["done_penalty"]
                     else:
-                        prior_action, state = prior_policy.predict(obs, state=state, deterministic=False)
+                        # prior_action, state = prior_policy.predict(obs, state=state, deterministic=False)
+                        prior_action, state = prior_policy.predict(obs, state=state, deterministic=True)
                         sampled_action = sampled_actions[c, t, :]
                         prior_lambda = self.config['prior_lambda']
                         action = (sampled_action + prior_lambda * prior_action) / (1 + prior_lambda)
@@ -66,7 +69,8 @@ class CEMAgent(AbstractAgent):
                         obs, reward, done, info = self.env.step(action)
                         if i == self.config["iterations"] - 1:
                             rs_game.append(reward)
-                        returns[c] += self.config["gamma"] ** t * (reward + math.log(1 - info[0][self.cost_info_str]))
+                        returns[c] += self.config["gamma"] ** t * (reward +
+                                                                   math.log(1 - info[0][self.cost_info_str]+self.eps))
                 if i == self.config["iterations"] - 1:
                     all_orig_obs.append(np.squeeze(np.array(origin_obs_game), axis=1))
                     all_obs.append(np.squeeze(np.array(obs_game), axis=1))
@@ -84,7 +88,18 @@ class CEMAgent(AbstractAgent):
                 best_length = [lengths[idx] for idx in topk]
                 best_sum_rewards = [returns[idx] for idx in topk]
             # Update belief with new means and standard deviations
-            action_distribution = Normal(best_actions.mean(dim=0), best_actions.std(dim=0, unbiased=False))
+            mean = best_actions.mean(dim=0)
+            std = best_actions.std(dim=0, unbiased=False)
+            std = std.clip(min=1e-10, max=None)
+            try:
+                action_distribution = Normal(loc=mean, scale=std)
+            except:
+                for actions in best_actions:
+                    for action in actions:
+                        print(action)
+                for std_point in std:
+                    print(std_point)
+                action_distribution = Normal(loc=mean, scale=std)
         # Return first action mean µ_t
         if self.store_by_game:
             return best_orig_obs, best_obs, best_acs, best_rs, best_length, best_sum_rewards
