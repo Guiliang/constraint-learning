@@ -145,7 +145,7 @@ class CEMAgent(AbstractAgent):
             # Update belief with new means and standard deviations
             b_action_mean = best_actions.mean(dim=0)
             b_action_std = best_actions.std(dim=0, unbiased=False)
-            b_action_std = b_action_std.clip(min=1e-10, max=None)
+            b_action_std = torch.clamp(b_action_std, min=1e-10)
             action_distribution = Normal(loc=b_action_mean, scale=b_action_std)
 
         return self.collect_trajectory(reset_info=reset_info,
