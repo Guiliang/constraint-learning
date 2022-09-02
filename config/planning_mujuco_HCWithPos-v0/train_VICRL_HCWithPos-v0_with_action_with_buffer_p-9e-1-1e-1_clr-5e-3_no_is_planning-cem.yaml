@@ -26,7 +26,7 @@ running:
   sample_rollouts: 10
   store_sample_rollouts: 500
   expert_path: '../data/expert_data/BlockedHalf-cheetah/'
-  use_buffer: True
+  use_buffer: False
   store_by_game: False
   planning: True
 
@@ -93,4 +93,5 @@ Plan:
   planner: 'CEM'
   horizon: 1000
   candidates: 20
+  top_candidates: 10
   iterations: 50

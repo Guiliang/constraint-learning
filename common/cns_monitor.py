@@ -33,6 +33,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
 
         self.t_start = time.time()
         self.write_marker = False
+        self.write_logger = True
         if filename is None:
             self.file_handler = None
             self.logger = None
@@ -88,26 +89,34 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
         self.info_saving_items = info_saving_items
 
     def reset(self, **kwargs) -> np.ndarray:
-        if not self.allow_early_resets and not self.needs_reset:
-            raise RuntimeError(
-                "Tried to reset an environment before done. If you want to allow early resets, "
-                "wrap your env with Monitor(env, path, allow_early_resets=True)"
-            )
-        self.rewards = []
-        self.rewards_not_constraint = []  # the rewards before breaking the constraint
-        if is_commonroad(self.env.spec.id):
-            self.ego_velocity_game = []
-            self.lanebase_relative_position_game = []
-        self.needs_reset = False
+        self.write_logger = True
+        self.reset_record_info()
         for key in self.reset_keywords:
             value = kwargs.get(key)
             if value is None:
                 raise ValueError("Expected you to pass kwarg {} into reset".format(key))
             self.current_reset_info[key] = value
+        return self.env.reset(**kwargs)
 
+    def reset_with_info(self, info) -> np.ndarray:
+        self.write_logger = info['write_logger']
+        self.reset_record_info()
+        return self.env.reset_with_info(info)
+
+    def reset_record_info(self):
+        if not self.allow_early_resets and not self.needs_reset:
+            raise RuntimeError(
+                "Tried to reset an environment before done. If you want to allow early resets, "
+                "wrap your env with Monitor(env, path, allow_early_resets=True)"
+            )
+        self.needs_reset = False
+        self.rewards = []
+        self.rewards_not_constraint = []  # the rewards before breaking the constraint
+        if is_commonroad(self.env.spec.id):
+            self.ego_velocity_game = []
+            self.lanebase_relative_position_game = []
         self.track = {key: [] for key in self.track_keywords}
         self.t_start = time.time()
-        return self.env.reset(**kwargs)
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
 
@@ -222,7 +231,7 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             self.episode_lengths.append(ep_len)
             self.episode_times.append(time.time() - self.t_start)
             ep_info.update(self.current_reset_info)
-            if self.logger:
+            if self.logger and self.write_logger:
                 self.logger.writerow(ep_info)
                 self.file_handler.flush()
             info["episode"] = ep_info

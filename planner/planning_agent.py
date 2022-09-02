@@ -5,6 +5,9 @@ import logging
 import gym
 from gym.core import Env
 from abc import ABC, abstractmethod
+
+from stable_baselines3.common.vec_env import VecEnv
+
 logger = logging.getLogger(__name__)
 
 
@@ -160,7 +163,7 @@ class AbstractStochasticAgent(AbstractAgent):
         raise NotImplementedError()
 
 
-def safe_deepcopy_env(obj):
+def safe_deepcopy_env(obj, up_k=''):
     """
         Perform a deep copy of an environment but without copying its viewer.
     """
@@ -168,9 +171,16 @@ def safe_deepcopy_env(obj):
     result = cls.__new__(cls)
     memo = {id(obj): result}
     for k, v in obj.__dict__.items():
-        if k not in ['viewer', '_monitor', 'grid_render', 'video_recorder', '_record_video_wrapper']:
-            if isinstance(v, gym.Env):
-                setattr(result, k, safe_deepcopy_env(v))
+        print("Copying {0}".format(up_k + '/' + k))
+        if k not in ['viewer', '_monitor', 'grid_render', 'video_recorder', '_record_video_wrapper',
+                     'class_attributes']:
+            if isinstance(v, gym.Env) or isinstance(v, VecEnv) or isinstance(v, PyMjModel) or isinstance(v, PyMjModel):
+                setattr(result, k, safe_deepcopy_env(v, up_k + '/' + k))
+            elif k == 'envs':
+                setattr(result, k, [])
+                for i in range(len(v)):
+                    if isinstance(v[i], gym.Wrapper):
+                        result[k][i] = safe_deepcopy_env(v[i], up_k + '/' + k)
             else:
                 setattr(result, k, copy.deepcopy(v, memo=memo))
         else:

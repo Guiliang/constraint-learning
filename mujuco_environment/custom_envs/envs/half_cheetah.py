@@ -156,6 +156,20 @@ class HalfCheetahWithPos(HalfCheetahEnv):
         self.set_state(qpos, qvel)
         return self._get_obs()
 
+    def reset_with_info(self, info):
+        self.sim.reset()
+        if 'qpos' in info.keys() and 'qvel' in info.keys():
+            qpos = info['qpos']
+            qvel = info['qvel']
+            self.set_state(qpos, qvel)
+            ob = self._get_obs()
+        else:
+            ob = self.reset_model()
+        info['qpos'] = self.sim.data.qpos
+        info['qvel'] = self.sim.data.qpos
+        return ob, info
+
+
     def old_reward(self, xposbefore, xposafter, action):
         reward_ctrl = -0.1 * np.square(action).sum()
         reward_run = abs(xposafter - xposbefore) / self.dt
@@ -164,7 +178,9 @@ class HalfCheetahWithPos(HalfCheetahEnv):
         info = dict(
             reward_run=reward_run,
             reward_ctrl=reward_ctrl,
-            xpos=xposafter
+            xpos=xposafter,
+            # qpos=self.sim.data.qpos,
+            # qvel=self.sim.data.qvel,
         )
 
         return reward, info
@@ -179,7 +195,9 @@ class HalfCheetahWithPos(HalfCheetahEnv):
             reward_run=reward_run,
             reward_ctrl=reward_ctrl,
             reward_dist=reward_dist,
-            xpos=xposafter
+            xpos=xposafter,
+            # qpos=self.sim.data.qpos,
+            # qvel=self.sim.data.qvel,
         )
 
         return reward, info

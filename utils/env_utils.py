@@ -3,6 +3,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import gym
+from gym.wrappers import TimeLimit
+
 # from gym.envs.mujoco import mujoco_env
 
 import stable_baselines3.common.vec_env as vec_env
@@ -86,6 +88,11 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         super(MujocoExternalSignalWrapper, self).__init__(env=env)
         self.wrapper_config = wrapper_config
         self.group = group
+
+    def reset_with_info(self, info):
+        if isinstance(self.env, TimeLimit):
+            self.env._elapsed_steps = 0
+        return self.env.reset_with_info(info)
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
         obs, reward, done, info = self.env.step(action)

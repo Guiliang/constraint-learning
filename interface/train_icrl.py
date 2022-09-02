@@ -61,7 +61,7 @@ def train(config):
         config['PPO']['n_epochs'] = 2
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
-        config['running']['sample_rollouts'] = 10
+        config['running']['sample_rollouts'] = 5
         # config['running']['sample_data_num'] = 500
         config['running']['store_sample_num'] = 1000
         # config['CN']['cn_batch_size'] = 3
@@ -74,8 +74,8 @@ def train(config):
     if partial_data:
         debug_msg += 'part-'
 
-    if num_threads is not None:
-        config['env']['num_threads'] = int(num_threads)
+    # if num_threads is not None:
+    #     config['env']['num_threads'] = int(num_threads)
 
     print(json.dumps(config, indent=4), file=log_file, flush=True)
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
@@ -110,7 +110,8 @@ def train(config):
 
     mem_prev = process_memory()
     time_prev = time.time()
-    # Create the vectorized environments
+
+    # init training env
     train_env, env_configs = make_train_env(env_id=config['env']['train_env_id'],
                                             config_path=config['env']['config_path'],
                                             save_dir=save_model_mother_dir,
@@ -131,17 +132,16 @@ def train(config):
     all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
     print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
 
-    # We don't need cost when taking samples
+    # init sample env
     save_valid_mother_dir = os.path.join(save_model_mother_dir, "sample/")
     if not os.path.exists(save_valid_mother_dir):
         os.mkdir(save_valid_mother_dir)
-    # if 'commonroad' in config['env']['train_env_id']:
-    #     sample_num_threads = num_threads
-    #     sample_multi_env = multi_env
-    # else:
-    # TODO: multi_env sampling
-    sample_num_threads = 1
-    sample_multi_env = False
+    if 'sample_multi_env' in config['running'].keys() and config['running']['sample_multi_env'] and num_threads > 1:
+        sample_multi_env = True
+        sample_num_threads = num_threads
+    else:
+        sample_multi_env = False
+        sample_num_threads = 1
     sampling_env, env_configs = make_eval_env(env_id=config['env']['train_env_id'],
                                               config_path=config['env']['config_path'],
                                               save_dir=save_valid_mother_dir,
@@ -162,10 +162,12 @@ def train(config):
     sampler = ConstrainedRLSampler(rollouts=int(config['running']['sample_rollouts']),
                                    store_by_game=config['running']['use_buffer'],
                                    cost_info_str=config['env']['cost_info_str'],
+                                   sample_multi_env=sample_multi_env,
+                                   env_id=config['env']['eval_env_id'],
                                    env=sampling_env,
                                    planning_config=planning_config)
 
-    # We don't need cost when during evaluation
+    # Init testing env
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
         os.mkdir(save_test_mother_dir)
@@ -208,7 +210,6 @@ def train(config):
     else:
         (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
             expert_path=expert_path,
-            # use_pickle5=is_mujoco(config['env']['train_env_id']),  # True for the Mujoco envs
             num_rollouts=expert_rollouts,
             store_by_game=config['running']['store_by_game'],
             add_next_step=False,
@@ -311,7 +312,6 @@ def train(config):
     # Warmup
     timesteps = 0.
     if config['PPO']['warmup_timesteps']:
-        # print(colorize("\nWarming up", color="green", bold=True))
         print("\nWarming up", file=log_file, flush=True)
         with ProgressBarManager(config['PPO']['warmup_timesteps']) as callback:
             nominal_agent.learn(total_timesteps=config['PPO']['warmup_timesteps'],
@@ -324,7 +324,6 @@ def train(config):
 
     # Train
     start_time = time.time()
-    # print(utils.colorize("\nBeginning training", color="green", bold=True), flush=True)
     print("\nBeginning training", file=log_file, flush=True)
     best_true_reward, best_true_cost, best_forward_kl, best_reverse_kl = -np.inf, np.inf, np.inf, np.inf
     for itr in range(config['running']['n_iters']):
@@ -338,7 +337,7 @@ def train(config):
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
             nominal_agent.learn(
                 total_timesteps=config['PPO']['forward_timesteps'],
-                cost_function="cost",  # Cost should come from cost wrapper
+                cost_function=config['env']['cost_info_str'],  # Cost should come from cost wrapper
                 callback=[callback] + all_callbacks
             )
             forward_metrics = logger.Logger.CURRENT.name_to_value
@@ -350,19 +349,10 @@ def train(config):
                                              log_file=log_file)
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sampling_env)
-        if sample_multi_env:
-            orig_observations, observations, actions, rewards, sum_rewards, lengths = multi_threads_sample_from_agent(
-                agent=nominal_agent,
-                env=sampling_env,
-                rollouts=int(config['running']['sample_rollouts']),
-                num_threads=num_threads,
-                store_by_game=config['running']['use_buffer'],
-            )
-        else:
-            orig_observations, observations, actions, rewards, sum_rewards, lengths = sampler.sample_from_agent(
-                policy_agent=nominal_agent,
-                new_env=sampling_env,
-            )
+        orig_observations, observations, actions, rewards, sum_rewards, lengths = sampler.sample_from_agent(
+            policy_agent=nominal_agent,
+            new_env=sampling_env,
+        )
         if config['running']['use_buffer']:
             sample_data_queue.put(obs=orig_observations,
                                   acs=actions,
@@ -423,14 +413,6 @@ def train(config):
             for record_info_idx in range(len(config['env']["record_info_names"])):
                 record_info_name = config['env']["record_info_names"][record_info_idx]
                 plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
-                # plot_curve(draw_keys=[record_info_name],
-                #            x_dict={record_info_name: plot_record_infos},
-                #            y_dict={record_info_name: plot_costs},
-                #            save_name=os.path.join(path, "{0}_empirical_visualize".format(record_info_name)),
-                #            xlabel=record_info_name,
-                #            ylabel='cost',
-                #            apply_scatter=True,
-                #            )
                 if len(expert_acs.shape) == 1:
                     empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
                 else:

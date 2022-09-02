@@ -74,6 +74,13 @@ class DummyVecEnv(VecEnv):
         buf_obs = self._obs_from_buf()
         return buf_obs
 
+    def reset_with_info(self, infos):
+        for env_idx in range(self.num_envs):
+            obs, new_info = self.envs[env_idx].reset_with_info(infos[env_idx])
+            self.buf_infos[env_idx] = new_info
+            self._save_obs(env_idx, obs)
+        return self._obs_from_buf(), deepcopy(self.buf_infos)
+
     def close(self):
         for env in self.envs:
             env.close()
