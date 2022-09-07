@@ -45,10 +45,13 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
             self.file_handler.write("#%s\n" % json.dumps({"t_start": self.t_start, "env_id": env.spec and env.spec.id}))
 
             if is_mujoco(self.env.spec.id):
+                if 'constraint_id' in self.env.wrapper_config.keys():
+                    fieldnames = ("reward", "reward_nc", "len", "time", "c_id", "constraint")
+                else:
+                    fieldnames = ("reward", "reward_nc", "len", "time", "constraint")
+
                 self.logger = csv.DictWriter(self.file_handler,
-                                             fieldnames=("reward", "reward_nc", "len",
-                                                         "time", "constraint")
-                                                        + reset_keywords + info_keywords + track_keywords,
+                                             fieldnames=fieldnames + reset_keywords + info_keywords + track_keywords,
                                              delimiter=",")
                 self.event_dict = {
                     'is_constraint_break': 0
@@ -109,6 +112,15 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
         if self.needs_reset:
             raise RuntimeError("Tried to step environment that needs reset")
         observation, reward, done, info = self.env.step(action)
+        return self.record_step(action, observation, reward, done, info)
+
+    def step_with_code(self, action: np.ndarray, code: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
+        if self.needs_reset:
+            raise RuntimeError("Tried to step environment that needs reset")
+        observation, reward, done, info = self.env.step_with_code(action, code)
+        return self.record_step(action, observation, reward, done, info)
+
+    def record_step(self, action, observation, reward, done, info):
         if is_mujoco(self.env.spec.id):
             if info['lag_cost']:
                 self.event_dict['is_constraint_break'] = 1
@@ -163,11 +175,20 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
             ep_rew_nc = sum(self.rewards_not_constraint)
             assert len(self.rewards_not_constraint) <= len(self.rewards)
             if is_mujoco(self.env.spec.id):
-                ep_info = {"reward": round(ep_rew, 2),
-                           "reward_nc": round(ep_rew_nc, 2),
-                           "len": ep_len,
-                           "time": round(time.time() - self.t_start, 2),
-                           'constraint': self.event_dict['is_constraint_break']}
+                if 'constraint_id' in self.env.wrapper_config.keys():
+                    tmp = np.argmax(action[-2:])
+                    ep_info = {"reward": round(ep_rew, 2),
+                               "reward_nc": round(ep_rew_nc, 2),
+                               "len": ep_len,
+                               "time": round(time.time() - self.t_start, 2),
+                               'c_id': np.argmax(action[-2:]),
+                               'constraint': self.event_dict['is_constraint_break']}
+                else:
+                    ep_info = {"reward": round(ep_rew, 2),
+                               "reward_nc": round(ep_rew_nc, 2),
+                               "len": ep_len,
+                               "time": round(time.time() - self.t_start, 2),
+                               'constraint': self.event_dict['is_constraint_break']}
             elif is_commonroad(self.env.spec.id):
                 if len(self.ego_velocity_game) > 0:
                     ego_velocity_array = np.asarray(self.ego_velocity_game)

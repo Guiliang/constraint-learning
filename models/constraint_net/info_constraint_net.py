@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
 import numpy as np
 import torch
 import torch as th
-
+import torch.nn.functional as F
 from models.constraint_net.constraint_net import ConstraintNet
 from cirl_stable_baselines3.common.torch_layers import create_mlp
 from cirl_stable_baselines3.common.utils import update_learning_rate
@@ -172,8 +172,8 @@ class InfoConstraintNet(ConstraintNet):
         expert_data = self.prepare_data(self.expert_obs, self.expert_acs)
         assert 'nominal_codes' in other_parameters
         nominal_codes = th.tensor(other_parameters['nominal_codes'], dtype=th.float32).to(self.device)
-        assert 'expert_codes' in other_parameters
-        expert_codes = th.tensor(other_parameters['expert_codes'], dtype=th.float32).to(self.device)
+        # assert 'expert_codes' in other_parameters
+        # expert_codes = th.tensor(other_parameters['expert_codes'], dtype=th.float32).to(self.device)
         # expert_codes = th.tensor(np.eye(self.latent_dim)[np.random.choice(self.latent_dim, expert_data.shape[0])],
         #                          dtype=th.float32).to(self.device)
 
@@ -209,7 +209,9 @@ class InfoConstraintNet(ConstraintNet):
                 nominal_data_batch = nominal_data[nom_batch_indices]
                 nominal_code_batch = nominal_codes[nom_batch_indices]
                 expert_data_batch = expert_data[exp_batch_indices]
-                expert_code_batch = expert_codes[exp_batch_indices]
+                expert_latent_prob = self.posterior_encoder(expert_data_batch).detach()
+                expert_latent_pred = expert_latent_prob.argmax(dim=1)
+                expert_code_batch = F.one_hot(expert_latent_pred, num_classes=self.latent_dim).to(self.device)
                 is_batch = is_weights[nom_batch_indices][..., None]
 
                 # Make predictions

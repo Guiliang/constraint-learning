@@ -82,16 +82,17 @@ def sample_from_agent(agent, env, rollouts, deterministic=False, store_by_game=F
     all_orig_obs, all_obs, all_acs, all_rs = [], [], [], []
     if sample_parameters['store_code']:
         all_codes = []
+
     sum_rewards, lengths = [], []
     for i in range(rollouts):
         # Avoid double reset, as VecEnv are reset automatically
         if i == 0:
             obs = env.reset()
-            codes = sample_parameters['init_codes']
+            code = sample_parameters['init_codes']
         # benchmark_id = env.venv.envs[0].benchmark_id
         # print('senario id', benchmark_id)
 
-        done, state = False, None
+        done, states = False, None
         episode_sum_reward = 0.0
         episode_length = 0
         if store_by_game:
@@ -103,26 +104,26 @@ def sample_from_agent(agent, env, rollouts, deterministic=False, store_by_game=F
                 codes_game = []
         while not done:
             if sample_parameters['store_code']:
-                pred = np.concatenate([obs, codes], axis=1)
+                pred_input = np.concatenate([obs, code], axis=1)
             else:
-                pred = obs
-            action, state = agent.predict(pred, state=state, deterministic=deterministic)
-
+                pred_input = obs
+            action, states = agent.predict(pred_input, state=states, deterministic=deterministic)
             if store_by_game:
                 origin_obs_game.append(env.get_original_obs())
                 obs_game.append(obs)
                 acs_game.append(action)
                 if sample_parameters['store_code']:
-                    codes_game.append(codes)
+                    codes_game.append(code)
             else:
                 all_orig_obs.append(env.get_original_obs())
                 all_obs.append(obs)
                 all_acs.append(action)
                 if sample_parameters['store_code']:
-                    all_codes.append(codes)
-            obs, reward, done, _info = env.step(action)
+                    all_codes.append(code)
+            # action_code = np.concatenate([actions, codes], axis=1)
+            obs, reward, done, _info = env.step_with_code(action, code)
             if sample_parameters['store_code']:
-                codes = np.asarray([_info[0]["code"]])
+                code = np.asarray([_info[0]["new_code"]])
             if store_by_game:
                 rs_game.append(reward)
             else:

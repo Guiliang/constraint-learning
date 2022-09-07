@@ -653,13 +653,14 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             # Clip the actions to avoid out of bound error
             if isinstance(self.action_space, gym.spaces.Box):
                 clipped_actions = np.clip(actions, self.action_space.low, self.action_space.high)
-
-            new_obs, rewards, dones, infos = env.step(clipped_actions)
+            # we overload the action parameter a little for the convenience of pass latent code
+            # clipped_actions_codes = np.concatenate([clipped_actions, self._last_latent_codes], axis=1)
+            new_obs, rewards, dones, infos = env.step_with_code(clipped_actions, self._last_latent_codes)
             orig_obs = env.get_original_obs() if isinstance(env, VecNormalize) else new_obs
             if type(cost_info_str) is str:
                 # Need to get cost from environment.
                 costs = np.array([info[cost_info_str] for info in infos])
-                latent_codes = np.array([info['code'] for info in infos])
+                new_latent_codes = np.array([info['new_code'] for info in infos])
                 latent_posteriors = np.array([info[latent_info_str] for info in infos])
                 if isinstance(env, VecNormalizeWithCost):
                     orig_costs = env.get_original_cost()
@@ -687,12 +688,13 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
                 # Reshape in case of discrete action
                 actions = actions.reshape(-1, 1)
             rollout_buffer.add(self._last_obs, self._last_original_obs, new_obs, orig_obs, actions,
-                               latent_codes, latent_posteriors, rewards, costs, orig_costs,
+                               self._last_latent_codes, latent_posteriors, rewards, costs, orig_costs,
                                self._last_dones, reward_values, cost_values, log_probs)
             self._last_obs = new_obs
             self._last_original_obs = orig_obs
             self._last_dones = dones
-            self._last_latent_codes = latent_codes
+            self._last_latent_codes = new_latent_codes
+            print(self._last_latent_codes)
 
         rollout_buffer.compute_returns_and_advantage(reward_values, cost_values, dones=dones)
 

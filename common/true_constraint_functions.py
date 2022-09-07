@@ -2,9 +2,9 @@ from functools import partial
 import numpy as np
 
 
-def get_true_cost_function(env_id, env_configs={}):
+def get_true_constraint_function(env_id, env_configs={}, constraint_id=0):
     """Returns the cost function correpsonding to provided env)"""
-    c_id = env_configs['constraint_id']
+    c_id = constraint_id
     if env_id in ["HCWithPosTest-v0",
                   "AntWallTest-v0",
                   "HCWithPos-v0",

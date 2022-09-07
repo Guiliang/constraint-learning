@@ -94,11 +94,11 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
     def _build(self) -> None:
         if self.explain_model_name == "senn":
             self.sample_conceptizer = IdentityConceptizer().to(self.device)
-            self.sample_parameterizer = LinearParameterizer(num_concepts=self.input_dims,
+            self.sample_parameterizer = LinearParameterizer(num_concepts=self.input_dim,
                                                             num_classes=1,
-                                                            hidden_sizes=[self.input_dims] +
+                                                            hidden_sizes=[self.input_dim] +
                                                                          self.hidden_sizes +
-                                                                         [self.input_dims]
+                                                                         [self.input_dim]
                                                             ).to(self.device)
         elif self.explain_model_name == 'ndt':
             # the ndt cannot scale well to the large dimensions, we apply it for modelling actions
@@ -124,7 +124,7 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
 
         self.sample_aggregator = SumAggregator(num_classes=1).to(self.device)
         self.encoder = nn.Sequential(
-            *create_mlp(self.input_dims, 2, self.hidden_sizes)
+            *create_mlp(self.input_dim, 2, self.hidden_sizes)
         ).to(self.device)
 
         # build different optimizers for different models

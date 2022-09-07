@@ -116,23 +116,23 @@ class ConstraintNet(nn.Module):
         elif self.acs_select_dim[0] != -1:
             self.input_acs_dim += self.acs_select_dim
         self.select_dim = self.input_obs_dim + [i + obs_len for i in self.input_acs_dim]
-        self.input_dims = len(self.select_dim)
-        assert self.input_dims > 0, ""
+        self.input_dim = len(self.select_dim)
+        assert self.input_dim > 0, ""
 
     def _build(self) -> None:
 
         # Create network and add sigmoid at the end
         self.network = nn.Sequential(
-            *create_mlp(self.input_dims, 1, self.hidden_sizes),
+            *create_mlp(self.input_dim, 1, self.hidden_sizes),
             nn.Sigmoid()
         )
         self.network.to(self.device)
 
         # Build optimizer
         if self.optimizer_class is not None:
-            self.optimizer = self.optimizer_class(self.parameters(), lr=self.lr_schedule(1), **self.optimizer_kwargs)
+            self.cns_optimizer = self.optimizer_class(self.parameters(), lr=self.lr_schedule(1), **self.optimizer_kwargs)
         else:
-            self.optimizer = None
+            self.cns_optimizer = None
         if self.train_gail_lambda:
             self.criterion = nn.BCELoss()
 
@@ -224,9 +224,9 @@ class ConstraintNet(nn.Module):
                     loss = (-expert_loss + nominal_loss) + regularizer_loss
 
                 # Update
-                self.optimizer.zero_grad()
+                self.cns_optimizer.zero_grad()
                 loss.backward()
-                self.optimizer.step()
+                self.cns_optimizer.step()
 
         bw_metrics = {"backward/cn_loss": loss.item(),
                       "backward/expert_loss": expert_loss.item(),
@@ -348,12 +348,12 @@ class ConstraintNet(nn.Module):
 
     def _update_learning_rate(self, current_progress_remaining) -> None:
         self.current_progress_remaining = current_progress_remaining
-        update_learning_rate(self.optimizer, self.lr_schedule(current_progress_remaining))
+        update_learning_rate(self.cns_optimizer, self.lr_schedule(current_progress_remaining))
 
     def save(self, save_path):
         state_dict = dict(
             cn_network=self.network.state_dict(),
-            cn_optimizer=self.optimizer.state_dict(),
+            cn_optimizer=self.cns_optimizer.state_dict(),
             obs_dim=self.obs_dim,
             acs_dim=self.acs_dim,
             is_discrete=self.is_discrete,
@@ -373,8 +373,8 @@ class ConstraintNet(nn.Module):
         state_dict = th.load(load_path)
         if "cn_network" in state_dict:
             self.network.load_state_dict(dic["cn_network"])
-        if "cn_optimizer" in state_dict and self.optimizer is not None:
-            self.optimizer.load_state_dict(dic["cn_optimizer"])
+        if "cn_optimizer" in state_dict and self.cns_optimizer is not None:
+            self.cns_optimizer.load_state_dict(dic["cn_optimizer"])
 
     # Provide basic functionality to load this class
     @classmethod

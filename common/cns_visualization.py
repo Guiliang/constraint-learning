@@ -53,7 +53,8 @@ def constraint_visualization_2d(cost_function_with_code, feature_range, select_d
 
 def constraint_visualization_1d(cost_function, feature_range, select_dim, obs_dim, acs_dim,
                                 save_name, feature_data=None, feature_cost=None, feature_name=None,
-                                empirical_input_means=None, num_points=1000, axis_size=24):
+                                empirical_input_means=None, num_points=1000, axis_size=24,
+                                code_index=None, latent_dim=None):
     """
     visualize the constraints with partial dependency plot and (optionally) testing outputs.
     """
@@ -67,12 +68,19 @@ def constraint_visualization_1d(cost_function, feature_range, select_dim, obs_di
     else:
         assert len(empirical_input_means) == obs_dim + acs_dim
         input_all = np.expand_dims(empirical_input_means, 0).repeat(num_points, axis=0)
-        # input_all = torch.tensor(input_all)
     input_all[:, select_dim] = selected_feature_generation
     with torch.no_grad():
         obs = input_all[:, :obs_dim]
         acs = input_all[:, obs_dim:]
-        preds = cost_function(obs=obs, acs=acs, force_mode='mean')  # use the mean of a distribution for visualization
+        if code_index is not None and latent_dim is not None:
+            codes = build_code(code_axis=[code_index]*len(input_all),
+                               code_dim=latent_dim,
+                               num_envs=len(input_all))
+            preds = cost_function(obs=obs,
+                                  acs=acs,
+                                  codes=codes)
+        else:
+            preds = cost_function(obs=obs, acs=acs, force_mode='mean')  # use the mean of a distribution for visualization
     ax[0].plot(selected_feature_generation, preds, c='r', linewidth=5)
     if feature_data is not None:
         ax[0].scatter(feature_data, feature_cost)

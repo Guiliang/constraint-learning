@@ -114,12 +114,12 @@ class A2C(OnPolicyAlgorithm):
         rollout buffer (one gradient step over whole data).
         """
         # Update optimizer learning rate
-        self._update_learning_rate(self.policy.optimizer)
+        self._update_learning_rate(self.policy.cns_optimizer)
 
         # This will only loop once (get all data in one go)
         for rollout_data in self.rollout_buffer.get(batch_size=None):
 
-            actions = rollout_data.actions
+            actions = rollout_data.actions_codes
             if isinstance(self.action_space, spaces.Discrete):
                 # Convert discrete action from float to long
                 actions = actions.long().flatten()
@@ -149,12 +149,12 @@ class A2C(OnPolicyAlgorithm):
             loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
 
             # Optimization step
-            self.policy.optimizer.zero_grad()
+            self.policy.cns_optimizer.zero_grad()
             loss.backward()
 
             # Clip grad norm
             th.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
-            self.policy.optimizer.step()
+            self.policy.cns_optimizer.step()
 
         explained_var = explained_variance(self.rollout_buffer.returns.flatten(), self.rollout_buffer.values.flatten())
 

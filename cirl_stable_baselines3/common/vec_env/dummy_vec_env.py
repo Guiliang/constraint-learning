@@ -34,16 +34,24 @@ class DummyVecEnv(VecEnv):
         self.buf_rews = np.zeros((self.num_envs,), dtype=np.float32)
         self.buf_infos = [{} for _ in range(self.num_envs)]
         self.actions = None
+        self.codes = None
         self.metadata = env.metadata
 
     def step_async(self, actions: np.ndarray):
         self.actions = actions
 
+    def step_async_with_code(self, actions: np.ndarray, codes: np.ndarray):
+        self.actions = actions
+        self.codes = codes
+
     def step_wait(self):
         for env_idx in range(self.num_envs):
-            obs, self.buf_rews[env_idx], self.buf_dones[env_idx], self.buf_infos[env_idx] = self.envs[env_idx].step(
-                self.actions[env_idx]
-            )
+            if self.codes is None:
+                obs, self.buf_rews[env_idx], self.buf_dones[env_idx], self.buf_infos[env_idx] = \
+                    self.envs[env_idx].step(self.actions[env_idx])
+            else:
+                obs, self.buf_rews[env_idx], self.buf_dones[env_idx], self.buf_infos[env_idx] = \
+                    self.envs[env_idx].step_with_code(self.actions[env_idx], self.codes[env_idx])
             if self.buf_dones[env_idx]:
                 # save final observation where user can get it, then reset
                 self.buf_infos[env_idx]["terminal_observation"] = obs

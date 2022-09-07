@@ -85,7 +85,7 @@ class VariationalConstraintNet(ConstraintNet):
 
     def _build(self) -> None:
         self.network = nn.Sequential(
-            *create_mlp(self.input_dims, 2, self.hidden_sizes),
+            *create_mlp(self.input_dim, 2, self.hidden_sizes),
             nn.Softplus()
         )
         self.network.to(self.device)

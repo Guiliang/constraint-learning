@@ -4,9 +4,9 @@ from itertools import accumulate
 from typing import Any, Callable, Dict, Optional, Tuple, Type, Union, List
 import numpy as np
 import torch
-import torch as th
 import torch.nn.functional as F
 from models.constraint_net.constraint_net import ConstraintNet
+from models.nf_net.masked_autoregressive_flow import MADE, BatchNormFlow, Reverse, FlowSequential
 from cirl_stable_baselines3.common.torch_layers import create_mlp
 from cirl_stable_baselines3.common.utils import update_learning_rate
 from torch import nn
@@ -32,7 +32,7 @@ class MixtureConstraintNet(ConstraintNet):
             regularizer_coeff: float = 0.,
             obs_select_dim: Optional[Tuple[int, ...]] = None,
             acs_select_dim: Optional[Tuple[int, ...]] = None,
-            optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
+            optimizer_class: Type[torch.optim.Optimizer] = torch.optim.Adam,
             optimizer_kwargs: Optional[Dict[str, Any]] = None,
             no_importance_sampling: bool = True,
             per_step_importance_sampling: bool = False,
@@ -81,6 +81,7 @@ class MixtureConstraintNet(ConstraintNet):
         self.latent_dim = latent_dim
         self.max_seq_length = max_seq_length
         self.eta = eta
+        self.pivot_vectors_by_cid = {}
         self._build()
 
     def _define_input_dims(self) -> None:
@@ -96,37 +97,63 @@ class MixtureConstraintNet(ConstraintNet):
         elif self.acs_select_dim[0] != -1:
             self.input_acs_dim += self.acs_select_dim
         self.select_dim = self.input_obs_dim + [i + obs_len for i in self.input_acs_dim]
-        self.input_dims = len(self.select_dim)
-        assert self.input_dims > 0, ""
+        self.input_dim = len(self.select_dim)
+        assert self.input_dim > 0, ""
 
     def _build(self) -> None:
 
         # Create constraint function and add sigmoid at the end
-        self.constraint_function = nn.Sequential(
-            *create_mlp(self.input_dims + self.latent_dim, 1, list(self.hidden_sizes)),
+        self.constraint_functions = [nn.Sequential(
+            *create_mlp(self.input_dim, 1, list(self.hidden_sizes)),
             nn.Sigmoid()
-        )
-        self.constraint_function.to(self.device)
+        ).to(self.device) for i in range(self.latent_dim)]
 
-        # Create the posterior of latent code encoder. The code should be in a one-hot format, so we use
-        self.rnn = nn.GRUCell(self.input_dims, self.hidden_sizes[0]).to(self.device)
-        self.posterior_encoder = nn.Sequential(
-            *create_mlp(self.hidden_sizes[0], self.latent_dim,
-                        list(self.hidden_sizes[1:]) if len(self.hidden_sizes) > 1 else self.hidden_sizes),
-            nn.Softmax()
-        ).to(self.device)
-        self.bce_loss = th.nn.BCELoss()
+        # Creat density model
+        modules = []
+        for i in range(len(self.hidden_sizes)):
+            modules += [
+                MADE(num_inputs=self.input_dim,
+                     num_hidden=self.hidden_sizes[i],
+                     num_cond_inputs=self.latent_dim,
+                     ),
+                BatchNormFlow(self.input_dim, ),
+                Reverse(self.input_dim, )
+            ]
+        model = FlowSequential(*modules)
+
+        for module in model.modules():
+            if isinstance(module, nn.Linear):
+                nn.init.orthogonal_(module.weight)
+                if hasattr(module, 'bias') and module.bias is not None:
+                    module.bias.data.fill_(0)
+        model.to(self.device)
+        self.density_model = model
 
         # Build optimizer
         if self.optimizer_class is not None:
-            self.optimizer = self.optimizer_class(self.parameters(), lr=self.lr_schedule(1), **self.optimizer_kwargs)
+            self.cns_optimizers = []
+            for i in range(self.latent_dim):
+                self.cns_optimizers.append(self.optimizer_class(params=self.constraint_functions[i].parameters(),
+                                                                lr=self.lr_schedule(1),
+                                                                **self.optimizer_kwargs))
+            self.density_optimizer = self.optimizer_class(params=self.density_model.parameters(),
+                                                          lr=self.lr_schedule(1),
+                                                          **self.optimizer_kwargs)
         else:
-            self.optimizer = None
+            self.cns_optimizers = None
         if self.train_gail_lambda:
             self.criterion = nn.BCELoss()
 
-    def forward(self, x: th.tensor) -> th.tensor:
-        return self.constraint_function(x)
+    def forward(self, x: torch.tensor) -> torch.tensor:
+        data = x[:, :-self.latent_dim]
+        codes = x[:, -self.latent_dim:]
+        outputs = []
+        for i in range(self.latent_dim):
+            outputs.append(self.constraint_functions[i](data).squeeze(dim=1))
+        outputs = torch.stack(outputs, dim=1)
+        outputs = outputs * codes
+        # tmp = torch.sum(outputs, dim=1)
+        return torch.sum(outputs, dim=1)
 
     def cost_function_with_code(self, obs: np.ndarray, acs: np.ndarray, codes: np.ndarray) -> np.ndarray:
         assert obs.shape[-1] == self.obs_dim, ""
@@ -134,35 +161,17 @@ class MixtureConstraintNet(ConstraintNet):
             assert acs.shape[-1] == self.acs_dim, ""
 
         data = self.prepare_data(obs, acs)
-        codes = th.tensor(codes, dtype=th.float32).to(self.device)
-        function_input = th.cat([data, codes], dim=1)
-        with th.no_grad():
+        codes = torch.tensor(codes, dtype=torch.float32).to(self.device)
+        function_input = torch.cat([data, codes], dim=1)
+        with torch.no_grad():
             out = self.__call__(function_input)
         cost = 1 - out.detach().cpu().numpy()
-        return cost.squeeze(axis=-1)
-
-    def latent_function(self, obs: List[np.ndarray], acs: List[np.ndarray]) -> np.ndarray:
-        """
-        obs: [env_len, seq_len, obs_dim]
-        acs: [env_len, seq_len, obs_dim]
-        """
-        assert len(obs) == len(acs)
-        data_games = [self.prepare_data(obs[i], acs[i]) for i in range(len(obs))]
-        seq_games = [build_rnn_input(max_seq_length=self.max_seq_length,
-                                     input_data_list=data_games[i])[-1, :]
-                     for i in range(len(data_games))]
-        seqs = torch.stack(seq_games, dim=0)  # [env_len, seq_len, obs_dim]
-        rnn_batch_hidden_states = None
-        with th.no_grad():
-            for i in range(int(self.max_seq_length)):
-                rnn_input = seqs[:, i, :]
-                rnn_batch_hidden_states = self.rnn(input=rnn_input, hx=rnn_batch_hidden_states)
-            latent_posterior = self.posterior_encoder(rnn_batch_hidden_states).detach().cpu().numpy()
-        return latent_posterior
+        return cost
 
     def call_forward(self, x: np.ndarray):
-        with th.no_grad():
-            out = self.__call__(th.tensor(x, dtype=th.float32).to(self.device))
+        with torch.no_grad():
+            out = self.__call__(torch.tensor(x, dtype=torch.float32).to(self.device),
+                                )
         return out
 
     def train_nn(
@@ -185,116 +194,149 @@ class MixtureConstraintNet(ConstraintNet):
         self.current_obs_var = obs_var
 
         # Prepare data
-        nominal_games = [self.prepare_data(nominal_obs[i], nominal_acs[i]) for i in range(len(nominal_obs))]
-        expert_games = [self.prepare_data(self.expert_obs[i], self.expert_acs[i]) for i in range(len(self.expert_obs))]
+        nominal_data_games = [self.prepare_data(nominal_obs[i], nominal_acs[i]) for i in range(len(nominal_obs))]
+        expert_data_games = [self.prepare_data(self.expert_obs[i], self.expert_acs[i]) for i in
+                             range(len(self.expert_obs))]
 
-        # build rnn input:
-        nominal_seq_games = [build_rnn_input(max_seq_length=self.max_seq_length,
-                                             input_data_list=nominal_games[i])
-                             for i in range(len(nominal_obs))]
-        nominal_seqs = torch.cat(nominal_seq_games, dim=0)  # [data_num, seq_len, input_dim]
-        expert_seq_games = [build_rnn_input(max_seq_length=self.max_seq_length,
-                                            input_data_list=expert_games[i])
-                            for i in range(len(expert_games))]
-        expert_seqs = torch.cat(expert_seq_games, dim=0)  # [data_num, seq_len, input_dim]
+        nominal_data = torch.cat(nominal_data_games, dim=0)
+        expert_data = torch.cat(expert_data_games, dim=0)
 
         assert 'nominal_codes' in other_parameters
-        nominal_codes = th.tensor(other_parameters['nominal_codes'], dtype=th.float32).\
-            reshape([-1, self.latent_dim]).to(self.device)
-        assert 'expert_codes' in other_parameters
-        expert_codes = th.tensor(other_parameters['expert_codes'], dtype=th.float32).\
-            reshape([-1, self.latent_dim]).to(self.device)
+        nominal_code_games = [torch.tensor(other_parameters['nominal_codes'][i]).to(self.device) for i in
+                              range(len(other_parameters['nominal_codes']))]
+        nominal_code = torch.cat(nominal_code_games, dim=0)
 
+        # list all possible candidate codes with shape [batch_size, latent_dim, latent_dim],
+        # for example, for latent_dim =2, we have [[1,0],[0,1]]*batch_size
         expert_candidate_code = build_code(code_axis=[i for i in range(self.latent_dim)],
                                            code_dim=self.latent_dim,
                                            num_envs=self.latent_dim)
-        expert_candidate_codes = np.expand_dims(expert_candidate_code, axis=0).repeat(len(expert_seqs), axis=0)
-        expert_candidate_codes = th.tensor(expert_candidate_codes, dtype=th.float32).to(self.device)
-
+        expert_candidate_code = torch.tensor(expert_candidate_code).to(self.device)
         for itr in tqdm(range(iterations)):
-            # # classify the expert data with posterior
-            # rnn_batch_hidden_states = None
-            # for i in range(int(self.max_seq_length)):
-            #     rnn_input = expert_seqs[:, i, :]
-            #     rnn_batch_hidden_states = self.rnn(input=rnn_input, hx=rnn_batch_hidden_states)
-            # latent_prediction = self.posterior_encoder(rnn_batch_hidden_states).argmax(dim=1)
+            for nom_batch_indices, exp_batch_indices in self.get(nominal_data.shape[0], expert_data.shape[0]):
+                nominal_data_batch = nominal_data[nom_batch_indices]
+                nominal_code_batch = nominal_code[nom_batch_indices]
+                m_loss, log_prob = self.density_model.log_probs(inputs=nominal_data_batch,
+                                                                cond_inputs=nominal_code_batch)
+                self.density_optimizer.zero_grad()
+                density_loss = -m_loss.mean()
+                log_prob = log_prob.mean()
+                density_loss.backward()
+                self.density_optimizer.step()
 
-            # Do a complete pass on data
-            for nom_batch_indices, exp_batch_indices in self.get(nominal_seqs.shape[0], expert_seqs.shape[0]):
-                # Get batch data
-                nominal_data_batch = nominal_seqs[nom_batch_indices][:, -1, :]  # [data_num, input_dim]
-                nominal_seqs_batch = nominal_seqs[nom_batch_indices]
-                nominal_code_batch = nominal_codes[nom_batch_indices]
-                expert_data_batch = expert_seqs[exp_batch_indices][:, -1, :]  # [data_num, input_dim]
-                expert_seqs_batch = expert_seqs[exp_batch_indices]  # [data_num, seq_len, input_dim]
-                expert_candidate_code_batch = expert_candidate_codes[exp_batch_indices]
+        # save training data for different codes
+        nominal_data_by_cid = {}
+        for cid in range(self.latent_dim):
+            nominal_data_by_cid.update({cid: None})
+        nominal_log_prob_by_cid = {}
+        for cid in range(self.latent_dim):
+            nominal_log_prob_by_cid.update({cid: None})
+        expert_data_by_cid = {}
+        for cid in range(self.latent_dim):
+            expert_data_by_cid.update({cid: None})
 
-                # Nominal predictions
-                nominal_input_batch = th.cat([nominal_data_batch, nominal_code_batch], dim=1)
-                nominal_preds = self.__call__(nominal_input_batch)
-                nominal_loss = th.mean(th.log(nominal_preds + self.eps))
+        # scan through the expert data and classify them
+        expert_code_games = []
+        expert_latent_prob_games = []
+        for i in range(len(expert_data_games)):
+            expert_data_game_repeat = expert_data_games[i].unsqueeze(dim=1).repeat(1, self.latent_dim, 1)
+            expert_code_game = expert_candidate_code.unsqueeze(dim=0).repeat(len(expert_data_games[i]), 1, 1)
+            _, expert_log_prob = self.density_model.log_probs(
+                inputs=expert_data_game_repeat.reshape([-1, self.input_dim]),
+                cond_inputs=expert_code_game.reshape(
+                    [-1, self.latent_dim]))
+            # sum up the log-prob for datapoints to determine the cid of entire trajectory.
+            expert_log_sum_game = expert_log_prob.reshape([-1, self.latent_dim, 1]).sum(dim=0).squeeze(dim=-1)
+            expert_cid = expert_log_sum_game.argmax()
+            print("expert game: {0}, cid: {1}".format(i, expert_cid))
+            if expert_data_by_cid[expert_cid.item()] is None:
+                expert_data_by_cid[expert_cid.item()] = expert_data_games[i]
+            else:
+                expert_data_by_cid[expert_cid.item()] = torch.cat([expert_data_by_cid[expert_cid.item()],
+                                                                   expert_data_games[i]], dim=0)
+            expert_cid_game = expert_cid.repeat(len(expert_data_games[i]))
+            # repeat the cid to label all the expert datapoints.
+            expert_code_game = F.one_hot(expert_cid_game, num_classes=self.latent_dim).to(self.device)
+            expert_code_games.append(expert_code_game)
+        expert_codes = torch.cat(expert_code_games, dim=0)
 
-                # Latent predictions
-                rnn_batch_hidden_states = None
-                for i in range(int(self.max_seq_length)):
-                    rnn_batch_input = expert_seqs_batch[:, i, :]
-                    rnn_batch_hidden_states = self.rnn(input=rnn_batch_input, hx=rnn_batch_hidden_states)
-                expert_latent_prob = self.posterior_encoder(rnn_batch_hidden_states).detach()
-                expert_latent_pred = expert_latent_prob.argmax(dim=1)
-                expert_latent_max_mask = F.one_hot(expert_latent_pred, num_classes=self.latent_dim).to(self.device)
-                expert_latent_others_mask = torch.ones([expert_latent_prob.shape[0], self.latent_dim]).to(
-                    self.device) - expert_latent_max_mask
+        # scan through the nominal data and pick some pivot points
+        for i in range(len(nominal_data_games)):
+            nominal_data_game = nominal_data_games[i]
+            nominal_code_game = nominal_code_games[i]
+            nominal_cid = nominal_code_game[0].argmax()
+            if nominal_data_by_cid[nominal_cid.item()] is None:
+                nominal_data_by_cid[nominal_cid.item()] = nominal_data_game
+            else:
+                nominal_data_by_cid[nominal_cid.item()] = torch.cat([nominal_data_by_cid[nominal_cid.item()],
+                                                                     nominal_data_game], dim=0)
+            nominal_code_game_reverse = torch.ones(size=nominal_code_game.shape)
+            _, reverse_log_prob_game = self.density_model.log_probs(inputs=nominal_data_game,
+                                                                    cond_inputs=nominal_code_game_reverse)
+            if nominal_log_prob_by_cid[nominal_cid.item()] is None:
+                nominal_log_prob_by_cid[nominal_cid.item()] = reverse_log_prob_game
+            else:
+                nominal_log_prob_by_cid[nominal_cid.item()] = torch.cat([nominal_log_prob_by_cid[nominal_cid.item()],
+                                                                         reverse_log_prob_game], dim=0)
 
-                # Expert predictions
-                expert_candidate_batch = expert_data_batch.unsqueeze(dim=1).repeat(1, self.latent_dim, 1)
-                expert_input_batch = th.cat([expert_candidate_batch, expert_candidate_code_batch], dim=-1)
-                expert_preds = self.__call__(expert_input_batch.reshape(
-                    shape=[-1, self.latent_dim + self.input_dims])).reshape(shape=[-1, self.latent_dim])
+        for cid in range(self.latent_dim):
+            reverse_log_prob_cid = nominal_log_prob_by_cid[cid]
+            _, botk = (-reverse_log_prob_cid.squeeze(dim=-1)).topk(10, dim=0, largest=True, sorted=False)
+            pivot_points = nominal_data_by_cid[cid][botk]
+            self.pivot_vectors_by_cid.update({cid: pivot_points.mean(dim=0)})
+            print('cid: {0}, pivot_vectors is {1}'.format(cid, self.pivot_vectors_by_cid[cid]),
+                  flush=True, file=self.log_file)
+            for itr in tqdm(range(iterations)):
+                # Do a complete pass on data
+                for nom_batch_indices, exp_batch_indices in self.get(nominal_data_by_cid[cid].shape[0],
+                                                                     expert_data_by_cid[cid].shape[0]):
+                    # Get batch data
+                    nominal_data_batch = nominal_data_by_cid[cid][nom_batch_indices]
+                    expert_data_batch = expert_data_by_cid[cid][exp_batch_indices]
+                    # Make predictions
+                    nom_cid_code = build_code(code_axis=[cid for i in range(len(nom_batch_indices))],
+                                              code_dim=self.latent_dim,
+                                              num_envs=len(nom_batch_indices))
+                    nom_cid_code = torch.tensor(nom_cid_code).to(self.device)
+                    nominal_preds = self.__call__(torch.cat([nominal_data_batch, nom_cid_code], dim=1))
+                    expert_cid_code = build_code(code_axis=[cid for i in range(len(exp_batch_indices))],
+                                                 code_dim=self.latent_dim,
+                                                 num_envs=len(exp_batch_indices))
+                    expert_cid_code = torch.tensor(expert_cid_code).to(self.device)
+                    expert_preds = self.__call__(torch.cat([expert_data_batch, expert_cid_code], dim=1))
 
-                tmp1 = th.log(expert_preds + self.eps) * expert_latent_max_mask
-                expert_loss_1 = -th.sum(th.log(expert_preds + self.eps) * expert_latent_max_mask, dim=1)
-                tmp2 = th.log(expert_preds + self.eps) * expert_latent_others_mask
-                expert_loss_2 = 1 / (self.latent_dim - 1) * th.sum(
-                    th.log(expert_preds + self.eps) * expert_latent_others_mask, dim=1)
-                expert_loss = (expert_loss_1 + self.eta * expert_loss_2).mean()
+                    # Calculate loss
+                    expert_loss = torch.mean(torch.log(expert_preds + self.eps))
+                    nominal_loss = torch.mean(torch.log(nominal_preds + self.eps))
+                    regularizer_loss = self.regularizer_coeff * (
+                            torch.mean(1 - expert_preds) + torch.mean(1 - nominal_preds))
+                    discriminator_loss = (-expert_loss + nominal_loss) + regularizer_loss
 
-                # add regularization
-                # regularizer_loss = self.regularizer_coeff * (th.mean(1 - expert_preds) + th.mean(1 - nominal_preds))
-                regularizer_loss = th.tensor(0)
-                discriminator_loss = expert_loss + (1 - self.eta) * nominal_loss
-
-                # update posterior
-                rnn_batch_hidden_states = None
-                for i in range(int(self.max_seq_length)):
-                    rnn_batch_input = nominal_seqs_batch[:, i, :]
-                    rnn_batch_hidden_states = self.rnn(input=rnn_batch_input, hx=rnn_batch_hidden_states)
-                nominal_latent_prob = self.posterior_encoder(rnn_batch_hidden_states)
-                posterior_loss = self.bce_loss(nominal_latent_prob, nominal_code_batch)
-
-                # Update
-                self.optimizer.zero_grad()
-                discriminator_loss.backward()
-                posterior_loss.backward()
-                self.optimizer.step()
+                    # Update
+                    self.cns_optimizers[cid].zero_grad()
+                    discriminator_loss.backward()
+                    self.cns_optimizers[cid].step()
 
         bw_metrics = {"backward/cn_loss": discriminator_loss.item(),
-                      "backward/posterior_loss": posterior_loss.item(),
+                      "backward/density_loss": density_loss.item(),
                       "backward/expert_loss": expert_loss.item(),
-                      "backward/unweighted_nominal_loss": th.mean(th.log(nominal_preds + self.eps)).item(),
                       "backward/nominal_loss": nominal_loss.item(),
                       "backward/regularizer_loss": regularizer_loss.item(),
-                      "backward/nominal_preds_max": th.max(nominal_preds).item(),
-                      "backward/nominal_preds_min": th.min(nominal_preds).item(),
-                      "backward/nominal_preds_mean": th.mean(nominal_preds).item(),
-                      "backward/expert_preds_max": th.max(expert_preds).item(),
-                      "backward/expert_preds_min": th.min(expert_preds).item(),
-                      "backward/expert_preds_mean": th.mean(expert_preds).item(), }
+                      "backward/nominal_preds_max": torch.max(nominal_preds).item(),
+                      "backward/nominal_preds_min": torch.min(nominal_preds).item(),
+                      "backward/nominal_preds_mean": torch.mean(nominal_preds).item(),
+                      "backward/expert_preds_max": torch.max(expert_preds).item(),
+                      "backward/expert_preds_min": torch.min(expert_preds).item(),
+                      "backward/expert_preds_mean": torch.mean(expert_preds).item(),
+                      }
         return bw_metrics
 
     def save(self, save_path):
         state_dict = dict(
-            cn_network=self.constraint_function.state_dict(),
-            cn_optimizer=self.optimizer.state_dict(),
+            cn_network=[self.constraint_functions[i].state_dict() for i in range(self.latent_dim)],
+            density_model=self.density_model.state_dict(),
+            cn_optimizers=[self.cns_optimizers[i].state_dict() for i in range(self.latent_dim)],
+            density_optimizer=self.density_optimizer.state_dict(),
             obs_dim=self.obs_dim,
             acs_dim=self.acs_dim,
             is_discrete=self.is_discrete,
@@ -306,16 +348,24 @@ class MixtureConstraintNet(ConstraintNet):
             action_low=self.action_low,
             action_high=self.action_high,
             device=self.device,
-            hidden_sizes=self.hidden_sizes
+            hidden_sizes=self.hidden_sizes,
+            latent_dim=self.latent_dim,
+            input_dim=self.input_dim,
         )
-        th.save(state_dict, save_path)
+        torch.save(state_dict, save_path)
+
+    def _update_learning_rate(self, current_progress_remaining) -> None:
+        self.current_progress_remaining = current_progress_remaining
+        for i in range(self.latent_dim):
+            update_learning_rate(self.cns_optimizers[i], self.lr_schedule(current_progress_remaining))
+        update_learning_rate(self.density_optimizer, self.lr_schedule(current_progress_remaining))
 
     def _load(self, load_path):
-        state_dict = th.load(load_path)
+        state_dict = torch.load(load_path)
         if "cn_network" in state_dict:
-            self.constraint_function.load_state_dict(dic["cn_network"])
-        if "cn_optimizer" in state_dict and self.optimizer is not None:
-            self.optimizer.load_state_dict(dic["cn_optimizer"])
+            self.constraint_functions.load_state_dict(dic["cn_network"])
+        if "cn_optimizer" in state_dict and self.cns_optimizer is not None:
+            self.cns_optimizer.load_state_dict(dic["cn_optimizer"])
 
     # Provide basic functionality to load this class
     @classmethod
@@ -324,6 +374,7 @@ class MixtureConstraintNet(ConstraintNet):
             load_path: str,
             obs_dim: Optional[int] = None,
             acs_dim: Optional[int] = None,
+            latent_dim: Optional[int] = None,
             is_discrete: bool = None,
             obs_select_dim: Optional[Tuple[int, ...]] = None,
             acs_select_dim: Optional[Tuple[int, ...]] = None,
@@ -335,7 +386,7 @@ class MixtureConstraintNet(ConstraintNet):
             device: str = "auto"
     ):
 
-        state_dict = th.load(load_path)
+        state_dict = torch.load(load_path)
         # If value isn't specified, then get from state_dict
         if obs_dim is None:
             obs_dim = state_dict["obs_dim"]
@@ -359,6 +410,8 @@ class MixtureConstraintNet(ConstraintNet):
             action_high = state_dict["action_high"]
         if device is None:
             device = state_dict["device"]
+        if latent_dim is None:
+            latent_dim = state_dict["latent_dim"]
 
         # Create network
         hidden_sizes = state_dict["hidden_sizes"]
@@ -379,8 +432,9 @@ class MixtureConstraintNet(ConstraintNet):
             initial_obs_var=obs_var,
             action_low=action_low,
             action_high=action_high,
-            device=device
+            device=device,
+            latent_dim=latent_dim
         )
-        constraint_net.constraint_function.load_state_dict(state_dict["cn_network"])
+        constraint_net.constraint_functions.load_state_dict(state_dict["cn_network"])
 
         return constraint_net

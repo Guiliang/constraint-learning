@@ -129,7 +129,7 @@ class TD3(OffPolicyAlgorithm):
     def train(self, gradient_steps: int, batch_size: int = 100) -> None:
 
         # Update learning rate according to lr schedule
-        self._update_learning_rate([self.actor.optimizer, self.critic.optimizer])
+        self._update_learning_rate([self.actor.cns_optimizer, self.critic.cns_optimizer])
 
         actor_losses, critic_losses = [], []
 
@@ -157,9 +157,9 @@ class TD3(OffPolicyAlgorithm):
             critic_losses.append(critic_loss.item())
 
             # Optimize the critics
-            self.critic.optimizer.zero_grad()
+            self.critic.cns_optimizer.zero_grad()
             critic_loss.backward()
-            self.critic.optimizer.step()
+            self.critic.cns_optimizer.step()
 
             # Delayed policy updates
             if gradient_step % self.policy_delay == 0:
@@ -168,9 +168,9 @@ class TD3(OffPolicyAlgorithm):
                 actor_losses.append(actor_loss.item())
 
                 # Optimize the actor
-                self.actor.optimizer.zero_grad()
+                self.actor.cns_optimizer.zero_grad()
                 actor_loss.backward()
-                self.actor.optimizer.step()
+                self.actor.cns_optimizer.step()
 
                 polyak_update(self.critic.parameters(), self.critic_target.parameters(), self.tau)
                 polyak_update(self.actor.parameters(), self.actor_target.parameters(), self.tau)

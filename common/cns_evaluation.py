@@ -1,7 +1,8 @@
 import os
 import warnings
 from typing import Callable, List, Optional, Tuple, Union, Dict, Any
-
+import torch
+import torch.nn.functional as F
 import gym
 import numpy
 import numpy as np
@@ -10,8 +11,35 @@ from matplotlib import pyplot as plt
 from cirl_stable_baselines3.common.callbacks import EventCallback, BaseCallback
 from cirl_stable_baselines3.common.evaluation import evaluate_policy
 from cirl_stable_baselines3.common.vec_env import VecEnv, DummyVecEnv, sync_envs_normalization, VecNormalize
-from utils.data_utils import process_memory
+from utils.data_utils import process_memory, build_rnn_input
 from utils.model_utils import build_code
+
+
+def evaluate_meicrl_cns(
+        cns_model: torch.nn.Module,
+):
+    expert_games = [cns_model.prepare_data(cns_model.expert_obs[i], cns_model.expert_acs[i])
+                    for i in range(len(cns_model.expert_obs))]
+    expert_seq_games = [build_rnn_input(max_seq_length=cns_model.max_seq_length,
+                                        input_data_list=expert_games[i])
+                        for i in range(len(expert_games))]
+    expert_seqs = torch.cat(expert_seq_games, dim=0)  # [data_num, seq_len, input_dim]
+    expert_code_games = []
+    expert_latent_prob_games = []
+    for i in range(len(expert_seq_games)):
+        expert_seq_game = expert_seq_games[i]
+        rnn_batch_hidden_states = None
+        for i in range(int(cns_model.max_seq_length)):
+            rnn_batch_input = expert_seq_game[:, i, :]
+            rnn_batch_hidden_states = cns_model.rnn(input=rnn_batch_input, hx=rnn_batch_hidden_states)
+        expert_latent_prob_game = cns_model.posterior_encoder(rnn_batch_hidden_states).detach()
+        expert_latent_prob_games.append(expert_latent_prob_game)
+        expert_log_sum_game = torch.log(expert_latent_prob_game + cns_model.eps).sum(dim=0)
+        expert_cid_game = expert_log_sum_game.argmax().repeat(len(expert_seq_game))
+        expert_code_game = F.one_hot(expert_cid_game, num_classes=cns_model.latent_dim).to(cns_model.device)
+        expert_code_games.append(expert_code_game)
+    expert_codes = torch.cat(expert_code_games, dim=0)
+    print("still working")
 
 
 def evaluate_icrl_policy(
@@ -117,23 +145,31 @@ def evaluate_meicrl_policy(
     if isinstance(env, VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
 
+    if isinstance(env, VecNormalize):
+        code_axis = env.venv.code_axis
+        latent_dim = env.venv.latent_dim
+        num_envs = env.venv.num_envs
+    else:
+        code_axis = env.code_axis
+        latent_dim = env.latent_dim
+        num_envs = env.num_envs
+
     episode_rewards, episode_nc_rewards, episode_lengths = [], [], []
     costs = []
     record_infos = {}
     for record_info_name in record_info_names:
-        record_infos.update({record_info_name: []})
+        record_infos.update({record_info_name: {}})
+        for i in range(latent_dim):
+            record_infos[record_info_name].update({i: []})
+
     for i in range(n_eval_episodes):
         # Avoid double reset, as VecEnv are reset automatically
         if not isinstance(env, VecEnv) or i == 0:
             obs = env.reset()
-            if isinstance(env, VecNormalize):
-                codes = build_code(code_axis=env.venv.code_axis,
-                                   code_dim=env.venv.latent_dim,
-                                   num_envs=env.venv.num_envs)
-            else:
-                codes = build_code(code_axis=env.code_axis,
-                                   code_dim=env.latent_dim,
-                                   num_envs=env.num_envs)
+            code = build_code(code_axis=code_axis,
+                               code_dim=latent_dim,
+                               num_envs=num_envs)
+
         done, state = False, None
         episode_reward = np.asarray([0.0] * env.num_envs)
         episode_nc_reward = np.asarray([0.0] * env.num_envs)
@@ -142,26 +178,27 @@ def evaluate_meicrl_policy(
         # mem_current = process_memory()
         # print('0', mem_current)
         while not done:
-            inputs = np.concatenate([obs, codes], axis=1)
+            inputs = np.concatenate([obs, code], axis=1)
             action, state = model.predict(inputs, state=state, deterministic=deterministic)
-            obs, reward, dones, _info = env.step(action)
+            obs, reward, dones, _info = env.step_with_code(actions=action, codes=code)
             done = dones[0]
-            codes = []
+            code = []
             for i in range(env.num_envs):
-                codes.append(_info[i]["code"])
+                code.append(_info[i]["code"])
                 if 'cost' in _info[i].keys():
                     costs.append(_info[i]['cost'])
                 else:
                     costs = None
                 for record_info_name in record_info_names:
-                    record_infos[record_info_name].append(np.mean(_info[i][record_info_name]))
+                    c_id = np.argmax(_info[i]["code"])
+                    record_infos[record_info_name][c_id].append(_info[i][record_info_name])
                 if not is_constraint[i]:
                     if _info[i]['lag_cost']:
                         is_constraint[i] = True
                     else:
                         episode_nc_reward[i] += reward[i]
                 episode_reward[i] += reward[i]
-            codes = np.asarray(codes)
+            code = np.asarray(code)
             if callback is not None:
                 callback(locals(), globals())
             episode_length += 1
@@ -170,7 +207,7 @@ def evaluate_meicrl_policy(
         # mem_current = process_memory()
         # print('1', mem_current)
         if render:
-            plt.savefig(os.path.join(save_path, "traj_visual_code-{0}.png".format(codes[0])))
+            plt.savefig(os.path.join(save_path, "traj_visual_code-{0}.png".format(code[0])))
         # mem_current = process_memory()
         # print('2', mem_current)
         episode_rewards.append(episode_reward)

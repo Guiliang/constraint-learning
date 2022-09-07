@@ -88,6 +88,18 @@ class VecEnv(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def step_async_with_code(self, actions: np.ndarray, codes: np.ndarray):
+        """
+        Tell all the environments to start taking a step
+        with the given actions.
+        Call step_wait() to get the results of the step.
+
+        You should not call this if a step_async run is
+        already pending.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def step_wait(self) -> VecEnvStepReturn:
         """
         Wait for the step taken with step_async().
@@ -147,6 +159,17 @@ class VecEnv(ABC):
         :return: observation, reward, done, information
         """
         self.step_async(actions)
+        return self.step_wait()
+
+    def step_with_code(self, actions: np.ndarray, codes: np.ndarray) -> VecEnvStepReturn:
+        """
+        Step the environments with the given action and latent code
+
+        :param actions: the action
+        :param codes: the code
+        :return: observation, reward, done, information
+        """
+        self.step_async_with_code(actions, codes)
         return self.step_wait()
 
     def get_images(self) -> Sequence[np.ndarray]:
@@ -234,10 +257,10 @@ class VecEnvWrapper(VecEnv):
     """
 
     def __init__(
-        self,
-        venv: VecEnv,
-        observation_space: Optional[gym.spaces.Space] = None,
-        action_space: Optional[gym.spaces.Space] = None,
+            self,
+            venv: VecEnv,
+            observation_space: Optional[gym.spaces.Space] = None,
+            action_space: Optional[gym.spaces.Space] = None,
     ):
         self.venv = venv
         VecEnv.__init__(
@@ -250,6 +273,9 @@ class VecEnvWrapper(VecEnv):
 
     def step_async(self, actions: np.ndarray):
         self.venv.step_async(actions)
+
+    def step_async_with_code(self, actions: np.ndarray, codes: np.ndarray):
+        self.venv.step_async_with_code(actions, codes)
 
     @abstractmethod
     def reset(self) -> VecEnvObs:

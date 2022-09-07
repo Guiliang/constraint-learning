@@ -180,7 +180,7 @@ class PPOLagrangian(OnPolicyWithCostAlgorithm):
         rollout buffer.
         """
         # Update optimizer learning rate
-        self._update_learning_rate(self.policy.optimizer)
+        self._update_learning_rate(self.policy.cns_optimizer)
         # Compute current clip range
         clip_range = self.clip_range(self._current_progress_remaining)
         # Optional: clip range for the value functions
@@ -199,10 +199,10 @@ class PPOLagrangian(OnPolicyWithCostAlgorithm):
             approx_kl_divs = []
             # Do a complete pass on the rollout buffer
             for rollout_data in self.rollout_buffer.get(self.batch_size):
-                actions = rollout_data.actions
+                actions = rollout_data.actions_codes
                 if isinstance(self.action_space, spaces.Discrete):
                     # Convert discrete action from float to long
-                    actions = rollout_data.actions.long().flatten()
+                    actions = rollout_data.actions_codes.long().flatten()
 
                 # Re-sample the noise matrix because the log_std has changed
                 # if that line is commented (as in SAC)
@@ -280,11 +280,11 @@ class PPOLagrangian(OnPolicyWithCostAlgorithm):
                         + self.cost_vf_coef * cost_value_loss)
 
                 # Optimization step
-                self.policy.optimizer.zero_grad()
+                self.policy.cns_optimizer.zero_grad()
                 loss.backward()
                 # Clip grad norm
                 th.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
-                self.policy.optimizer.step()
+                self.policy.cns_optimizer.step()
                 approx_kl_divs.append(th.mean(rollout_data.old_log_prob - log_prob).detach().cpu().numpy())
 
             all_kl_divs.append(np.mean(approx_kl_divs))

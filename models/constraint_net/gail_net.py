@@ -538,7 +538,7 @@ class GailCallback(callbacks.BaseCallback):
     def _on_rollout_end(self):
         # Get data from buffer
         obs = self.model.rollout_buffer.observations.copy()
-        acs = self.model.rollout_buffer.actions.copy()
+        acs = self.model.rollout_buffer.actions_codes.copy()
         unnormalized_obs = self.training_env.unnormalize_obs(obs)
         obs = unnormalized_obs
 

@@ -7,7 +7,7 @@ import gym
 import yaml
 import cirl_stable_baselines3.common.vec_env as vec_env
 from common.cns_monitor import CNSMonitor
-from common.true_constraint_functions import get_true_cost_function
+from common.true_constraint_functions import get_true_constraint_function
 from cirl_stable_baselines3.common import callbacks
 from cirl_stable_baselines3.common.utils import set_random_seed
 from cirl_stable_baselines3.common.vec_env import VecEnvWrapper, VecEnv, VecNormalize, VecCostWrapper, VecCostCodeWrapper
@@ -31,6 +31,8 @@ def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0)
             del env_configs_copy['external_reward']  # this info is for the external wrapper.
         if 'constraint_id' in env_configs:
             del env_configs_copy['constraint_id']  # this info is for the external wrapper.
+        if 'latent_dim' in env_configs:
+            del env_configs_copy['latent_dim']  # this info is for the external wrapper.
         env = gym.make(id=env_id,
                        **env_configs_copy)
         env.seed(seed + rank)
@@ -72,6 +74,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
         env_configs = {}
     if 'constraint_id' in kwargs:  # the environments contain a mixture of constraints
         env_configs['constraint_id'] = kwargs['constraint_id']
+        env_configs['latent_dim'] = kwargs['latent_dim']
     else:
         env_configs['constraint_id'] = 0
     env = [make_env(env_id=env_id,
@@ -136,6 +139,7 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
         env_configs = {}
     if 'constraint_id' in kwargs:  # the environments contain a mixture of constraints
         env_configs['constraint_id'] = kwargs['constraint_id']
+        env_configs['latent_dim'] = kwargs['latent_dim']
     else:
         env_configs['constraint_id'] = 0
     env = [make_env(env_id=env_id,
@@ -308,11 +312,20 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         self.wrapper_config = wrapper_config
         self.group = group
 
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
+    def step_with_code(self, action: np.ndarray, code: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
+        # if self.wrapper_config['constraint_id'] is None:  # dynamic constraint
+        #     tmp = np.argmax(action[-self.wrapper_config['latent_dim']:])
+        #     constraint_id = np.argmax(action[-self.wrapper_config['latent_dim']:])
+        #     action = action[:-self.wrapper_config['latent_dim']]
+        # else:
+        #     constraint_id = self.wrapper_config['constraint_id']  # fix constraint
+        constraint_id = np.argmax(code)
         obs, reward, done, info = self.env.step(action)
-        ture_cost_function = get_true_cost_function(env_id=self.spec.id,
-                                                    env_configs=self.wrapper_config)
+        ture_cost_function = get_true_constraint_function(env_id=self.spec.id,
+                                                          env_configs=self.wrapper_config,
+                                                          constraint_id=constraint_id)
         lag_cost_ture = int(ture_cost_function(obs, action) == True)
+        # add true constraint for evaluation
         info.update({'lag_cost': lag_cost_ture})
         return obs, reward, done, info
 

@@ -24,6 +24,13 @@ def _worker(remote, parent_remote, env_fn_wrapper):
                     info["terminal_observation"] = observation
                     observation = env.reset()
                 remote.send((observation, reward, done, info))
+            elif cmd == "step_with_code":
+                observation, reward, done, info = env.step_with_code(data[0], data[1])
+                if done:
+                    # save final observation where user can get it, then reset
+                    info["terminal_observation"] = observation
+                    observation = env.reset()
+                remote.send((observation, reward, done, info))
             elif cmd == "seed":
                 remote.send(env.seed(data))
             elif cmd == "reset":
@@ -104,6 +111,11 @@ class SubprocVecEnv(VecEnv):
     def step_async(self, actions):
         for remote, action in zip(self.remotes, actions):
             remote.send(("step", action))
+        self.waiting = True
+
+    def step_async_with_code(self, actions, codes):
+        for remote, action, code in zip(self.remotes, actions, codes):
+            remote.send(("step_with_code", (action, code)))
         self.waiting = True
 
     def step_wait(self):

@@ -21,7 +21,7 @@ from cirl_stable_baselines3.common.utils import get_schedule_fn
 from cirl_stable_baselines3.common.vec_env import VecNormalize
 from utils.data_utils import read_args, load_config, process_memory, load_expert_data, print_resource
 from utils.model_utils import load_ppo_config
-from common.true_constraint_functions import get_true_cost_function
+from common.true_constraint_functions import get_true_constraint_function
 
 
 def train(args):
@@ -191,8 +191,8 @@ def train(args):
             device=config['device']
         )
     # TODO: add more config
-    true_cost_function = get_true_cost_function(env_id=config['env']['eval_env_id'],
-                                                env_configs=env_configs)
+    true_cost_function = get_true_constraint_function(env_id=config['env']['eval_env_id'],
+                                                      env_configs=env_configs)
 
     if config['DISC']['use_cost_shaping_callback']:
         costShapingCallback = CostShapingCallback(true_cost_function,

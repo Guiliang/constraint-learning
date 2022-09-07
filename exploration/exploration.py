@@ -52,7 +52,7 @@ class ExplorationRewardCallback(callbacks.BaseCallback):
         obs = self.model.rollout_buffer.observations.copy()
         batch_size, n_envs, _ = obs.shape
         obs_t = torch.from_numpy(obs.reshape(-1, self.obs_dim))
-        acs_t = torch.from_numpy(self.model.rollout_buffer.actions.copy().reshape(-1, self.acs_dim))
+        acs_t = torch.from_numpy(self.model.rollout_buffer.actions_codes.copy().reshape(-1, self.acs_dim))
         network_input = torch.cat((obs_t, acs_t), axis=-1)
         predicted_obs = self.predictor_network(network_input)
         target_obs = torch.from_numpy(self.model.rollout_buffer.new_observations.copy().reshape(-1, self.obs_dim))
@@ -150,7 +150,7 @@ class CostShapingCallback(callbacks.BaseCallback):
         observations = self.model.rollout_buffer.observations.copy()
         # unormalize observations
         observations = self.training_env.unnormalize_obs(observations)
-        actions = self.model.rollout_buffer.actions.copy().astype(float)
+        actions = self.model.rollout_buffer.actions_codes.copy().astype(float)
         true_costs = self.get_true_cost(observations, actions).astype(float)
 
         # Update networks
@@ -292,7 +292,7 @@ class LambdaShapingCallback(callbacks.BaseCallback):
         # Get data from buffer
         observations = self.model.rollout_buffer.observations.copy()
         next_observations = self.model.rollout_buffer.new_observations.copy()
-        actions = self.model.rollout_buffer.actions.copy()
+        actions = self.model.rollout_buffer.actions_codes.copy()
         true_costs = self.model.rollout_buffer.costs.copy()
 
         # Update networks

@@ -8,14 +8,12 @@ import time
 from typing import Union, Callable
 import numpy as np
 import yaml
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from gym import Env
 from common.cns_env import make_env
 from cirl_stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
-# from utils.model_utils import get_net_arch
-# from cirl_stable_baselines3 import PPO
-from commonroad_environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model
 from utils.env_utils import get_all_env_ids, get_benchmark_ids, is_mujoco, is_commonroad
 
@@ -65,7 +63,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 def create_environments(env_id: str, viz_path: str, test_path: str, model_path: str, group: str, num_threads: int = 1,
-                        normalize=True, env_kwargs=None, testing_env=False, part_data=False) -> CommonRoadVecEnv:
+                        normalize=True, env_kwargs=None, testing_env=False, part_data=False,
+                        constraint_id=0, max_seq_len=None, ) -> CommonRoadVecEnv:
     """
     Create CommonRoad vectorized environment
     """
@@ -82,6 +81,8 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
             env_kwargs['train_reset_config_path'] += '_debug'
             env_kwargs['test_reset_config_path'] += '_debug'
             env_kwargs['meta_scenario_path'] += '_debug'
+
+    env_kwargs['constraint_id'] = constraint_id  # the environments contain a mixture of constraints
 
     # Create environment
     envs = [make_env(env_id=env_id,
@@ -111,7 +112,6 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
             print("Loading vecnormalize.pkl from {0}".format(model_path))
         else:
             raise FileNotFoundError("vecnormalize.pkl not found in {0}".format(model_path))
-        # env = VecNormalize(env, norm_obs=True, norm_reward=False)
 
     return env
 
@@ -133,6 +133,9 @@ def run():
     parser.add_argument("-ct", "--constraint_type", help="the constraint to be followed by the generated data.",
                         dest="CONSTRAINT_TYPE",
                         default=None, required=True)
+    parser.add_argument("-ld", "--latent_code_dimension", help="the dimension of latent codes.",
+                        dest="LATENT_DIMENSION",
+                        default=1, required=True)
     args = parser.parse_args()
     debug_mode = args.DEBUG_MODE
     num_threads = int(args.NUM_THREADS)
@@ -152,6 +155,10 @@ def run():
     with open(os.path.join(model_loading_path, 'model_hyperparameters.yaml')) as reader:
         config = yaml.safe_load(reader)
     print(json.dumps(config, indent=4), file=log_file, flush=True)
+
+    constraint_id = config['env']['constraint_id']
+    code = np.zeros((int(args.LATENT_DIMENSION)), dtype=np.int)
+    code[constraint_id] = 1
 
     evaluation_path = os.path.join('../evaluate_model', config['task'], load_model_name)
     if not os.path.exists(os.path.join('../evaluate_model', config['task'])):
@@ -185,7 +192,10 @@ def run():
                               normalize=not config['env']['dont_normalize_obs'],
                               env_kwargs=env_configs,
                               testing_env=if_testing_env,
-                              part_data=debug_mode)
+                              part_data=debug_mode,
+                              constraint_id=config['env']['constraint_id'],
+                              # max_seq_len=config['running']['max_seq_length'],
+                              )
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
     model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
@@ -208,7 +218,7 @@ def run():
             benchmark_num_per_step = len(benchmark_ids)
             obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
         elif is_mujoco(env_id=config['env']['train_env_id']):
-            benchmark_ids = [i for i in range((benchmark_idx)*num_threads, (benchmark_idx+1)*num_threads)]
+            benchmark_ids = [i for i in range((benchmark_idx) * num_threads, (benchmark_idx + 1) * num_threads)]
             benchmark_num_per_step = num_threads
             obs = env.reset()
         else:
@@ -238,10 +248,7 @@ def run():
             action, state = model.predict(obs, state=state, deterministic=True)
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
             new_obs, rewards, dones, infos = env.step(action)
-            # lanebase_relative_position = []
-            # for info in infos:
-            #     lanebase_relative_position.append(info['lanebase_relative_position'][0])
-            # print(lanebase_relative_position)
+
             for i in range(num_threads):
                 if not multi_thread_dones[i]:
                     obs_all[i].append(obs[i])
@@ -260,24 +267,13 @@ def run():
                     done = False
                     break
             obs = new_obs
-        # game_info_file.close()
 
-        # pngs2gif(png_dir=os.path.join(viz_path, benchmark_id))
-        # log collision rate, off-road rate, and goal-reaching rate
-        # out_of_scenarios = True
         for i in range(num_threads):
             if not not_duplicate[i]:
                 continue
             total_scenarios += 1
-            # assert len(infos_done) == num_threads
             info = infos_done[i]
-            # total_scenarios += 1
-            # num_collisions += info["valid_collision"] if "valid_collision" in info else info["is_collision"]
-            # num_timeout += info.get("is_time_out", 0)
-            # num_off_road += info["valid_off_road"] if "valid_off_road" in info else info["is_off_road"]
-            # num_goal_reaching += info["is_goal_reached"]
             termination_reasons = []
-            # print(info['lanebase_relative_position'])
             if is_commonroad(env_id=config['env']['train_env_id']):
                 if info["episode"].get("is_time_out", 0) == 1:
                     termination_reasons.append("time_out")
@@ -291,10 +287,6 @@ def run():
                     termination_reasons.append("over_speed")
                 if "is_too_closed" in info["episode"].keys() and info["episode"].get("is_too_closed", 0) == 1:
                     termination_reasons.append("too_closed")
-                # if len(termination_reasons) == 0:
-                #     termination_reasons = "other"
-                # else:
-                #     termination_reasons = ', '.join(termination_reasons)
             elif is_mujoco(env_id=config['env']['train_env_id']):
                 if info["episode"].get('constraint', 0) == 1:
                     termination_reasons.append("constraint")
@@ -307,27 +299,32 @@ def run():
 
             if save_constraint_expert:
                 saved_num += 1
-                print('saving expert data for game {0} with terminal reason: {1}'.format(benchmark_ids[i],
-                                                                                         termination_reasons),
+                print('saving expert data for game {0} with '
+                      'terminal reason {1} and reward sum {2}.'.format(benchmark_ids[i],
+                                                                       termination_reasons,
+                                                                       reward_sums[i]),
                       file=log_file, flush=True)
 
                 saving_expert_data = {
                     'observations': np.asarray(obs_all[i]),
                     'actions': np.asarray(action_all[i]),
                     'original_observations': np.asarray(original_obs_all[i]),
+                    'codes': np.asarray([code]*len(obs_all[i])),
                     'reward': np.asarray(reward_all[i]),
                     'reward_sum': reward_sums[i]
                 }
                 if is_commonroad(env_id=config['env']['train_env_id']):
                     with open(os.path.join(save_expert_data_path,
-                                           'scene-{0}_len-{1}.pkl'.format(benchmark_ids[i],
-                                                                          running_steps[i])), 'wb') as file:
+                                           'scene-{0}_code-{1}_len-{2}.pkl'.format(benchmark_ids[i],
+                                                                                   list(code),
+                                                                                   running_steps[i])), 'wb') as file:
                         # A new file will be created
                         pickle.dump(saving_expert_data, file)
                 elif is_mujoco(env_id=config['env']['train_env_id']):
                     with open(os.path.join(save_expert_data_path,
-                                           'scene-{0}_len-{1}.pkl'.format(success,
-                                                                          running_steps[i])), 'wb') as file:
+                                           'scene-{0}_code-{1}_len-{2}.pkl'.format(success,
+                                                                                   list(code),
+                                                                                   running_steps[i])), 'wb') as file:
                         # A new file will be created
                         pickle.dump(saving_expert_data, file)
                 else:

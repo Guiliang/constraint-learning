@@ -1,3 +1,4 @@
+import gym
 import torch
 import numpy as np
 
@@ -194,7 +195,8 @@ def load_ppo_config(config, train_env, seed, log_file):
             "vf_coef": config['PPO']['reward_vf_coef'],
         })
     elif config['group'] == "PPO-Lag" or config['group'] == "Binary" \
-            or config['group'] == "ICRL" or config['group'] == "VICRL" or config['group'] == "MEICRL":
+            or config['group'] == "ICRL" or config['group'] == "VICRL" \
+            or config['group'] == "MEICRL" or config['group'] == "InfoICRL":
         # elif config['group'] == "PPO-Lag":
         ppo_parameters.update({
             "reward_gamma": config['PPO']['reward_gamma'],
@@ -217,7 +219,7 @@ def load_ppo_config(config, train_env, seed, log_file):
                                delta_p_ema_alpha=config['PPO']['proportional_cost_ema_alpha'],
                                delta_d_ema_alpha=config['PPO']['derivative_cost_ema_alpha'], ),
         })
-        if config['group'] == "MEICRL":
+        if config['group'] == "MEICRL" or config['group'] == "InfoICRL":
             ppo_parameters.update({"latent_dim": config['CN']['latent_dim']})
             ppo_parameters["policy_kwargs"].update({"latent_dim": config['CN']['latent_dim']})
     else:

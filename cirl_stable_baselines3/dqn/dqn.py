@@ -145,7 +145,7 @@ class DQN(OffPolicyAlgorithm):
 
     def train(self, gradient_steps: int, batch_size: int = 100) -> None:
         # Update learning rate according to schedule
-        self._update_learning_rate(self.policy.optimizer)
+        self._update_learning_rate(self.policy.cns_optimizer)
 
         for gradient_step in range(gradient_steps):
             # Sample replay buffer
@@ -171,11 +171,11 @@ class DQN(OffPolicyAlgorithm):
             loss = F.smooth_l1_loss(current_q, target_q)
 
             # Optimize the policy
-            self.policy.optimizer.zero_grad()
+            self.policy.cns_optimizer.zero_grad()
             loss.backward()
             # Clip gradient norm
             th.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
-            self.policy.optimizer.step()
+            self.policy.cns_optimizer.step()
 
         # Increase update counter
         self._n_updates += gradient_steps

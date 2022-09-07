@@ -176,7 +176,7 @@ class SAC(OffPolicyAlgorithm):
 
     def train(self, gradient_steps: int, batch_size: int = 64) -> None:
         # Update optimizers learning rate
-        optimizers = [self.actor.optimizer, self.critic.optimizer]
+        optimizers = [self.actor.cns_optimizer, self.critic.cns_optimizer]
         if self.ent_coef_optimizer is not None:
             optimizers += [self.ent_coef_optimizer]
 
@@ -238,22 +238,22 @@ class SAC(OffPolicyAlgorithm):
             critic_losses.append(critic_loss.item())
 
             # Optimize the critic
-            self.critic.optimizer.zero_grad()
+            self.critic.cns_optimizer.zero_grad()
             critic_loss.backward()
-            self.critic.optimizer.step()
+            self.critic.cns_optimizer.step()
 
             # Compute actor loss
             # Alternative: actor_loss = th.mean(log_prob - qf1_pi)
             # Mean over all critic networks
-            q_values_pi = th.cat(self.critic.forward(replay_data.observations, actions_pi), dim=1)
+            q_values_pi = th.cat(self.critic.forward(replay_data.observations, abc), dim=1)
             min_qf_pi, _ = th.min(q_values_pi, dim=1, keepdim=True)
             actor_loss = (ent_coef * log_prob - min_qf_pi).mean()
             actor_losses.append(actor_loss.item())
 
             # Optimize the actor
-            self.actor.optimizer.zero_grad()
+            self.actor.cns_optimizer.zero_grad()
             actor_loss.backward()
-            self.actor.optimizer.step()
+            self.actor.cns_optimizer.step()
 
             # Update target networks
             if gradient_step % self.target_update_interval == 0:

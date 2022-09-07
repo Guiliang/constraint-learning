@@ -565,13 +565,13 @@ class StateDependentNoiseDistribution(Distribution):
         noise = self.get_noise(self._latent_sde)
         actions = self.distribution.mean + noise
         if self.bijector is not None:
-            return self.bijector.forward(actions)
+            return self.bijector.forward(actions, abc)
         return actions
 
     def mode(self) -> th.Tensor:
         actions = self.distribution.mean
         if self.bijector is not None:
-            return self.bijector.forward(actions)
+            return self.bijector.forward(actions, abc)
         return actions
 
     def get_noise(self, latent_sde: th.Tensor) -> th.Tensor:

@@ -8,11 +8,14 @@ import gym
 import numpy as np
 import yaml
 from matplotlib import pyplot as plt
+
+from common.cns_config import get_cns_config
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from models.constraint_net.mixture_constraint_net import MixtureConstraintNet
 from cirl_stable_baselines3.ppo_lag.ppo_latent_lag import PPOLagrangianInfo
-from common.cns_visualization import constraint_visualization_2d
+from common.cns_visualization import constraint_visualization_2d, constraint_visualization_1d
 from models.constraint_net.info_constraint_net import InfoConstraintNet
 from common.cns_evaluation import evaluate_meicrl_policy
 from common.cns_env import make_train_env, make_eval_env
@@ -46,6 +49,7 @@ def train(config):
     else:
         log_file = None
     debug_msg = ''
+    # debug_msg = 'sanity_check-'
     if debug_mode:
         config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
@@ -59,7 +63,7 @@ def train(config):
         # config['running']['store_sample_num'] = 1000
         # config['CN']['cn_batch_size'] = 3
         config['CN']['backward_iters'] = 2
-        debug_msg = 'debug-'
+        debug_msg += 'debug-'
         partial_data = True
         # debug_msg += 'part-'
     if partial_data:
@@ -125,9 +129,7 @@ def train(config):
                        max_seq_len=config['running']['max_seq_length'],
                        log_file=log_file,
                        )
-    all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
-    print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
-
+    is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
     # We don't need cost when taking samples
     save_valid_mother_dir = os.path.join(save_model_mother_dir, "sample/")
     if not os.path.exists(save_valid_mother_dir):
@@ -179,51 +181,42 @@ def train(config):
                                          process_name='Loading environment',
                                          log_file=log_file)
 
-    # Set specs
-    is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
-    print('is_discrete', is_discrete)
-    obs_dim = train_env.observation_space.shape[0]
-    acs_dim = train_env.action_space.n if is_discrete else train_env.action_space.shape[0]
-    action_low, action_high = None, None
-    if isinstance(sample_env.action_space, gym.spaces.Box):
-        action_low, action_high = sample_env.action_space.low, sample_env.action_space.high
-
     # Load expert data
     expert_path = config['running']['expert_path']
     if debug_mode:
         expert_path = expert_path.replace('expert_data/', 'expert_data/debug_')
     expert_rollouts = config['running']['expert_rollouts']
-    (expert_obs, expert_acs, expert_rs, expert_cs), expert_mean_reward = load_expert_data(
+    (expert_obs, expert_acs, expert_rs, expert_codes), expert_mean_reward = load_expert_data(
         expert_path=expert_path,
         num_rollouts=expert_rollouts,
         store_by_game=config['running']['store_by_game'],
         add_latent_code=True,
         log_file=log_file
     )
-    if config['running']['store_by_game']:
-        expert_obs_mean = np.mean(np.concatenate(expert_obs, axis=0), axis=0).tolist()
-    else:
-        expert_obs_mean = np.mean(expert_obs, axis=0).tolist()
 
     # plot expert traj
     plt.figure(figsize=(6, 6))
-    if config['running']['store_by_game']:
-        plt.scatter(np.concatenate(expert_obs, axis=0)[:, -2], np.concatenate(expert_obs, axis=0)[:, -1], s=10)
-    else:
-        plt.scatter(expert_obs[:, -2], expert_obs[:, -1], s=10)
-    plt.xlim([-1, 1])
-    plt.ylim([-1, 1])
-    plt.grid()
-    plt.savefig(os.path.join(save_model_mother_dir, "expert_traj_visual.png"))
-
-    expert_obs_mean = ['%.5f' % elem for elem in expert_obs_mean]
-    if len(all_obs_feature_names) == len(expert_obs_mean):
-        expert_obs_name_mean = dict(zip(all_obs_feature_names, expert_obs_mean))
-    else:
-        expert_obs_name_mean = expert_obs_mean
-    print("The expert features means are: {0}".format(expert_obs_name_mean),
-          file=log_file,
-          flush=True)
+    for record_info_idx in range(len(config['env']["record_info_names"])):
+        record_info_name = config['env']["record_info_names"][record_info_idx]
+        if config['running']['store_by_game']:
+            for c_id in range(config['CN']['latent_dim']):
+                data_indices = np.where(np.concatenate(expert_codes, axis=0)[:, c_id] == 1)[0]
+                # tmp = np.concatenate(expert_obs, axis=0)[:, record_info_idx][data_indices]
+                plt.hist(np.concatenate(expert_obs, axis=0)[:, record_info_idx][data_indices],
+                         bins=40,
+                         # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
+                         #        config['env']["visualize_info_ranges"][record_info_idx][1]),
+                         label=c_id)
+        else:
+            for c_id in range(config['CN']['latent_dim']):
+                data_indices = np.where(expert_codes[:, c_id] == 1)[0]
+                plt.hist(expert_obs[:, record_info_idx][data_indices],
+                         bins=40,
+                         # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
+                         #        config['env']["visualize_info_ranges"][record_info_idx][1])
+                         )
+        plt.legend()
+        plt.savefig(os.path.join(save_model_mother_dir, "{0}_expert_traj_visual.png".format(record_info_name)))
 
     # Logger
     if log_file is None:
@@ -231,47 +224,8 @@ def train(config):
     else:
         icrl_logger = logger.HumanOutputFormat(log_file)
 
-    # Initialize constraint net, true constraint net
-    cn_lr_schedule = lambda x: (config['CN']['anneal_clr_by_factor'] ** (config['running']['n_iters'] * (1 - x))) \
-                               * config['CN']['cn_learning_rate']
-
-    cn_obs_select_name = config['CN']['cn_obs_select_name']
-    print("Selecting obs features are : {0}".format(cn_obs_select_name if cn_obs_select_name is not None else 'all'),
-          file=log_file, flush=True)
-    cn_obs_select_dim = get_input_features_dim(feature_select_names=cn_obs_select_name,
-                                               all_feature_names=all_obs_feature_names)
-    cn_acs_select_name = config['CN']['cn_acs_select_name']
-    print("Selecting acs features are : {0}".format(cn_acs_select_name if cn_acs_select_name is not None else 'all'),
-          file=log_file, flush=True)
-    cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
-                                               all_feature_names=['a_ego_0', 'a_ego_1'] if is_commonroad(
-                                                   env_id=config['env']['train_env_id']) else None)
-
-    cn_parameters = {
-        'obs_dim': obs_dim,
-        'acs_dim': acs_dim,
-        'hidden_sizes': config['CN']['cn_layers'],
-        'batch_size': config['CN']['cn_batch_size'],
-        'lr_schedule': cn_lr_schedule,
-        'expert_obs': expert_obs,  # select obs at a time step t
-        'expert_acs': expert_acs,  # select acs at a time step t
-        'is_discrete': is_discrete,
-        'regularizer_coeff': config['CN']['cn_reg_coeff'],
-        'obs_select_dim': cn_obs_select_dim,
-        'acs_select_dim': cn_acs_select_dim,
-        'clip_obs': config['CN']['clip_obs'],
-        'initial_obs_mean': None if not config['CN']['cn_normalize'] else np.zeros(obs_dim),
-        'initial_obs_var': None if not config['CN']['cn_normalize'] else np.ones(obs_dim),
-        'action_low': action_low,
-        'action_high': action_high,
-        'target_kl_old_new': config['CN']['cn_target_kl_old_new'],
-        'target_kl_new_old': config['CN']['cn_target_kl_new_old'],
-        'train_gail_lambda': config['CN']['train_gail_lambda'],
-        'eps': config['CN']['cn_eps'],
-        'device': config['device'],
-        'task': config['task'],
-    }
-
+    # Init cns
+    cn_parameters = get_cns_config(config, train_env, expert_obs, expert_acs, log_file)
     if 'InfoICRL' == config['group']:
         cn_parameters.update({'latent_dim': config['CN']['latent_dim'], })
         constraint_net = InfoConstraintNet(**cn_parameters)
@@ -285,9 +239,6 @@ def train(config):
     # Pass constraint net cost function to cost wrapper (train env)
     train_env.set_cost_function(constraint_net.cost_function_with_code)
     sample_env.set_cost_function(constraint_net.cost_function_with_code)
-    # Pass encoder posterior to cost wrapper (train env)
-    train_env.set_latent_function(constraint_net.latent_function)
-    sample_env.set_latent_function(constraint_net.latent_function)
 
     # Init ppo agent
     ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
@@ -313,7 +264,7 @@ def train(config):
                 total_timesteps=config['PPO']['forward_timesteps'],
                 cost_info_str=config['env']['cost_info_str'],
                 latent_info_str=config['env']['latent_info_str'],
-                callback=[callback]
+                callback=[callback],
             )
             forward_metrics = logger.Logger.CURRENT.name_to_value
             timesteps += nominal_agent.num_timesteps
@@ -340,7 +291,7 @@ def train(config):
         sample_data = sample_from_agent(
             agent=nominal_agent,
             env=sample_env,
-            deterministic=True,
+            deterministic=False,
             rollouts=int(config['running']['sample_rollouts']),
             store_by_game=config['running']['store_by_game'],
             **sample_parameters
@@ -362,7 +313,8 @@ def train(config):
         cns_parameters = {}
         cns_parameters['nominal_codes'] = sample_codes
         # TODO: the expert codes are for temporal usage. Remove it in the formal implementation.
-        cns_parameters['expert_codes'] = expert_cs
+        cns_parameters['expert_codes'] = expert_codes
+        cns_parameters['debug_msg'] = debug_msg,
         backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
                                                    nominal_obs=sample_obs,
                                                    nominal_acs=sample_acts,
@@ -381,10 +333,6 @@ def train(config):
         train_env.set_cost_function(constraint_net.cost_function_with_code)
         eval_env.set_cost_function(constraint_net.cost_function_with_code)
         sample_env.set_cost_function(constraint_net.cost_function_with_code)
-        # Pass encoder posterior to cost wrapper (train env)
-        train_env.set_latent_function(constraint_net.latent_function)
-        eval_env.set_latent_function(constraint_net.latent_function)
-        sample_env.set_latent_function(constraint_net.latent_function)
 
         # Evaluate:
         # reward on true environment
@@ -394,21 +342,44 @@ def train(config):
         if itr % config['running']['save_every'] == 0:
             del_and_make(save_path)
             # visualized sampled data
-            plt.figure(figsize=(6, 6))
-            if config['running']['store_by_game']:
-                plt.scatter(np.concatenate(sample_obs, axis=0)[:, -2], np.concatenate(sample_obs, axis=0)[:, -1], s=10)
-            else:
-                plt.scatter(sample_obs[:, -2], sample_obs[:, -1], s=10)
-            plt.xlim([-1, 1])
-            plt.ylim([-1, 1])
-            plt.grid()
-            plt.savefig(os.path.join(save_path, "sample_traj_visual.png"))
+            plt.figure(figsize=(10, 10))
+            for record_info_idx in range(len(config['env']["record_info_names"])):
+                record_info_name = config['env']["record_info_names"][record_info_idx]
+                if config['running']['store_by_game']:
+                    for c_id in range(config['CN']['latent_dim']):
+                        data_indices = np.where(np.concatenate(sample_codes, axis=0)[:, c_id] == 1)[0]
+                        # tmp = np.concatenate(expert_obs, axis=0)[:, record_info_idx][data_indices]
+                        plt.hist(np.concatenate(sample_obs, axis=0)[:, record_info_idx][data_indices],
+                                 bins=40,
+                                 # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
+                                 #        config['env']["visualize_info_ranges"][record_info_idx][1]),
+                                 label=c_id)
+                else:
+                    for c_id in range(config['CN']['latent_dim']):
+                        data_indices = np.where(sample_codes[:, c_id] == 1)[0]
+                        plt.hist(sample_obs[:, record_info_idx][data_indices],
+                                 bins=40,
+                                 # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
+                                 #        config['env']["visualize_info_ranges"][record_info_idx][1])
+                                 )
+                plt.legend()
+                plt.savefig(os.path.join(save_path, "{0}_sample_traj_visual.png".format(record_info_name)))
+
+            # if config['running']['store_by_game']:
+            #     plt.scatter(np.concatenate(sample_obs, axis=0)[:, -2], np.concatenate(sample_obs, axis=0)[:, -1], s=10)
+            # else:
+            #     plt.scatter(sample_obs[:, -2], sample_obs[:, -1], s=10)
+            # plt.xlim([-1, 1])
+            # plt.ylim([-1, 1])
+            # plt.grid()
+            # plt.savefig(os.path.join(save_path, "sample_traj_visual.png"))
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
             evaluate_meicrl_policy(nominal_agent, eval_env,
-                                   record_info_names=[],
+                                   record_info_names=config['env']["record_info_names"],
                                    n_eval_episodes=config['running']['n_eval_episodes'],
                                    deterministic=True,
-                                   render=True if itr % config['running']['save_every'] == 0 else False,
+                                   # render=True if itr % config['running']['save_every'] == 0 else False,
+                                   render=False,
                                    save_path=save_path,
                                    )
         mem_prev, time_prev = print_resource(mem_prev=mem_prev,
@@ -437,15 +408,33 @@ def train(config):
                     empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
                 else:
                     empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
+            for record_info_idx in range(len(config['env']["record_info_names"])):
+                record_info_name = config['env']["record_info_names"][record_info_idx]
+                for i in range(config['CN']['latent_dim']):
+                    plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name][i], costs)))
+                    constraint_visualization_1d(cost_function=constraint_net.cost_function_with_code,
+                                                feature_range=config['env']["visualize_info_ranges"][record_info_idx],
+                                                select_dim=config['env']["record_info_input_dims"][record_info_idx],
+                                                obs_dim=constraint_net.obs_dim,
+                                                acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                                save_name=os.path.join(save_path,
+                                                                       "cid-{0}_{1}_visual.png".
+                                                                       format(i, record_info_name)),
+                                                feature_data=plot_record_infos,
+                                                feature_cost=plot_costs,
+                                                feature_name=record_info_name,
+                                                empirical_input_means=empirical_input_means,
+                                                code_index=i,
+                                                latent_dim=config['CN']['latent_dim'], )
 
-            constraint_visualization_2d(cost_function_with_code=constraint_net.cost_function_with_code,
-                                        feature_range=config['env']["visualize_info_ranges"],
-                                        select_dims=config['env']["record_info_input_dims"],
-                                        obs_dim=constraint_net.obs_dim,
-                                        acs_dim=1 if is_discrete else constraint_net.acs_dim,
-                                        latent_dim=constraint_net.latent_dim,
-                                        empirical_input_means=empirical_input_means,
-                                        save_path=save_path)
+            # constraint_visualization_2d(cost_function_with_code=constraint_net.cost_function_with_code,
+            #                             feature_range=config['env']["visualize_info_ranges"],
+            #                             select_dims=config['env']["record_info_input_dims"],
+            #                             obs_dim=constraint_net.obs_dim,
+            #                             acs_dim=1 if is_discrete else constraint_net.acs_dim,
+            #                             latent_dim=constraint_net.latent_dim,
+            #                             empirical_input_means=empirical_input_means,
+            #                             save_path=save_path)
 
         # (2) best
         if mean_nc_reward > best_true_reward:
