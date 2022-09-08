@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, Optional, Type, Union
 
 import numpy as np
-import torch as th
+import torch
 from gym import spaces
 from torch.nn import functional as F
 
@@ -11,9 +11,10 @@ from cirl_stable_baselines3.common.on_policy_algorithm import OnPolicyWithCostAn
 from cirl_stable_baselines3.common.policies import ActorCriticPolicy
 from cirl_stable_baselines3.common.type_aliases import GymEnv, MaybeCallback
 from cirl_stable_baselines3.common.utils import explained_variance, get_schedule_fn
+from utils.model_utils import contrastive_loss_function
 
 
-class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
+class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
     """
     Proximal Policy Optimization algorithm (PPO) augmented with a Lagrangian (clip version)
 
@@ -69,6 +70,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
             policy: Union[str, Type[ActorCriticPolicy]],
             env: Union[GymEnv, str],
             latent_dim: int,
+            cid: int,
             algo_type: str = 'lagrangian',  # lagrangian or pidlagrangian
             learning_rate: Union[float, Callable] = 3e-4,
             n_steps: int = 2048,
@@ -99,11 +101,11 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
             policy_kwargs: Optional[Dict[str, Any]] = None,
             verbose: int = 0,
             seed: Optional[int] = None,
-            device: Union[th.device, str] = "auto",
+            device: Union[torch.device, str] = "auto",
             _init_setup_model: bool = True,
     ):
 
-        super(PPOLagrangianInfo, self).__init__(
+        super(MultiAgentPPOLagrangian, self).__init__(
             policy,
             env,
             learning_rate=learning_rate,
@@ -126,6 +128,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
             seed=seed,
             _init_setup_model=False,
             latent_dim=latent_dim,
+            cid=cid,
         )
 
         self.algo_type = algo_type
@@ -147,7 +150,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
             self._setup_model()
 
     def _setup_model(self) -> None:
-        super(PPOLagrangianInfo, self)._setup_model()
+        super(MultiAgentPPOLagrangian, self)._setup_model()
 
         if self.algo_type == 'lagrangian':
             self.dual = DualVariable(self.budget, self.penalty_learning_rate, self.penalty_initial_value,
@@ -193,7 +196,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
             clip_range_cost_vf = self.clip_range_cost_vf(self._current_progress_remaining)
 
         entropy_losses, all_kl_divs = [], []
-        pg_losses, reward_value_losses, cost_value_losses = [], [], []
+        pg_losses, reward_value_losses, cost_value_losses, latent_losses = [], [], [], []
         clip_fractions = []
 
         # Train for gradient_steps epochs
@@ -213,7 +216,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
                     self.policy.reset_noise(self.batch_size)
 
                 reward_values, cost_values, log_prob, entropy = \
-                    self.policy.evaluate_actions(obs=th.cat([rollout_data.observations, rollout_data.codes], dim=1),
+                    self.policy.evaluate_actions(obs=torch.cat([rollout_data.observations, rollout_data.codes], dim=1),
                                                  actions=actions)
                 reward_values = reward_values.flatten()
                 cost_values = cost_values.flatten()
@@ -227,25 +230,28 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
                 # cost_advantages /= (rollout_data.cost_advantages.std() + 1e-8)
 
                 # Ratio between old and new policy, should be one at the first iteration
-                ratio = th.exp(log_prob - rollout_data.old_log_prob)
+                ratio = torch.exp(log_prob - rollout_data.old_log_prob)
 
                 # Clipped surrogate loss
                 policy_loss_1 = reward_advantages * ratio
-                policy_loss_2 = reward_advantages * th.clamp(ratio, 1 - clip_range, 1 + clip_range)
-                policy_loss = -th.min(policy_loss_1, policy_loss_2).mean()
+                policy_loss_2 = reward_advantages * torch.clamp(ratio, 1 - clip_range, 1 + clip_range)
+                policy_loss = -torch.min(policy_loss_1, policy_loss_2).mean()
 
                 # Add cost to loss
                 current_penalty = self.dual.nu().item()
-                policy_loss += current_penalty * th.mean(cost_advantages * ratio)
+                policy_loss += current_penalty * torch.mean(cost_advantages * ratio)
                 policy_loss /= (1 + current_penalty)
 
-                # Add the mutual information into the loss
-                latent_code_posterior_loss = -th.log(rollout_data.code_posteriors)
-                policy_loss += latent_code_posterior_loss.mean()
+                # Add the contrastive information into the loss
+                contrastive_loss = contrastive_loss_function(observations=rollout_data.observations,
+                                                             actions=rollout_data.actions,
+                                                             pos_latent_signals=rollout_data.pos_latent_signals,
+                                                             neg_latent_signals=rollout_data.neg_latent_signals).mean()
+                policy_loss += contrastive_loss
 
                 # Logging
                 pg_losses.append(policy_loss.item())
-                clip_fraction = th.mean((th.abs(ratio - 1) > clip_range).float()).item()
+                clip_fraction = torch.mean((torch.abs(ratio - 1) > clip_range).float()).item()
                 clip_fractions.append(clip_fraction)
 
                 if self.clip_range_reward_vf is None:
@@ -254,7 +260,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
                 else:
                     # Clip the difference between old and new value
                     # NOTE: this depends on the reward scaling
-                    reward_values_pred = rollout_data.old_reward_values + th.clamp(
+                    reward_values_pred = rollout_data.old_reward_values + torch.clamp(
                         reward_values - rollout_data.old_reward_values, -clip_range_reward_vf, clip_range_reward_vf)
 
                 if self.clip_range_cost_vf is None:
@@ -263,7 +269,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
                 else:
                     # Clip the difference between old and new value
                     # NOTE: this depends on the cost scaling
-                    cost_values_pred = rollout_data.old_cost_values + th.clamp(
+                    cost_values_pred = rollout_data.old_cost_values + torch.clamp(
                         cost_values - rollout_data.old_cost_values, -clip_range_cost_vf, clip_range_cost_vf)
 
                 # Value loss using the TD(gae_lambda) target
@@ -271,13 +277,14 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
                 cost_value_loss = F.mse_loss(rollout_data.cost_returns, cost_values_pred)
                 reward_value_losses.append(reward_value_loss.item())
                 cost_value_losses.append(cost_value_loss.item())
+                latent_losses.append(contrastive_loss.item())
 
                 # Entropy loss favor exploration
                 if entropy is None:
                     # Approximate entropy when no analytical form
-                    entropy_loss = -th.mean(-log_prob)
+                    entropy_loss = -torch.mean(-log_prob)
                 else:
-                    entropy_loss = -th.mean(entropy)
+                    entropy_loss = -torch.mean(entropy)
 
                 entropy_losses.append(entropy_loss.item())
 
@@ -290,9 +297,9 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
                 self.policy.optimizer.zero_grad()
                 loss.backward()
                 # Clip grad norm
-                th.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
+                torch.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
                 self.policy.optimizer.step()
-                approx_kl_divs.append(th.mean(rollout_data.old_log_prob - log_prob).detach().cpu().numpy())
+                approx_kl_divs.append(torch.mean(rollout_data.old_log_prob - log_prob).detach().cpu().numpy())
 
             all_kl_divs.append(np.mean(approx_kl_divs))
 
@@ -324,6 +331,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
         logger.record("train/policy_gradient_loss", np.mean(pg_losses))
         logger.record("train/reward_value_loss", np.mean(reward_value_losses))
         logger.record("train/cost_value_loss", np.mean(cost_value_losses))
+        logger.record("train/contrastive_loss", np.mean(latent_losses))
         logger.record("train/approx_kl", np.mean(approx_kl_divs))
         logger.record("train/clip_fraction", np.mean(clip_fractions))
         logger.record("train/loss", loss.item())
@@ -337,7 +345,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
         logger.record("train/total_cost", total_cost)
         logger.record("train/early_stop_epoch", early_stop_epoch)
         if hasattr(self.policy, "log_std"):
-            logger.record("train/std", th.exp(self.policy.log_std).mean().item())
+            logger.record("train/std", torch.exp(self.policy.log_std).mean().item())
         logger.record("train/n_updates", self._n_updates, exclude="tensorboard")
         logger.record("train/clip_range", clip_range)
         if self.clip_range_reward_vf is not None:
@@ -360,7 +368,7 @@ class PPOLagrangianInfo(OnPolicyWithCostAndCodeAlgorithm):
             reset_num_timesteps: bool = True,
     ) -> "PPOLagrangian":
 
-        return super(PPOLagrangianInfo, self).learn(
+        return super(MultiAgentPPOLagrangian, self).learn(
             total_timesteps=total_timesteps,
             cost_info_str=cost_info_str,
             latent_info_str=latent_info_str,

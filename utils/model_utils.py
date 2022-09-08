@@ -1,7 +1,7 @@
 import gym
 import torch
 import numpy as np
-
+from torch.nn import functional as F
 
 # def get_net_arch(config):
 #     """
@@ -222,6 +222,7 @@ def load_ppo_config(config, train_env, seed, log_file):
         if config['group'] == "MEICRL" or config['group'] == "InfoICRL":
             ppo_parameters.update({"latent_dim": config['CN']['latent_dim']})
             ppo_parameters["policy_kwargs"].update({"latent_dim": config['CN']['latent_dim']})
+            ppo_parameters.update({"cid": config['CN']['cid']})
     else:
         raise ValueError("Unknown Group {0}".format(config['group']))
 
@@ -238,3 +239,28 @@ def build_code(code_axis, code_dim, num_envs):
 def update_code(code_axis, code_dim):
     code_axis = (code_axis + 1) % code_dim
     return code_axis
+
+
+def contrastive_loss_function(observations, actions, pos_latent_signals, neg_latent_signals):
+    pos_sample_size = pos_latent_signals.shape[1]
+    neg_sample_size = neg_latent_signals.shape[1]
+    obs_act = torch.cat([observations, actions], dim=1)
+    obs_act_repeat = obs_act.unsqueeze(1).repeat(1, neg_sample_size, 1)
+    act_obs_dim = obs_act_repeat.shape[-1]
+    contrastive_loss = []
+    for pos_id in range(pos_sample_size):
+        pos_similarity = F.cosine_similarity(pos_latent_signals[:, pos_id, :], obs_act)
+        neg_similarity = F.cosine_similarity(
+            neg_latent_signals.reshape(-1, act_obs_dim),
+            obs_act_repeat.reshape(-1, act_obs_dim)).reshape([-1, neg_sample_size]).sum(dim=1)
+        c_prob_pid = torch.exp(pos_similarity) / (torch.exp(neg_similarity) + torch.exp(pos_similarity))
+        c_loss_pid = c_prob_pid.log()
+        contrastive_loss.append(-c_loss_pid)
+    contrastive_loss = torch.stack(contrastive_loss, dim=1).sum(dim=1)
+    return contrastive_loss
+
+
+def to_np(x):
+    if isinstance(x, np.ndarray):
+        return x
+    return x.data.cpu().numpy()

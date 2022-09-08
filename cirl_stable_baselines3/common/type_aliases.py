@@ -44,14 +44,15 @@ class RolloutBufferWithCostCodeSamples(NamedTuple):
     observations: th.Tensor
     actions: th.Tensor
     codes: th.Tensor
-    code_posteriors: th.Tensor
-    old_log_prob: th.Tensor
+    pos_latent_signals: th.Tensor
+    neg_latent_signals: th.Tensor
     old_reward_values: th.Tensor
     reward_advantages: th.Tensor
     reward_returns: th.Tensor
     old_cost_values: th.Tensor
     cost_advantages: th.Tensor
     cost_returns: th.Tensor
+    old_log_prob: th.Tensor
 
 
 class LagrangianBufferSamples(NamedTuple):

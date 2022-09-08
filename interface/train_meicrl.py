@@ -9,12 +9,11 @@ import numpy as np
 import yaml
 from matplotlib import pyplot as plt
 
-from common.cns_config import get_cns_config
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+from common.cns_config import get_cns_config
 from models.constraint_net.mixture_constraint_net import MixtureConstraintNet
-from cirl_stable_baselines3.ppo_lag.ppo_latent_lag import PPOLagrangianInfo
+from cirl_stable_baselines3.ppo_lag.ma_ppo_lag import MultiAgentPPOLagrangian
 from common.cns_visualization import constraint_visualization_2d, constraint_visualization_1d
 from models.constraint_net.info_constraint_net import InfoConstraintNet
 from common.cns_evaluation import evaluate_meicrl_policy
@@ -23,8 +22,9 @@ from cirl_stable_baselines3.common import logger
 from cirl_stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource
-from utils.env_utils import sample_from_agent, get_obs_feature_names, check_if_duplicate_seed, is_commonroad
+from utils.env_utils import check_if_duplicate_seed
 from utils.model_utils import load_ppo_config, build_code
+from common.cns_sample import sample_from_multi_agents
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -51,7 +51,7 @@ def train(config):
     debug_msg = ''
     # debug_msg = 'sanity_check-'
     if debug_mode:
-        config['device'] = 'cpu'
+        # config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 3000  # 2000
         config['PPO']['n_steps'] = 500
@@ -236,14 +236,16 @@ def train(config):
     else:
         raise ValueError("Unknown group: {0}".format(config['group']))
 
-    # Pass constraint net cost function to cost wrapper (train env)
-    train_env.set_cost_function(constraint_net.cost_function_with_code)
-    sample_env.set_cost_function(constraint_net.cost_function_with_code)
-
     # Init ppo agent
-    ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
-    create_nominal_agent = lambda: PPOLagrangianInfo(**ppo_parameters)
-    nominal_agent = create_nominal_agent()
+    nominal_agents = {}
+    create_nominal_agent_functions = {}
+    for cid in range(config['CN']['latent_dim']):
+        config['CN']['cid'] = cid
+        ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
+        create_nominal_agent = lambda: MultiAgentPPOLagrangian(**ppo_parameters)
+        create_nominal_agent_functions.update({cid: create_nominal_agent})
+        nominal_agent = create_nominal_agent()
+        nominal_agents.update({cid: nominal_agent})
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev,
                                          time_prev=time_prev,
@@ -256,18 +258,30 @@ def train(config):
     for itr in range(config['running']['n_iters']):
         if config['PPO']['reset_policy'] and itr != 0:
             print("\nResetting agent", file=log_file, flush=True)
-            nominal_agent = create_nominal_agent()
+            for cid in range(config['CN']['latent_dim']):
+                nominal_agents[cid] = create_nominal_agent_functions[cid]
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
+
+        # Pass constraint net cost function to cost wrapper
+        train_env.set_cost_function(constraint_net.cost_function_with_code)
+        eval_env.set_cost_function(constraint_net.cost_function_with_code)
+        sample_env.set_cost_function(constraint_net.cost_function_with_code)
+        train_env.set_latent_function(constraint_net.latent_function)
+        eval_env.set_latent_function(constraint_net.latent_function)
+        sample_env.set_latent_function(constraint_net.latent_function)
+
         # Update agent
+        forward_metrics_all = {}
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
-            nominal_agent.learn(
-                total_timesteps=config['PPO']['forward_timesteps'],
-                cost_info_str=config['env']['cost_info_str'],
-                latent_info_str=config['env']['latent_info_str'],
-                callback=[callback],
-            )
-            forward_metrics = logger.Logger.CURRENT.name_to_value
-            timesteps += nominal_agent.num_timesteps
+            for cid in range(config['CN']['latent_dim']):
+                nominal_agents[cid].learn(
+                    total_timesteps=config['PPO']['forward_timesteps'],
+                    cost_info_str=config['env']['cost_info_str'],
+                    latent_info_str=config['env']['latent_info_str'],
+                    callback=[callback],
+                )
+                forward_metrics_all.update({cid: logger.Logger.CURRENT.name_to_value})
+                timesteps += nominal_agents[cid].num_timesteps
 
         mem_prev, time_prev = print_resource(mem_prev=mem_prev,
                                              time_prev=time_prev,
@@ -277,19 +291,9 @@ def train(config):
         sync_envs_normalization(train_env, sample_env)
         sample_parameters = {}
 
-        sample_parameters['store_code'] = True
-        if isinstance(sample_env, VecNormalize):
-            init_codes = build_code(code_axis=sample_env.venv.code_axis,
-                                    code_dim=sample_env.venv.latent_dim,
-                                    num_envs=sample_env.venv.num_envs)
-        else:
-            init_codes = build_code(code_axis=sample_env.code_axis,
-                                    code_dim=sample_env.latent_dim,
-                                    num_envs=sample_env.num_envs)
-        sample_parameters['init_codes'] = init_codes
-
-        sample_data = sample_from_agent(
-            agent=nominal_agent,
+        sample_data = sample_from_multi_agents(
+            agents=nominal_agents,
+            latent_dim=config['CN']['latent_dim'],
             env=sample_env,
             deterministic=False,
             rollouts=int(config['running']['sample_rollouts']),
@@ -329,11 +333,6 @@ def train(config):
                                              process_name='Training CN model',
                                              log_file=log_file)
 
-        # Pass constraint net cost function to cost wrapper
-        train_env.set_cost_function(constraint_net.cost_function_with_code)
-        eval_env.set_cost_function(constraint_net.cost_function_with_code)
-        sample_env.set_cost_function(constraint_net.cost_function_with_code)
-
         # Evaluate:
         # reward on true environment
         sync_envs_normalization(train_env, eval_env)
@@ -365,16 +364,10 @@ def train(config):
                 plt.legend()
                 plt.savefig(os.path.join(save_path, "{0}_sample_traj_visual.png".format(record_info_name)))
 
-            # if config['running']['store_by_game']:
-            #     plt.scatter(np.concatenate(sample_obs, axis=0)[:, -2], np.concatenate(sample_obs, axis=0)[:, -1], s=10)
-            # else:
-            #     plt.scatter(sample_obs[:, -2], sample_obs[:, -1], s=10)
-            # plt.xlim([-1, 1])
-            # plt.ylim([-1, 1])
-            # plt.grid()
-            # plt.savefig(os.path.join(save_path, "sample_traj_visual.png"))
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
-            evaluate_meicrl_policy(nominal_agent, eval_env,
+            evaluate_meicrl_policy(models=nominal_agents,
+                                   env=eval_env,
+                                   latent_dim=config['CN']['latent_dim'],
                                    record_info_names=config['env']["record_info_names"],
                                    n_eval_episodes=config['running']['n_eval_episodes'],
                                    deterministic=True,
@@ -390,24 +383,19 @@ def train(config):
         # Save
         # (1) periodically
         if itr % config['running']['save_every'] == 0:
-            nominal_agent.save(os.path.join(save_path, "nominal_agent"))
+            for cid in range(config['CN']['latent_dim']):
+                nominal_agents[cid].save(os.path.join(save_path, "nominal_agent_cid-{0}".format(cid)))
             constraint_net.save(os.path.join(save_path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
 
-            if config['running']['store_by_game']:
-                if len(np.concatenate(expert_acs, axis=0).shape) == 1:
-                    empirical_input_means = np.concatenate([np.concatenate(expert_obs, axis=0),
-                                                            np.expand_dims(np.concatenate(expert_acs, axis=0), 1)],
-                                                           axis=1).mean(0)
-                else:
-                    empirical_input_means = np.concatenate([np.concatenate(expert_obs, axis=0),
-                                                            np.concatenate(expert_acs, axis=0)], axis=1).mean(0)
+            if len(np.concatenate(expert_acs, axis=0).shape) == 1:
+                empirical_input_means = np.concatenate([np.concatenate(expert_obs, axis=0),
+                                                        np.expand_dims(np.concatenate(expert_acs, axis=0), 1)],
+                                                       axis=1).mean(0)
             else:
-                if len(expert_acs.shape) == 1:
-                    empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
-                else:
-                    empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
+                empirical_input_means = np.concatenate([np.concatenate(expert_obs, axis=0),
+                                                        np.concatenate(expert_acs, axis=0)], axis=1).mean(0)
             for record_info_idx in range(len(config['env']["record_info_names"])):
                 record_info_name = config['env']["record_info_names"][record_info_idx]
                 for i in range(config['CN']['latent_dim']):
@@ -427,20 +415,12 @@ def train(config):
                                                 code_index=i,
                                                 latent_dim=config['CN']['latent_dim'], )
 
-            # constraint_visualization_2d(cost_function_with_code=constraint_net.cost_function_with_code,
-            #                             feature_range=config['env']["visualize_info_ranges"],
-            #                             select_dims=config['env']["record_info_input_dims"],
-            #                             obs_dim=constraint_net.obs_dim,
-            #                             acs_dim=1 if is_discrete else constraint_net.acs_dim,
-            #                             latent_dim=constraint_net.latent_dim,
-            #                             empirical_input_means=empirical_input_means,
-            #                             save_path=save_path)
-
         # (2) best
         if mean_nc_reward > best_true_reward:
             # print(utils.colorize("Saving new best model", color="green", bold=True), flush=True)
             print("Saving new best model", file=log_file, flush=True)
-            nominal_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
+            for cid in range(config['CN']['latent_dim']):
+                nominal_agents[cid].save(os.path.join(save_model_mother_dir, "best_nominal_agent_cid-{0}".format(cid)))
             constraint_net.save(os.path.join(save_model_mother_dir, "best_constraint_net_model"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))
@@ -466,8 +446,9 @@ def train(config):
             "true/std_reward": std_reward,
             "best_true/best_reward": best_true_reward
         }
-
-        metrics.update({k.replace("train/", "forward/"): v for k, v in forward_metrics.items()})
+        for c_id in range(config['CN']['latent_dim']):
+            forward_metrics = forward_metrics_all[c_id]
+            metrics.update({'cid:{0}/'.format(c_id)+k.replace("train/", "forward/"): v for k, v in forward_metrics.items()})
         metrics.update(backward_metrics)
 
         # Log

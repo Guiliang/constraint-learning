@@ -533,6 +533,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             use_sde: bool,
             sde_sample_freq: int,
             latent_dim: int,
+            cid: int,
             tensorboard_log: Optional[str] = None,
             create_eval_env: bool = False,
             monitor_wrapper: bool = True,
@@ -570,16 +571,17 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
         self.max_grad_norm = max_grad_norm
         self.rollout_buffer = None
         self.code_dim = latent_dim
+        self.code_id = cid
 
         if _init_setup_model:
             self._setup_model()
 
         if isinstance(self.env, VecNormalize):
-            self._last_latent_codes = build_code(code_axis=self.env.venv.code_axis,
+            self._last_latent_codes = build_code(code_axis=[self.code_id for _ in range(self.env.venv.num_envs)],
                                                  code_dim=self.env.venv.latent_dim,
                                                  num_envs=self.env.venv.num_envs)
         else:
-            self._last_latent_codes = build_code(code_axis=self.env.code_axis,
+            self._last_latent_codes = build_code(code_axis=[self.code_id for _ in range(self.env.num_envs)],
                                                  code_dim=self.env.latent_dim,
                                                  num_envs=self.env.num_envs)
 
@@ -659,16 +661,17 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             orig_obs = env.get_original_obs() if isinstance(env, VecNormalize) else new_obs
             if type(cost_info_str) is str:
                 # Need to get cost from environment.
-                costs = np.array([info[cost_info_str] for info in infos])
+                costs_signals = np.array([info[cost_info_str] for info in infos])
                 new_latent_codes = np.array([info['new_code'] for info in infos])
-                latent_posteriors = np.array([info[latent_info_str] for info in infos])
+                pos_latent_signals = np.array([info[latent_info_str]['pos'] for info in infos])
+                neg_latent_signals = np.array([info[latent_info_str]['neg'] for info in infos])
                 if isinstance(env, VecNormalizeWithCost):
                     orig_costs = env.get_original_cost()
                 else:
-                    orig_costs = costs
+                    orig_costs = costs_signals
                 # apply logarithm
-                costs = np.log(costs + 0.00001)
-                orig_costs = np.log(orig_costs + 0.00001)
+                costs_signals = np.log(costs_signals + 1e-5)
+                orig_costs = np.log(orig_costs + 1e-5)
             else:
                 raise ValueError("This part is not yet done.")
                 # costs = cost_function(orig_obs.copy(), clipped_actions)
@@ -687,14 +690,26 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             if isinstance(self.action_space, gym.spaces.Discrete):
                 # Reshape in case of discrete action
                 actions = actions.reshape(-1, 1)
-            rollout_buffer.add(self._last_obs, self._last_original_obs, new_obs, orig_obs, actions,
-                               self._last_latent_codes, latent_posteriors, rewards, costs, orig_costs,
-                               self._last_dones, reward_values, cost_values, log_probs)
+            rollout_buffer.add(obs=self._last_obs,
+                               orig_obs=self._last_original_obs,
+                               new_obs=new_obs,
+                               new_orig_obs=orig_obs,
+                               action=actions,
+                               code=self._last_latent_codes,
+                               pos_posterior_signal=pos_latent_signals,
+                               neg_posterior_signal=neg_latent_signals,
+                               cost=costs_signals,
+                               orig_cost=orig_costs,
+                               cost_value=cost_values,
+                               reward=rewards,
+                               reward_value=reward_values,
+                               done=self._last_dones,
+                               log_prob=log_probs)
             self._last_obs = new_obs
             self._last_original_obs = orig_obs
             self._last_dones = dones
             self._last_latent_codes = new_latent_codes
-            print(self._last_latent_codes)
+            # print(self._last_latent_codes)
 
         rollout_buffer.compute_returns_and_advantage(reward_values, cost_values, dones=dones)
 

@@ -83,28 +83,31 @@ class VecCostCodeWrapper(VecEnvWrapper):
         if infos is None:
             infos = {}
         # Costs and latent codes depends on previous observation and current actions
-        cost = self.cost_function(self.previous_obs.copy(),
-                                  self.actions.copy(),
-                                  self.code.copy())  # [batch size]
-        if 'history' in self.latent_info_str:
-            obs_seqs = np.stack([np.asarray(item) for item in self.obs_seqs], axis=0)
-            action_seqs = np.stack([np.asarray(item) for item in self.action_seqs], axis=0)
-            code_posterior = None
-            # TODO: this latent posterior must be modified
-        else:
-            code_posterior = None
+        cost_signals = self.cost_function(self.previous_obs.copy(),
+                                          self.actions.copy(),
+                                          self.codes.copy())  # [batch size]
+        latent_signals = self.latent_function(self.previous_obs.copy(),
+                                              self.actions.copy(),
+                                              self.codes.copy())  # [batch size]
+        # if 'history' in self.latent_info_str:
+        #     obs_seqs = np.stack([np.asarray(item) for item in self.obs_seqs], axis=0)
+        #     action_seqs = np.stack([np.asarray(item) for item in self.action_seqs], axis=0)
+        #     code_posterior = None
+        # else:
+        #     code_posterior = None
         for env_idx in range(self.num_envs):
             if news[env_idx]:  # the game is done
-                # update code axis
-                self.code_axis[env_idx] = update_code(code_dim=self.latent_dim, code_axis=self.code_axis[env_idx])
+                # remove the code update
+                # self.code_axis[env_idx] = update_code(code_dim=self.latent_dim, code_axis=self.code_axis[env_idx])
                 # clean up recordings
                 self.obs_seqs[env_idx] = []
                 self.action_seqs[env_idx] = []
-        self.code = build_code(code_axis=self.code_axis, code_dim=self.latent_dim, num_envs=self.num_envs)
+        # self.codes = build_code(code_axis=self.code_axis, code_dim=self.latent_dim, num_envs=self.num_envs)
         for i in range(len(infos)):
-            infos[i][self.cost_info_str] = cost[i]
-            infos[i][self.latent_info_str] = 0
-            infos[i]['new_code'] = self.code[i]
+            infos[i][self.cost_info_str] = cost_signals[i]
+            # tmp = np.argmax(self.code[i])
+            infos[i][self.latent_info_str] = latent_signals[np.argmax(self.codes[i])]
+            infos[i]['new_code'] = self.codes[i]  # so that the code will not be update
         # record observations
         self.previous_obs = obs.copy()
         for i in range(self.num_envs):
@@ -127,7 +130,7 @@ class VecCostCodeWrapper(VecEnvWrapper):
         self.previous_obs = obs
         self.action_seqs = [[] for i in range(self.num_envs)]
         self.obs_seqs = [[obs[i]] for i in range(self.num_envs)]
-        self.code = build_code(code_axis=self.code_axis, code_dim=self.latent_dim, num_envs=self.num_envs)
+        self.codes = build_code(code_axis=self.code_axis, code_dim=self.latent_dim, num_envs=self.num_envs)
         return obs
 
     @staticmethod

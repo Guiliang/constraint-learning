@@ -657,14 +657,14 @@ class RolloutBufferWithCostCode(BaseBuffer):
     ):
 
         super(RolloutBufferWithCostCode, self).__init__(buffer_size, observation_space, action_space, device, n_envs=n_envs)
-        self.code_dim = code_dim
+        self.latent_dim = code_dim
         self.reward_gamma = reward_gamma
         self.reward_gae_lambda = reward_gae_lambda
         self.cost_gamma = cost_gamma
         self.cost_gae_lambda = cost_gae_lambda
         self.observations, self.orig_observations, self.actions, self.rewards, self.advantages = \
             None, None, None, None, None
-        self.code_posteriors, self.codes = None, None
+        self.pos_latent_signals, self.neg_latent_signals, self.codes = None, None, None
         self.new_observations, self.new_orig_observations = None, None
         self.reward_returns, self.cost_returns, self.dones, self.values, self.log_probs = None, None, None, None, None
         self.generator_ready = False
@@ -676,8 +676,15 @@ class RolloutBufferWithCostCode(BaseBuffer):
         self.orig_observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=np.float32)
         self.new_orig_observations = np.zeros((self.buffer_size, self.n_envs) + self.obs_shape, dtype=np.float32)
         self.actions = np.zeros((self.buffer_size, self.n_envs, self.action_dim), dtype=np.float32)
-        self.codes = np.zeros((self.buffer_size, self.n_envs, self.code_dim), dtype=np.float32)
-        self.code_posteriors = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.codes = np.zeros((self.buffer_size, self.n_envs, self.latent_dim), dtype=np.float32)
+        self.pos_latent_signals = np.zeros((self.buffer_size,
+                                            self.n_envs,
+                                            1,
+                                            self.action_dim + self.obs_shape[0]), dtype=np.float32)
+        self.neg_latent_signals = np.zeros((self.buffer_size,
+                                            self.n_envs,
+                                            self.latent_dim - 1,
+                                            self.action_dim + self.obs_shape[0]), dtype=np.float32)
         self.dones = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
         self.log_probs = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
 
@@ -759,18 +766,19 @@ class RolloutBufferWithCostCode(BaseBuffer):
         )
 
     def add(self, obs: np.ndarray, orig_obs: np.ndarray, new_obs: np.ndarray, new_orig_obs: np.ndarray,
-            action: np.ndarray, code: np.ndarray, code_posterior: np.ndarray, reward: np.ndarray,
-            cost: np.ndarray, orig_cost: np.ndarray,
-            done: np.ndarray, reward_value: th.Tensor, cost_value: th.Tensor,
-            log_prob: th.Tensor) -> None:
+            action: np.ndarray, code: np.ndarray, pos_posterior_signal: np.ndarray, neg_posterior_signal: np.ndarray,
+            reward: np.ndarray, reward_value: th.Tensor, cost: np.ndarray, orig_cost: np.ndarray, cost_value: th.Tensor,
+            done: np.ndarray, log_prob: th.Tensor) -> None:
         """
         :param obs: Observation
         :param orig_obs: Original observation
         :param new_obs: Next observation (to which agent transitions)
+        :param new_orig_obs: Next Original observation (to which agent transitions)
         :param action: Action
         :param reward:
         :param code: latent code
-        :param code_posterior: latent code posterior
+        :param pos_posterior_signal: pos_posterior_signal
+        :param neg_posterior_signal: pos_posterior_signal
         :param cost:
         :param orig_cost: original cost
         :param done: End of episode signal.
@@ -791,7 +799,8 @@ class RolloutBufferWithCostCode(BaseBuffer):
         self.new_orig_observations[self.pos] = np.array(new_orig_obs).copy()
         self.actions[self.pos] = np.array(action).copy()
         self.codes[self.pos] = np.array(code).copy()
-        self.code_posteriors[self.pos] = np.array(code_posterior).copy()
+        self.pos_latent_signals[self.pos] = np.array(pos_posterior_signal).copy()
+        self.neg_latent_signals[self.pos] = np.array(neg_posterior_signal).copy()
         self.dones[self.pos] = np.array(done).copy()
         self.log_probs[self.pos] = log_prob.clone().cpu().numpy()
         self.rewards[self.pos] = np.array(reward).copy()
@@ -808,10 +817,10 @@ class RolloutBufferWithCostCode(BaseBuffer):
         indices = np.random.permutation(self.buffer_size * self.n_envs)
         # Prepare the data
         if not self.generator_ready:
-            for tensor in ["orig_observations", "observations", "actions", "log_probs",
-                           "codes", "code_posteriors",
+            for tensor in ["orig_observations", "observations", "actions",
+                           "codes", "pos_latent_signals", "neg_latent_signals",
                            "reward_values", "reward_advantages", "reward_returns",
-                           "cost_values", "cost_advantages", "cost_returns"]:
+                           "cost_values", "cost_advantages", "cost_returns", "log_probs"]:
                 self.__dict__[tensor] = self.swap_and_flatten(self.__dict__[tensor])
             self.generator_ready = True
 
@@ -830,13 +839,14 @@ class RolloutBufferWithCostCode(BaseBuffer):
             self.observations[batch_inds],
             self.actions[batch_inds],
             self.codes[batch_inds],
-            self.code_posteriors[batch_inds],
-            self.log_probs[batch_inds].flatten(),
+            self.pos_latent_signals[batch_inds],
+            self.neg_latent_signals[batch_inds],
             self.reward_values[batch_inds].flatten(),
             self.reward_advantages[batch_inds].flatten(),
             self.reward_returns[batch_inds].flatten(),
             self.cost_values[batch_inds].flatten(),
             self.cost_advantages[batch_inds].flatten(),
             self.cost_returns[batch_inds].flatten(),
+            self.log_probs[batch_inds].flatten(),
         )
         return RolloutBufferWithCostCodeSamples(*tuple(map(self.to_torch, data)))

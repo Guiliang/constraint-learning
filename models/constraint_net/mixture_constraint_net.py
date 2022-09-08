@@ -13,7 +13,7 @@ from torch import nn
 from tqdm import tqdm
 
 from utils.data_utils import build_rnn_input
-from utils.model_utils import build_code
+from utils.model_utils import build_code, to_np
 
 
 class MixtureConstraintNet(ConstraintNet):
@@ -82,7 +82,10 @@ class MixtureConstraintNet(ConstraintNet):
         self.max_seq_length = max_seq_length
         self.eta = eta
         self.pivot_vectors_by_cid = {}
+        for cid in range(self.latent_dim):
+            self.pivot_vectors_by_cid.update({cid: np.ones([self.obs_dim + self.acs_dim])})
         self._build()
+        self.criterion = nn.BCELoss()
 
     def _define_input_dims(self) -> None:
         self.input_obs_dim = []
@@ -168,10 +171,22 @@ class MixtureConstraintNet(ConstraintNet):
         cost = 1 - out.detach().cpu().numpy()
         return cost
 
+    def latent_function(self, obs: np.ndarray, acs: np.ndarray, codes: np.ndarray):
+        cids = codes.argmax(0)
+        latent_signals = []
+        for cid in cids:
+            positive_samples = [self.pivot_vectors_by_cid[cid]]
+            negative_samples = []
+            for nid in self.pivot_vectors_by_cid.keys():
+                if nid == cid:
+                    continue
+                negative_samples.append(self.pivot_vectors_by_cid[nid])
+            latent_signals.append({'pos': positive_samples, 'neg': negative_samples})
+        return latent_signals
+
     def call_forward(self, x: np.ndarray):
         with torch.no_grad():
-            out = self.__call__(torch.tensor(x, dtype=torch.float32).to(self.device),
-                                )
+            out = self.__call__(torch.tensor(x, dtype=torch.float32).to(self.device),)
         return out
 
     def train_nn(
@@ -185,7 +200,7 @@ class MixtureConstraintNet(ConstraintNet):
             current_progress_remaining: float = 1,
             **other_parameters,
     ) -> Dict[str, Any]:
-
+        bw_metrics = {}
         # Update learning rate
         self._update_learning_rate(current_progress_remaining)
 
@@ -212,7 +227,7 @@ class MixtureConstraintNet(ConstraintNet):
                                            code_dim=self.latent_dim,
                                            num_envs=self.latent_dim)
         expert_candidate_code = torch.tensor(expert_candidate_code).to(self.device)
-        for itr in tqdm(range(iterations)):
+        for _ in tqdm(range(iterations*5)):
             for nom_batch_indices, exp_batch_indices in self.get(nominal_data.shape[0], expert_data.shape[0]):
                 nominal_data_batch = nominal_data[nom_batch_indices]
                 nominal_code_batch = nominal_code[nom_batch_indices]
@@ -223,6 +238,7 @@ class MixtureConstraintNet(ConstraintNet):
                 log_prob = log_prob.mean()
                 density_loss.backward()
                 self.density_optimizer.step()
+        bw_metrics.update({"backward/density_loss": density_loss.item()})
 
         # save training data for different codes
         nominal_data_by_cid = {}
@@ -248,7 +264,10 @@ class MixtureConstraintNet(ConstraintNet):
             # sum up the log-prob for datapoints to determine the cid of entire trajectory.
             expert_log_sum_game = expert_log_prob.reshape([-1, self.latent_dim, 1]).sum(dim=0).squeeze(dim=-1)
             expert_cid = expert_log_sum_game.argmax()
-            print("expert game: {0}, cid: {1}".format(i, expert_cid))
+            print("expert game: {0}, cid: {1}, log_sum: {2}".format(i,
+                                                                    expert_cid,
+                                                                    to_np(expert_log_sum_game)),
+                  file=self.log_file, flush=True)
             if expert_data_by_cid[expert_cid.item()] is None:
                 expert_data_by_cid[expert_cid.item()] = expert_data_games[i]
             else:
@@ -270,7 +289,7 @@ class MixtureConstraintNet(ConstraintNet):
             else:
                 nominal_data_by_cid[nominal_cid.item()] = torch.cat([nominal_data_by_cid[nominal_cid.item()],
                                                                      nominal_data_game], dim=0)
-            nominal_code_game_reverse = torch.ones(size=nominal_code_game.shape)
+            nominal_code_game_reverse = torch.ones(size=nominal_code_game.shape).to(self.device) - nominal_code_game
             _, reverse_log_prob_game = self.density_model.log_probs(inputs=nominal_data_game,
                                                                     cond_inputs=nominal_code_game_reverse)
             if nominal_log_prob_by_cid[nominal_cid.item()] is None:
@@ -283,9 +302,13 @@ class MixtureConstraintNet(ConstraintNet):
             reverse_log_prob_cid = nominal_log_prob_by_cid[cid]
             _, botk = (-reverse_log_prob_cid.squeeze(dim=-1)).topk(10, dim=0, largest=True, sorted=False)
             pivot_points = nominal_data_by_cid[cid][botk]
-            self.pivot_vectors_by_cid.update({cid: pivot_points.mean(dim=0)})
+            self.pivot_vectors_by_cid.update({cid: to_np(pivot_points.mean(dim=0))})
             print('cid: {0}, pivot_vectors is {1}'.format(cid, self.pivot_vectors_by_cid[cid]),
                   flush=True, file=self.log_file)
+            if expert_data_by_cid[cid] is None:
+                continue
+            discriminator_loss_record, expert_loss_record, nominal_loss_record, \
+            regularizer_loss_record, nominal_preds_record, expert_preds_record = [], [], [], [], [], []
             for itr in tqdm(range(iterations)):
                 # Do a complete pass on data
                 for nom_batch_indices, exp_batch_indices in self.get(nominal_data_by_cid[cid].shape[0],
@@ -299,36 +322,61 @@ class MixtureConstraintNet(ConstraintNet):
                                               num_envs=len(nom_batch_indices))
                     nom_cid_code = torch.tensor(nom_cid_code).to(self.device)
                     nominal_preds = self.__call__(torch.cat([nominal_data_batch, nom_cid_code], dim=1))
+                    nominal_preds_record.append(to_np(nominal_preds))
                     expert_cid_code = build_code(code_axis=[cid for i in range(len(exp_batch_indices))],
                                                  code_dim=self.latent_dim,
                                                  num_envs=len(exp_batch_indices))
                     expert_cid_code = torch.tensor(expert_cid_code).to(self.device)
                     expert_preds = self.__call__(torch.cat([expert_data_batch, expert_cid_code], dim=1))
+                    expert_preds_record.append(to_np(expert_preds))
 
                     # Calculate loss
-                    expert_loss = torch.mean(torch.log(expert_preds + self.eps))
-                    nominal_loss = torch.mean(torch.log(nominal_preds + self.eps))
+                    # expert_loss = -torch.mean(torch.log(expert_preds + self.eps))
+                    # nominal_loss = torch.mean(torch.log(nominal_preds + self.eps))
+                    nominal_loss = self.criterion(nominal_preds, torch.zeros(*nominal_preds.size()).to(self.device))
+                    nominal_loss_record.append(nominal_loss.item())
+                    expert_loss = self.criterion(expert_preds, torch.ones(*expert_preds.size()).to(self.device))
+                    expert_loss_record.append(expert_loss.item())
                     regularizer_loss = self.regularizer_coeff * (
                             torch.mean(1 - expert_preds) + torch.mean(1 - nominal_preds))
-                    discriminator_loss = (-expert_loss + nominal_loss) + regularizer_loss
+                    regularizer_loss_record.append(regularizer_loss.item())
+                    discriminator_loss = (expert_loss + nominal_loss) + regularizer_loss
+                    discriminator_loss_record.append(discriminator_loss.item())
 
                     # Update
-                    self.cns_optimizers[cid].zero_grad()
+                    for model_num in range(len(self.constraint_functions)):
+                        self.constraint_functions[model_num].zero_grad()
+                        self.cns_optimizers[model_num].zero_grad()
                     discriminator_loss.backward()
-                    self.cns_optimizers[cid].step()
+                    for model_num in range(len(self.constraint_functions)):
+                        self.cns_optimizers[model_num].step()
+            parameters_info = []
+            for model_num in range(len(self.constraint_functions)):
+                constraint_function = self.constraint_functions[model_num]
+                for k, v in constraint_function.named_parameters():
+                    if v.grad is not None:
+                        parameters_info.append("cid-{0}_{1}:{2}".format(model_num, k, torch.mean(v.grad)))
+                    else:
+                        parameters_info.append("cid-{0}-{1}:{2}".format(model_num, k, v.grad))
 
-        bw_metrics = {"backward/cn_loss": discriminator_loss.item(),
-                      "backward/density_loss": density_loss.item(),
-                      "backward/expert_loss": expert_loss.item(),
-                      "backward/nominal_loss": nominal_loss.item(),
-                      "backward/regularizer_loss": regularizer_loss.item(),
-                      "backward/nominal_preds_max": torch.max(nominal_preds).item(),
-                      "backward/nominal_preds_min": torch.min(nominal_preds).item(),
-                      "backward/nominal_preds_mean": torch.mean(nominal_preds).item(),
-                      "backward/expert_preds_max": torch.max(expert_preds).item(),
-                      "backward/expert_preds_min": torch.min(expert_preds).item(),
-                      "backward/expert_preds_mean": torch.mean(expert_preds).item(),
-                      }
+            print(parameters_info, file=self.log_file, flush=True)
+            discriminator_loss_record = np.asarray(discriminator_loss_record)
+            expert_loss_record = np.asarray(expert_loss_record)
+            nominal_loss_record = np.asarray(discriminator_loss_record)
+            regularizer_loss_record = np.asarray(regularizer_loss_record)
+            expert_preds_record = np.concatenate(expert_preds_record, axis=0)
+            nominal_preds_record = np.concatenate(nominal_preds_record, axis=0)
+            bw_metrics.update({"backward/cid:{0}/cn_loss".format(cid): discriminator_loss_record.mean(),
+                               "backward/cid:{0}/e_loss".format(cid): expert_loss_record.mean(),
+                               "backward/cid:{0}/n_loss".format(cid): nominal_loss_record.mean(),
+                               "backward/cid:{0}/r_loss".format(cid): regularizer_loss_record.mean(),
+                               "backward/cid:{0}/n_pred_max".format(cid): np.max(nominal_preds_record).item(),
+                               "backward/cid:{0}/n_pred_min".format(cid): np.min(nominal_preds_record).item(),
+                               "backward/cid:{0}/n_pred_mean".format(cid): np.mean(nominal_preds_record).item(),
+                               "backward/cid:{0}/e_pred_max".format(cid): np.max(expert_preds_record).item(),
+                               "backward/cid:{0}/e_pred_min".format(cid): np.min(expert_preds_record).item(),
+                               "backward/cid:{0}/e_pred_mean".format(cid): np.mean(expert_preds_record).item(),
+                               })
         return bw_metrics
 
     def save(self, save_path):

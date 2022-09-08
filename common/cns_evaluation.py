@@ -131,8 +131,9 @@ def evaluate_icrl_policy(
 
 
 def evaluate_meicrl_policy(
-        model: "base_class.BaseAlgorithm",
+        models: list("base_class.BaseAlgorithm"),
         env: Union[gym.Env, VecEnv],
+        latent_dim: int,
         record_info_names: list,
         n_eval_episodes: int = 10,
         deterministic: bool = True,
@@ -145,30 +146,22 @@ def evaluate_meicrl_policy(
     if isinstance(env, VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
 
-    if isinstance(env, VecNormalize):
-        code_axis = env.venv.code_axis
-        latent_dim = env.venv.latent_dim
-        num_envs = env.venv.num_envs
-    else:
-        code_axis = env.code_axis
-        latent_dim = env.latent_dim
-        num_envs = env.num_envs
-
     episode_rewards, episode_nc_rewards, episode_lengths = [], [], []
     costs = []
     record_infos = {}
     for record_info_name in record_info_names:
         record_infos.update({record_info_name: {}})
-        for i in range(latent_dim):
-            record_infos[record_info_name].update({i: []})
+        for cid in range(latent_dim):
+            record_infos[record_info_name].update({cid: []})
 
     for i in range(n_eval_episodes):
+        cid = i % latent_dim
+        code = build_code(code_axis=[cid for _ in range(1)],
+                          code_dim=latent_dim,
+                          num_envs=1)
         # Avoid double reset, as VecEnv are reset automatically
         if not isinstance(env, VecEnv) or i == 0:
             obs = env.reset()
-            code = build_code(code_axis=code_axis,
-                               code_dim=latent_dim,
-                               num_envs=num_envs)
 
         done, state = False, None
         episode_reward = np.asarray([0.0] * env.num_envs)
@@ -179,19 +172,18 @@ def evaluate_meicrl_policy(
         # print('0', mem_current)
         while not done:
             inputs = np.concatenate([obs, code], axis=1)
-            action, state = model.predict(inputs, state=state, deterministic=deterministic)
+            action, state = models[cid].predict(inputs, state=state, deterministic=deterministic)
             obs, reward, dones, _info = env.step_with_code(actions=action, codes=code)
             done = dones[0]
             code = []
             for i in range(env.num_envs):
-                code.append(_info[i]["code"])
+                code.append(_info[i]["new_code"])
                 if 'cost' in _info[i].keys():
                     costs.append(_info[i]['cost'])
                 else:
                     costs = None
                 for record_info_name in record_info_names:
-                    c_id = np.argmax(_info[i]["code"])
-                    record_infos[record_info_name][c_id].append(_info[i][record_info_name])
+                    record_infos[record_info_name][cid].append(_info[i][record_info_name])
                 if not is_constraint[i]:
                     if _info[i]['lag_cost']:
                         is_constraint[i] = True
