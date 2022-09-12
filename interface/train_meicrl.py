@@ -227,11 +227,12 @@ def train(config):
     # Init cns
     cn_parameters = get_cns_config(config, train_env, expert_obs, expert_acs, log_file)
     if 'InfoICRL' == config['group']:
-        cn_parameters.update({'latent_dim': config['CN']['latent_dim'], })
+        cn_parameters.update({'latent_dim': config['CN']['latent_dim']})
         constraint_net = InfoConstraintNet(**cn_parameters)
     elif 'MEICRL' == config['group']:
-        cn_parameters.update({'latent_dim': config['CN']['latent_dim'], })
-        cn_parameters.update({'max_seq_length': config['running']['max_seq_length'], })
+        cn_parameters.update({'latent_dim': config['CN']['latent_dim']})
+        cn_parameters.update({'max_seq_length': config['running']['max_seq_length']})
+        cn_parameters.update({'init_density': config['running']['init_density']})
         constraint_net = MixtureConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown group: {0}".format(config['group']))
@@ -314,11 +315,11 @@ def train(config):
             mean, var = sample_env.obs_rms.mean, sample_env.obs_rms.var
 
         # add the background information
-        cns_parameters = {}
-        cns_parameters['nominal_codes'] = sample_codes
+        other_cn_parameters = {}
+        other_cn_parameters['nominal_codes'] = sample_codes
         # TODO: the expert codes are for temporal usage. Remove it in the formal implementation.
-        cns_parameters['expert_codes'] = expert_codes
-        cns_parameters['debug_msg'] = debug_msg,
+        other_cn_parameters['expert_codes'] = expert_codes
+        other_cn_parameters['debug_msg'] = debug_msg,
         backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
                                                    nominal_obs=sample_obs,
                                                    nominal_acs=sample_acts,
@@ -326,7 +327,7 @@ def train(config):
                                                    obs_mean=mean,
                                                    obs_var=var,
                                                    current_progress_remaining=current_progress_remaining,
-                                                   **cns_parameters)
+                                                   **other_cn_parameters)
 
         mem_prev, time_prev = print_resource(mem_prev=mem_prev,
                                              time_prev=time_prev,
@@ -450,6 +451,7 @@ def train(config):
             forward_metrics = forward_metrics_all[c_id]
             metrics.update({'cid:{0}/'.format(c_id)+k.replace("train/", "forward/"): v for k, v in forward_metrics.items()})
         metrics.update(backward_metrics)
+        print('\n\n', file=log_file, flush=True)
 
         # Log
         if config['verbose'] > 0:

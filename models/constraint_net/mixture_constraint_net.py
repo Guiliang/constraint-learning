@@ -45,6 +45,7 @@ class MixtureConstraintNet(ConstraintNet):
             target_kl_new_old: float = -1,
             train_gail_lambda: Optional[bool] = False,
             max_seq_length: float = 10,
+            init_density: bool = True,
             eps: float = 1e-5,
             eta: float = 0.1,
             device: str = "cpu",
@@ -80,6 +81,7 @@ class MixtureConstraintNet(ConstraintNet):
                                                    build_net=False)
         self.latent_dim = latent_dim
         self.max_seq_length = max_seq_length
+        self.init_density = init_density
         self.eta = eta
         self.pivot_vectors_by_cid = {}
         for cid in range(self.latent_dim):
@@ -104,13 +106,28 @@ class MixtureConstraintNet(ConstraintNet):
         assert self.input_dim > 0, ""
 
     def _build(self) -> None:
+        self._init_density_model()
+        self._init_constraint_model()
+        if self.train_gail_lambda:
+            self.criterion = nn.BCELoss()
 
+    def _init_constraint_model(self):
         # Create constraint function and add sigmoid at the end
         self.constraint_functions = [nn.Sequential(
             *create_mlp(self.input_dim, 1, list(self.hidden_sizes)),
             nn.Sigmoid()
         ).to(self.device) for i in range(self.latent_dim)]
 
+        if self.optimizer_class is not None:
+            self.cns_optimizers = []
+            for i in range(self.latent_dim):
+                self.cns_optimizers.append(self.optimizer_class(params=self.constraint_functions[i].parameters(),
+                                                                lr=self.lr_schedule(1),
+                                                                **self.optimizer_kwargs))
+        else:
+            self.cns_optimizers = None
+
+    def _init_density_model(self):
         # Creat density model
         modules = []
         for i in range(len(self.hidden_sizes)):
@@ -132,20 +149,12 @@ class MixtureConstraintNet(ConstraintNet):
         model.to(self.device)
         self.density_model = model
 
-        # Build optimizer
         if self.optimizer_class is not None:
-            self.cns_optimizers = []
-            for i in range(self.latent_dim):
-                self.cns_optimizers.append(self.optimizer_class(params=self.constraint_functions[i].parameters(),
-                                                                lr=self.lr_schedule(1),
-                                                                **self.optimizer_kwargs))
             self.density_optimizer = self.optimizer_class(params=self.density_model.parameters(),
                                                           lr=self.lr_schedule(1),
                                                           **self.optimizer_kwargs)
         else:
-            self.cns_optimizers = None
-        if self.train_gail_lambda:
-            self.criterion = nn.BCELoss()
+            self.density_optimizer = None
 
     def forward(self, x: torch.tensor) -> torch.tensor:
         data = x[:, :-self.latent_dim]
@@ -186,7 +195,7 @@ class MixtureConstraintNet(ConstraintNet):
 
     def call_forward(self, x: np.ndarray):
         with torch.no_grad():
-            out = self.__call__(torch.tensor(x, dtype=torch.float32).to(self.device),)
+            out = self.__call__(torch.tensor(x, dtype=torch.float32).to(self.device), )
         return out
 
     def train_nn(
@@ -204,9 +213,16 @@ class MixtureConstraintNet(ConstraintNet):
         # Update learning rate
         self._update_learning_rate(current_progress_remaining)
 
+        if self.init_density:
+            # init the density model at each iteration
+            self._init_density_model()
+
         # Update normalization stats
         self.current_obs_mean = obs_mean
         self.current_obs_var = obs_var
+
+        # debug msg for sanity check
+        debug_msg = other_parameters['debug_msg'][0]
 
         # Prepare data
         nominal_data_games = [self.prepare_data(nominal_obs[i], nominal_acs[i]) for i in range(len(nominal_obs))]
@@ -221,13 +237,7 @@ class MixtureConstraintNet(ConstraintNet):
                               range(len(other_parameters['nominal_codes']))]
         nominal_code = torch.cat(nominal_code_games, dim=0)
 
-        # list all possible candidate codes with shape [batch_size, latent_dim, latent_dim],
-        # for example, for latent_dim =2, we have [[1,0],[0,1]]*batch_size
-        expert_candidate_code = build_code(code_axis=[i for i in range(self.latent_dim)],
-                                           code_dim=self.latent_dim,
-                                           num_envs=self.latent_dim)
-        expert_candidate_code = torch.tensor(expert_candidate_code).to(self.device)
-        for _ in tqdm(range(iterations*5)):
+        for _ in tqdm(range(iterations * 5)):
             for nom_batch_indices, exp_batch_indices in self.get(nominal_data.shape[0], expert_data.shape[0]):
                 nominal_data_batch = nominal_data[nom_batch_indices]
                 nominal_code_batch = nominal_code[nom_batch_indices]
@@ -252,8 +262,13 @@ class MixtureConstraintNet(ConstraintNet):
             expert_data_by_cid.update({cid: None})
 
         # scan through the expert data and classify them
-        expert_code_games = []
-        expert_latent_prob_games = []
+        # list all possible candidate codes with shape [batch_size, latent_dim, latent_dim],
+        # for example, for latent_dim =2, we have [[1,0],[0,1]]*batch_size
+        expert_candidate_code = build_code(code_axis=[i for i in range(self.latent_dim)],
+                                           code_dim=self.latent_dim,
+                                           num_envs=self.latent_dim)
+        expert_candidate_code = torch.tensor(expert_candidate_code).to(self.device)
+        expert_sum_log_prob_by_games = []
         for i in range(len(expert_data_games)):
             expert_data_game_repeat = expert_data_games[i].unsqueeze(dim=1).repeat(1, self.latent_dim, 1)
             expert_code_game = expert_candidate_code.unsqueeze(dim=0).repeat(len(expert_data_games[i]), 1, 1)
@@ -263,21 +278,38 @@ class MixtureConstraintNet(ConstraintNet):
                     [-1, self.latent_dim]))
             # sum up the log-prob for datapoints to determine the cid of entire trajectory.
             expert_log_sum_game = expert_log_prob.reshape([-1, self.latent_dim, 1]).sum(dim=0).squeeze(dim=-1)
-            expert_cid = expert_log_sum_game.argmax()
-            print("expert game: {0}, cid: {1}, log_sum: {2}".format(i,
-                                                                    expert_cid,
-                                                                    to_np(expert_log_sum_game)),
-                  file=self.log_file, flush=True)
-            if expert_data_by_cid[expert_cid.item()] is None:
-                expert_data_by_cid[expert_cid.item()] = expert_data_games[i]
+            expert_sum_log_prob_by_games.append(to_np(expert_log_sum_game))
+        expert_sum_log_prob_by_games = np.asarray(expert_sum_log_prob_by_games)
+        expert_code_games = [None for i in range(len(expert_data_games))]
+        for expert_cid in range(self.latent_dim):
+            if 'sanity_check' in debug_msg:
+                top_ids = []
+                for i in range(len(expert_data_games)):
+                    ground_truth_id = np.argmax(other_parameters['expert_codes'][i][0])
+                    if ground_truth_id == expert_cid:
+                        top_ids.append(i)
             else:
-                expert_data_by_cid[expert_cid.item()] = torch.cat([expert_data_by_cid[expert_cid.item()],
-                                                                   expert_data_games[i]], dim=0)
-            expert_cid_game = expert_cid.repeat(len(expert_data_games[i]))
-            # repeat the cid to label all the expert datapoints.
-            expert_code_game = F.one_hot(expert_cid_game, num_classes=self.latent_dim).to(self.device)
-            expert_code_games.append(expert_code_game)
-        expert_codes = torch.cat(expert_code_games, dim=0)
+                other_dims = list(range(self.latent_dim))
+                other_dims.remove(expert_cid)
+                diff = np.zeros([len(expert_data_games)])
+                for k in other_dims:
+                    diff += expert_sum_log_prob_by_games[:, expert_cid] - expert_sum_log_prob_by_games[:, k]
+                tmp = np.argsort(diff)[::-1]
+                top_ids = np.argsort(diff)[::-1][:int(len(expert_data_games) / self.latent_dim)]
+            for i in top_ids:
+                print("expert game: {0}, cid: {1}, log_sum: {2}".format(i,
+                                                                        expert_cid,
+                                                                        expert_sum_log_prob_by_games[i]),
+                      file=self.log_file, flush=True)
+                if expert_data_by_cid[expert_cid] is None:
+                    expert_data_by_cid[expert_cid] = expert_data_games[i]
+                else:
+                    expert_data_by_cid[expert_cid] = torch.cat([expert_data_by_cid[expert_cid],
+                                                                expert_data_games[i]], dim=0)
+                expert_cid_game = torch.tensor(np.repeat(expert_cid, len(expert_data_games[i])))
+                # repeat the cid to label all the expert datapoints.
+                expert_code_game = F.one_hot(expert_cid_game, num_classes=self.latent_dim).to(self.device)
+                expert_code_games[i] = expert_code_game
 
         # scan through the nominal data and pick some pivot points
         for i in range(len(nominal_data_games)):
@@ -307,9 +339,9 @@ class MixtureConstraintNet(ConstraintNet):
                   flush=True, file=self.log_file)
             if expert_data_by_cid[cid] is None:
                 continue
-            discriminator_loss_record, expert_loss_record, nominal_loss_record, \
-            regularizer_loss_record, nominal_preds_record, expert_preds_record = [], [], [], [], [], []
             for itr in tqdm(range(iterations)):
+                discriminator_loss_record, expert_loss_record, nominal_loss_record, \
+                regularizer_loss_record, nominal_preds_record, expert_preds_record = [], [], [], [], [], []
                 # Do a complete pass on data
                 for nom_batch_indices, exp_batch_indices in self.get(nominal_data_by_cid[cid].shape[0],
                                                                      expert_data_by_cid[cid].shape[0]):

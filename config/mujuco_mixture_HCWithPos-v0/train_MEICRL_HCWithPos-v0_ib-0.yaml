@@ -31,7 +31,7 @@ running:
   expert_path: '../data/expert_data/Mixture-HCWithPos-v0/'
   use_buffer: False
   store_by_game: True
-  init_density: True
+  init_density: False
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'

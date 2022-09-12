@@ -112,15 +112,15 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
         if self.needs_reset:
             raise RuntimeError("Tried to step environment that needs reset")
         observation, reward, done, info = self.env.step(action)
-        return self.record_step(action, observation, reward, done, info)
+        return self.record_step(action, observation, reward, done, info, None)
 
     def step_with_code(self, action: np.ndarray, code: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
         if self.needs_reset:
             raise RuntimeError("Tried to step environment that needs reset")
         observation, reward, done, info = self.env.step_with_code(action, code)
-        return self.record_step(action, observation, reward, done, info)
+        return self.record_step(action, observation, reward, done, info, code)
 
-    def record_step(self, action, observation, reward, done, info):
+    def record_step(self, action, observation, reward, done, info, code):
         if is_mujoco(self.env.spec.id):
             if info['lag_cost']:
                 self.event_dict['is_constraint_break'] = 1
@@ -181,7 +181,7 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
                                "reward_nc": round(ep_rew_nc, 2),
                                "len": ep_len,
                                "time": round(time.time() - self.t_start, 2),
-                               'c_id': np.argmax(action[-2:]),
+                               'c_id': np.argmax(action[-2:]) if code is None else np.argmax(code),
                                'constraint': self.event_dict['is_constraint_break']}
                 else:
                     ep_info = {"reward": round(ep_rew, 2),

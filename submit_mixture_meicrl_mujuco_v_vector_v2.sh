@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time=36:00:00
 #SBATCH --mem=120GB
-#SBATCH --job-name=LAG
-task_name="train-mujoco-mixture-LAG-PPO"
+#SBATCH --job-name=MEICRL
+task_name="train-mujoco-meicrl_v2"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 export PATH=/pkgs/anaconda3/bin:$PATH
@@ -17,5 +17,5 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface/
-python train_ppo.py ../config/mujuco_mixture_HCWithPos-v0/train_me_c-0_ppo_lag_HCWithPos-v0.yaml -n 5 -s 123 -l "$log_dir"
+python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64.yaml -n 5 -s 123 -l "$log_dir"
 echo shell finish running

@@ -68,6 +68,7 @@ def get_cns_config(config, train_env, expert_obs, expert_acs, log_file):
         'eps': config['CN']['cn_eps'],
         'device': config['device'],
         'task': config['task'],
+        'log_file': log_file
     }
 
     return cn_parameters
