@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 import gym
 import numpy as np
+import torch
 import torch as th
 
 from cirl_stable_baselines3.common import logger, utils
@@ -645,7 +646,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             with th.no_grad():
                 # Convert to pytorch tensor
                 obs_tensor = th.as_tensor(self._last_obs).to(self.device)
-                codes_tensor = th.as_tensor(self._last_latent_codes).to(self.device)
+                codes_tensor = th.as_tensor(self._last_latent_codes, dtype=torch.float64).to(self.device)
                 input_tensor = th.cat([obs_tensor, codes_tensor], dim=1)
                 actions, reward_values, cost_values, log_probs = self.policy.forward(input_tensor)
             actions = actions.cpu().numpy()
