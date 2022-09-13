@@ -51,7 +51,7 @@ def train(config):
     debug_msg = ''
     # debug_msg = 'sanity_check-'
     if debug_mode:
-        # config['device'] = 'cpu'
+        config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 3000  # 2000
         config['PPO']['n_steps'] = 500
