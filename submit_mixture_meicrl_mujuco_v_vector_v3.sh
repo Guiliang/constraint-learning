@@ -17,5 +17,5 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface/
-python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_ib-0.yaml -n 5 -s 123 -l "$log_dir"
+python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_id-0.yaml -n 5 -s 123 -l "$log_dir"
 echo shell finish running
