@@ -436,6 +436,8 @@ class MixtureConstraintNet(ConstraintNet):
 
     def _update_learning_rate(self, current_progress_remaining) -> None:
         self.current_progress_remaining = current_progress_remaining
+        print("The updated learning rate is {0}.".format(self.lr_schedule(current_progress_remaining)),
+              file=self.log_file, flush=True)
         for i in range(self.latent_dim):
             update_learning_rate(self.cns_optimizers[i], self.lr_schedule(current_progress_remaining))
         update_learning_rate(self.density_optimizer, self.lr_schedule(current_progress_remaining))

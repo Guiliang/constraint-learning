@@ -22,7 +22,7 @@ env:
 
 running:
   n_iters: 30
-  n_eval_episodes: 3
+  n_eval_episodes: 10
   save_every: 1
   max_seq_length: 10
   expert_rollouts: 10
@@ -88,5 +88,5 @@ CN:
   train_gail_lambda: False
   cn_eps: 0.00001
   backward_iters: 100
-  anneal_clr_by_factor: 0.9
+  anneal_clr_by_factor: 0.6
   latent_dim: 2

@@ -48,15 +48,15 @@ def train(config):
         log_file = open(log_file_path, 'w')
     else:
         log_file = None
-    debug_msg = ''
-    # debug_msg = 'sanity_check-'
+    # debug_msg = ''
+    debug_msg = 'sanity_check-'
     if debug_mode:
         config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 3000  # 2000
         config['PPO']['n_steps'] = 500
         config['PPO']['n_epochs'] = 2
-        # config['running']['n_eval_episodes'] = 3
+        config['running']['n_eval_episodes'] = 2
         config['running']['save_every'] = 1
         config['running']['sample_rollouts'] = 2
         # config['running']['sample_data_num'] = 500
