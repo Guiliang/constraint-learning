@@ -48,8 +48,8 @@ def train(config):
         log_file = open(log_file_path, 'w')
     else:
         log_file = None
-    # debug_msg = ''
-    debug_msg = 'sanity_check-'
+    debug_msg = ''
+    # debug_msg = 'sanity_check-'
     if debug_mode:
         config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug

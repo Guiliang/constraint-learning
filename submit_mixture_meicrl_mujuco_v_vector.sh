@@ -1,11 +1,14 @@
 #!/bin/bash
 #SBATCH -N 1
+#SBATCH --account=deadline
+#SBATCH --qos=deadline
 #SBATCH --partition=t4v1,t4v2,p100
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
 #SBATCH --time=36:00:00
 #SBATCH --mem=120GB
 #SBATCH --job-name=MEICRL
+
 task_name="train-mujoco-meicrl"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
