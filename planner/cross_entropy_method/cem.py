@@ -124,10 +124,14 @@ class CEMAgent(AbstractAgent):
                     actions = (sampled_action + prior_lambda * prior_action) / (1 + prior_lambda)
                     sampled_actions[c, :, t, :] = actions
                     actions = actions.detach().numpy()
+                    plan_cost = self.env.cost_function(obs.copy(),
+                                                       actions.copy(),
+                                                       confidence=self.config['confidence'],
+                                                       force_mode=self.config['cost_mode'])
                     obs, rewards, multi_thread_dones, info = self.env.step(actions)
                     for n in range(num_threads):
                         returns[c, n] += self.config["gamma"] ** t \
-                                         * (rewards[n] + math.log(1 - info[n][self.cost_info_str] + self.eps))
+                                         * (rewards[n] + math.log(1 - plan_cost[n] + self.eps))
                     done = True
                     for multi_thread_done in multi_thread_dones:
                         if not multi_thread_done:  # we will wait for all games dones

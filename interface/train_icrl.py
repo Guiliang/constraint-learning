@@ -282,6 +282,8 @@ def train(config):
     elif 'VICRL' == config['group']:
         cn_parameters.update({'di_prior': config['CN']['di_prior'], })
         cn_parameters.update({'mode': config['CN']['mode'], })
+        if cn_parameters['mode'] == 'CVaR' or cn_parameters['mode'] == 'VaR':
+            cn_parameters['confidence'] = config['CN']['confidence']
         constraint_net = VariationalConstraintNet(**cn_parameters)
     elif 'SEVICRL' == config['group']:
         cn_parameters.update({'di_prior': config['CN']['di_prior'],

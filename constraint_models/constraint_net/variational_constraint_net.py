@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats
 import torch
 import torch as th
 
@@ -47,6 +48,7 @@ class VariationalConstraintNet(ConstraintNet):
             device: str = "cpu",
             di_prior: list = [1, 1],
             mode: str = 'sample',
+            confidence: float = 0.5,
             log_file=None,
     ):
         assert 'VICRL' in task
@@ -80,6 +82,7 @@ class VariationalConstraintNet(ConstraintNet):
                          )
         self.dir_prior = di_prior
         self.mode = mode
+        self.confidence = confidence
         assert 'VICRL' in self.task
         # self._build()
 
@@ -104,7 +107,7 @@ class VariationalConstraintNet(ConstraintNet):
         pred = torch.distributions.Beta(alpha, beta).rsample()
         return pred.unsqueeze(-1)
 
-    def cost_function(self, obs: np.ndarray, acs: np.ndarray, force_mode: str = None) -> np.ndarray:
+    def cost_function(self, obs: np.ndarray, acs: np.ndarray, force_mode: str = None, confidence: float = 0.5) -> np.ndarray:
         assert obs.shape[-1] == self.obs_dim, ""
         if not self.is_discrete:
             assert acs.shape[-1] == self.acs_dim, ""
@@ -116,19 +119,42 @@ class VariationalConstraintNet(ConstraintNet):
         with th.no_grad():
             if mode == 'sample':
                 out = self.__call__(x)
+                cost = 1 - out.detach().cpu().numpy()
+                cost = cost.squeeze(axis=-1)
             elif mode == 'mean':
-                alpha_beta = self.network(x)
-                alpha = alpha_beta[:, 0]
-                beta = alpha_beta[:, 1]
-                out = alpha / (alpha + beta)  # the mean of beta distribution
+                a_b = self.network(x)
+                a = a_b[:, 0]
+                b = a_b[:, 1]
+                out = a / (a + b)  # the mean of beta distribution
                 out = out.unsqueeze(-1)
+                cost = 1 - out.detach().cpu().numpy()
+                cost = cost.squeeze(axis=-1)
+            elif mode == 'VaR':
+                a_b = self.network(x).detach().cpu().numpy()
+                a = a_b[:, 0]
+                b = a_b[:, 1]
+                var_values = scipy.stats.beta.ppf(q=(1-confidence), a=a, b=b)
+                cost = 1 - var_values
+            elif mode == 'CVaR':
+                a_b = self.network(x).detach().cpu().numpy()
+                a = a_b[:, 0]
+                b = a_b[:, 1]
+                var_values = scipy.stats.beta.ppf(q=(1-confidence), a=a, b=b)
+                cvar_values = []
+                for i in range(a_b.shape[0]):
+                    samples = scipy.stats.beta.rvs(a=a[i], b=b[i], size=[1000])
+                    tmp = samples.mean()
+                    cvar_value = samples[samples < var_values[i]].mean()
+                    cvar_values.append(cvar_value)
+                cost = 1 - np.asarray(cvar_values)
             elif mode == 'hard':
                 out = self.__call__(x)
                 out = torch.round(out)
+                cost = 1 - out.detach().cpu().numpy()
+                cost = cost.squeeze(axis=-1)
             else:
                 raise ValueError("Unknown cost mode {0}".format(mode))
-        cost = 1 - out.detach().cpu().numpy()
-        return cost.squeeze(axis=-1)
+        return cost
 
     def kl_regularizer_loss(self, batch_size, alpha, beta):
         # prior = (torch.ones((batch_size, 2), dtype=torch.float32) * self.dir_prior).to(self.device)

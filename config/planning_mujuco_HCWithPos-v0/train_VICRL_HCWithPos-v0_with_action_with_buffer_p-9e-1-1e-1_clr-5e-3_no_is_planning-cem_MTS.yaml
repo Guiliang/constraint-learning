@@ -88,7 +88,7 @@ CN:
   backward_iters: 10
   anneal_clr_by_factor: 0.9
   di_prior: [0.9, 0.1]
-  mode: 'sample'
+  mode: 'mean'
 
 Plan:
   planner: 'CEM'
@@ -96,3 +96,5 @@ Plan:
   candidates: 20
   top_candidates: 10
   iterations: 50
+  cost_mode: 'CVaR'
+  confidence: 0.6

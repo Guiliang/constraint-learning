@@ -608,6 +608,15 @@ def get_plot_results_dir(env_id):
             "VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20": [
                 '../save_model/VICRL-highD-velocity-distance/train_VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20-multi_env-Aug-27-2022-08:05-seed_123/',
             ],
+            "VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_clay-64-64_no-buffer_vm-40_dm-20": [
+                '../save_model/VICRL-highD-velocity-distance/train_VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_clay-64-64_no-buffer_vm-40_dm-20-multi_env-Sep-15-2022-12:48-seed_123/',
+            ],
+            "VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_clay-64-64_no-buffer_vm-40_dm-20": [
+                '../save_model/VICRL-highD-velocity-distance/train_VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_clay-64-64_no-buffer_vm-40_dm-20-multi_env-Sep-15-2022-12:49-seed_321/',
+            ],
+            "VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_clay-64-64-64_no-buffer_vm-40_dm-20": [
+                '../save_model/VICRL-highD-velocity-distance/train_VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_clay-64-64-64_no-buffer_vm-40_dm-20-multi_env-Sep-15-2022-12:49-seed_321/',
+            ],
         }
     elif env_id == 'HCWithPos-v0':
         gap = 1

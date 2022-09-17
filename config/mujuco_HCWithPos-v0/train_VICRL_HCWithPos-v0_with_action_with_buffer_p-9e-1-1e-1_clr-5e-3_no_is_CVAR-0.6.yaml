@@ -1,4 +1,4 @@
-task: 'VICRL-Planning-HC'
+task: 'VICRL-HC'
 group: 'VICRL'
 device: 'cuda'
 verbose: 1
@@ -26,9 +26,8 @@ running:
   sample_rollouts: 10
   store_sample_rollouts: 500
   expert_path: '../data/expert_data/BlockedHalf-cheetah/'
-  use_buffer: False
+  use_buffer: True
   store_by_game: False
-  planning: True
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'
@@ -87,11 +86,6 @@ CN:
   backward_iters: 10
   anneal_clr_by_factor: 0.9
   di_prior: [0.9, 0.1]
-  mode: 'mean'
+  mode: 'CVaR'
+  confidence: 0.6
 
-Plan:
-  planner: 'CEM'
-  horizon: 1000
-  candidates: 20
-  top_candidates: 10
-  iterations: 50
