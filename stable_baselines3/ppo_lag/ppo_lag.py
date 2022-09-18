@@ -192,7 +192,6 @@ class PPOLagrangian(OnPolicyWithCostAlgorithm):
         entropy_losses, all_kl_divs = [], []
         pg_losses, reward_value_losses, cost_value_losses = [], [], []
         clip_fractions = []
-
         # Train for gradient_steps epochs
         early_stop_epoch = self.n_epochs
         for epoch in range(self.n_epochs):

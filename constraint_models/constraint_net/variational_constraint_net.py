@@ -133,13 +133,16 @@ class VariationalConstraintNet(ConstraintNet):
                 a_b = self.network(x).detach().cpu().numpy()
                 a = a_b[:, 0]
                 b = a_b[:, 1]
-                var_values = scipy.stats.beta.ppf(q=(1-confidence), a=a, b=b)
+                tmp1 = scipy.stats.beta.ppf(q=(1-0.1), a=a, b=b)
+                tmp2 = scipy.stats.beta.ppf(q=(1-0.5), a=a, b=b)
+                tmp3 = scipy.stats.beta.ppf(q=(1-0.9), a=a, b=b)
+                var_values = scipy.stats.beta.ppf(q=(1 - self.confidence), a=a, b=b)
                 cost = 1 - var_values
             elif mode == 'CVaR':
                 a_b = self.network(x).detach().cpu().numpy()
                 a = a_b[:, 0]
                 b = a_b[:, 1]
-                var_values = scipy.stats.beta.ppf(q=(1-confidence), a=a, b=b)
+                var_values = scipy.stats.beta.ppf(q=(1-self.confidence), a=a, b=b)
                 cvar_values = []
                 for i in range(a_b.shape[0]):
                     samples = scipy.stats.beta.rvs(a=a[i], b=b[i], size=[1000])
@@ -147,6 +150,10 @@ class VariationalConstraintNet(ConstraintNet):
                     cvar_value = samples[samples < var_values[i]].mean()
                     cvar_values.append(cvar_value)
                 cost = 1 - np.asarray(cvar_values)
+
+                tmp_out = self.__call__(x)
+                tmp_cost = 1 - tmp_out.detach().cpu().numpy()
+                tmp_cost = tmp_cost.squeeze(axis=-1)
             elif mode == 'hard':
                 out = self.__call__(x)
                 out = torch.round(out)
