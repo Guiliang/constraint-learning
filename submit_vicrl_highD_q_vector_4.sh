@@ -1,3 +1,4 @@
+
 #!/bin/bash
 #SBATCH -N 1
 #SBATCH --gres=gpu:1
@@ -6,10 +7,10 @@
 #SBATCH --time=36:00:00
 #SBATCH --mem=200GB
 #SBATCH --job-name=VICRL
-task_name="train-highD-VICRL_2"
+task_name="train-highD-VICRL_4"
 launch_time=$(date +"%H:%M-%m-%d-%y")
 log_dir="log-${task_name}-${launch_time}.out"
 source /h/galen/miniconda3/bin/activate
 conda activate cn-py37
 cd ./interface/
-python train_icrl.py ../config/highD_velocity_distance_constraint/train_VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_clay-64-64-64_no-buffer_vm-40_dm-20.yaml -s 666 -n 5 -l "$log_dir"
+python train_icrl.py ../config/highD_velocity_constraint/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4-plr-5e-3_no-buffer_vm-40.yaml -s 123 -n 5 -l "$log_dir"
