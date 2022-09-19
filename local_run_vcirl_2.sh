@@ -7,5 +7,5 @@ export MUJOCO_PY_MUJOCO_PATH=/scratch1/PycharmProjects/constraint-learning-bench
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch1/PycharmProjects/constraint-learning-benchmark/.mujoco/mujoco210/bin:/usr/lib/nvidia
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 cd ./interface/
-nohup python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-7e-1.yaml -n 5 -s 123 -l "$log_dir" > nohup.out 2>&1 &
+nohup python train_icrl.py ../config/mujoco_AntWall-v0/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-5e-1.yaml -n 5 -s 123 -l "$log_dir" > nohup_2.out 2>&1 &
 cd ../
