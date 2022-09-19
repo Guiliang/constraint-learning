@@ -206,7 +206,7 @@ def train(args):
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
             evaluate_icrl_policy(model=ppo_agent, env=eval_env, record_info_names=config['env']["record_info_names"],
                                  n_eval_episodes=config['running']['n_eval_episodes'], deterministic=False,
-                                 cost_info_str=the)
+                                 cost_info_str=config['env']['cost_info_str'])
 
         # Save
         if itr % config['running']['save_every'] == 0:
