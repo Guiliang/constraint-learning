@@ -120,8 +120,8 @@ def evaluate():
     if_testing_env = False
 
     # load_model_name = 'train_ppo_highD_no_collision-multi_env-Mar-10-2022-00:18'
-    load_model_name = 'train_ppo_lag_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20-multi_env-Aug-14-2022-13:27-seed_123'
-    task_name = 'PPO-Lag-highD-velocity-distance'
+    load_model_name = 'train_ppo_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Sep-19-2022-05:46-seed_123'
+    task_name = 'PPO-Lag-highD-velocity'
     iteration_msg = 'best'
 
     model_loading_path = os.path.join('../save_model', task_name, load_model_name)
@@ -193,7 +193,7 @@ def evaluate():
         else:
             benchmark_id_all.append(benchmark_id)
         print('senario id', benchmark_id, file=log_file, flush=True)
-        env.render()
+        # env.render()
         if not os.path.exists(os.path.join(viz_path, benchmark_id)):
             os.mkdir(os.path.join(viz_path, benchmark_id))
         game_info_file = open(os.path.join(viz_path, benchmark_id, 'info_record.txt'), 'w')
@@ -211,13 +211,13 @@ def evaluate():
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
             original_obs_all.append(original_obs)
             action_all.append(action)
-            save_game_record(info[0], game_info_file, type='')
-            env.render()
+            # save_game_record(info[0], game_info_file, type='')
+            # env.render()
             obs = new_obs
             running_step += 1
         game_info_file.close()
 
-        pngs2gif(png_dir=os.path.join(viz_path, benchmark_id))
+        # pngs2gif(png_dir=os.path.join(viz_path, benchmark_id))
 
         # log collision rate, off-road rate, and goal-reaching rate
         info = info[0]
