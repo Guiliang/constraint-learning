@@ -3,7 +3,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH -p gpu
 #SBATCH --cpus-per-task=8
-#SBATCH --time=36:00:00
+#SBATCH --time=24:00:00
 #SBATCH --mem=200GB
 #SBATCH --job-name=VICRL
 task_name="train-highD-VICRL_3"
