@@ -80,6 +80,18 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-29-2022-04:49-seed_666/',
 
             ],
+            "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_no-buffer_vm-40": [
+                '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_no-buffer_vm-40-multi_env-Sep-18-2022-12:15-seed_123/',
+            ],
+            "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": [
+                '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40-multi_env-Sep-18-2022-12:15-seed_123/',
+            ],
+            "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4-plr-5e-2_no-buffer_vm-40": [
+                '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4-plr-5e-2_no-buffer_vm-40-multi_env-Sep-18-2022-12:15-seed_123/',
+            ],
+            "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4-plr-5e-3_no-buffer_vm-40": [
+                '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4-plr-5e-3_no-buffer_vm-40-multi_env-Sep-18-2022-12:16-seed_123/',
+            ],
             "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": [
                 '../save_model/VICRL-highD-velocity/train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-1e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-15-2022-04:42-seed_123/',
             ],
@@ -1082,6 +1094,15 @@ def get_plot_results_dir(env_id):
                 '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-27-2022-22:42-seed_456/',
                 '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-28-2022-03:58-seed_654/',
                 # '../save_model/Binary-AntWall/train_Binary_AntWall-v0_with-action_nit-50-multi_env-Apr-28-2022-09:09-seed_666/',
+            ],
+            'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-1e-1': [
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-1e-1-multi_env-Sep-19-2022-00:26-seed_123/',
+            ],
+            'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-5e-1': [
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-5e-1-multi_env-Sep-19-2022-11:47-seed_123/',
+            ],
+            'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-7e-1': [
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-7e-1-multi_env-Sep-19-2022-17:51-seed_123/',
             ],
         }
     elif env_id == 'InvertedPendulumWall-v0':
