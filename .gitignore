@@ -157,7 +157,7 @@ venv.bak/
 save_model/*
 evaluate_model/*
 commonroad_environment/*
-bak-environment/*
+bak_commonroad_environment/*
 data/highD/*
 data/inD/*
 data/exiD/*
