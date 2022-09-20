@@ -93,7 +93,7 @@ def plot_shadow_curve(draw_keys,
     if ylim is not None:
         plt.ylim(ylim[0], ylim[1])
     if legend_size is not None:
-        plt.legend(fontsize=legend_size, loc='lower left')  # upper right, lower left
+        plt.legend(fontsize=legend_size, loc='upper left')  # upper right, lower left
     if title is not None:
         plt.title(title, fontsize=title_size)
     if xlabel is not None:

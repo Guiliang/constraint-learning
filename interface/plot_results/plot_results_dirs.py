@@ -1098,13 +1098,28 @@ def get_plot_results_dir(env_id):
             ],
             'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-1e-1': [
                 '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-1e-1-multi_env-Sep-19-2022-00:26-seed_123/',
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-1e-1-multi_env-Sep-19-2022-19:55-seed_123/',
             ],
             'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-5e-1': [
                 '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-5e-1-multi_env-Sep-19-2022-11:47-seed_123/',
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-5e-1-multi_env-Sep-19-2022-12:35-seed_321/',
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-5e-1-multi_env-Sep-19-2022-19:16-seed_456/',
+                # '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-5e-1-multi_env-Sep-20-2022-02:03-seed_654/',
+
             ],
             'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-7e-1': [
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-7e-1-multi_env-Sep-19-2022-06:12-seed_123/',
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-7e-1-multi_env-Sep-19-2022-12:35-seed_123/',
                 '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-7e-1-multi_env-Sep-19-2022-17:51-seed_123/',
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-7e-1-multi_env-Sep-19-2022-19:35-seed_321/',
+                # '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-7e-1-multi_env-Sep-20-2022-02:13-seed_456/',
             ],
+            'VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-9e-1': [
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-9e-1-multi_env-Sep-19-2022-06:12-seed_123/',
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-9e-1-multi_env-Sep-19-2022-12:35-seed_321/',
+                '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-9e-1-multi_env-Sep-19-2022-19:25-seed_456/',
+                # '../save_model/VICRL-AntWall/train_VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-9e-1-multi_env-Sep-20-2022-02:10-seed_654/',
+            ]
         }
     elif env_id == 'InvertedPendulumWall-v0':
         max_episodes = 80000
