@@ -109,36 +109,36 @@ def generate_plots():
     #     "PPO_lag_Pos": 'PPO_lag',
     # }
 
-    env_id = 'AntWall-V0'
-    max_episodes = 15000
-    average_num = 300
-    title = 'Blocked Ant'
-    max_reward = float('inf')
-    min_reward = 0
-    # plot_key = ['reward', 'constraint', 'reward_valid', 'reward_nc']
-    plot_key = ['reward', 'constraint', 'reward_valid']
-    # label_key = ['reward', 'Constraint Violation Rate', 'reward_valid', 'reward_nc']
-    label_key = [None, None, None, None]
-    img_size = (7, 5.9)
-    save = True
-    plot_y_lim_dict = {'reward': None,
-                       'reward_nc': None,
-                       'constraint': None,
-                       'reward_valid': None}
-    constraint_keys = ['constraint']
-    method_names_labels_dict = {
-        "GAIL_AntWall-v0_with-action": 'GACL',  # 'GAIL',
-        "Binary_AntWall-v0_with-action_nit-50": 'BC2L',  # 'Binary',
-        "ICRL_AntWall_with-action_nit-50": 'MECL',  # 'ICRL',
-        "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1": "VCIRL-SR",
-        # "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-1e-1": "VCIRL2",
-        # "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-5e-1": "VCIRL3",
-        "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-7e-1": "VCIRL-VaR",
-        # "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-9e-1": "VCIRL5",
-        # VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2
-        # "PPO-AntWall": 'PPO',
-        # "PPO-Lag-AntWall": 'PPO_lag',
-    }
+    # env_id = 'AntWall-V0'
+    # max_episodes = 15000
+    # average_num = 300
+    # title = 'Blocked Ant'
+    # max_reward = float('inf')
+    # min_reward = 0
+    # # plot_key = ['reward', 'constraint', 'reward_valid', 'reward_nc']
+    # plot_key = ['reward', 'constraint', 'reward_valid']
+    # # label_key = ['reward', 'Constraint Violation Rate', 'reward_valid', 'reward_nc']
+    # label_key = [None, None, None, None]
+    # img_size = (7, 5.9)
+    # save = True
+    # plot_y_lim_dict = {'reward': None,
+    #                    'reward_nc': None,
+    #                    'constraint': None,
+    #                    'reward_valid': None}
+    # constraint_keys = ['constraint']
+    # method_names_labels_dict = {
+    #     "GAIL_AntWall-v0_with-action": 'GACL',  # 'GAIL',
+    #     "Binary_AntWall-v0_with-action_nit-50": 'BC2L',  # 'Binary',
+    #     "ICRL_AntWall_with-action_nit-50": 'MECL',  # 'ICRL',
+    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1": "VCIRL-SR",
+    #     # "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-1e-1": "VCIRL2",
+    #     # "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-5e-1": "VCIRL3",
+    #     "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-7e-1": "VCIRL-VaR",
+    #     # "VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1_VaR-9e-1": "VCIRL5",
+    #     # VICRL_AntWall-v0_with-action_no_is_nit-50_p-9-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-1-1e-1, VICRL_AntWall-v0_with-action_no_is_nit-50_p-9e-2-1e-2
+    #     # "PPO-AntWall": 'PPO',
+    #     # "PPO-Lag-AntWall": 'PPO_lag',
+    # }
     # ================= rebuttal ====================
     # max_episodes = 20000
     # img_size = (6.7, 5.6)
@@ -153,36 +153,41 @@ def generate_plots():
     #     "PPO-Lag-AntWall": 'PPO_lag',
     # }
 
-    # env_id = 'InvertedPendulumWall-v0'
-    # max_episodes = 80000
-    # average_num = 2000
-    # title = 'Biased Pendulumn'
-    # max_reward = float('inf')
-    # min_reward = -float('inf')
-    # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
-    # label_key = [None, None, None, None]
-    # img_size = None
-    # plot_y_lim_dict = {'reward': None,
-    #                    'reward_nc': None,
-    #                    'constraint': None,
-    #                    'reward_valid': None}
-    # constraint_keys = ['constraint']
-    # method_names_labels_dict = {
-    #     "GAIL_PendulumWall": 'GACL',  # 'GAIL',
-    #     "Binary_PendulumWall": 'BC2L',  # 'Binary',
-    #     "ICRL_Pendulum": 'MECL',  # 'ICRL',
-    #     "VICRL_PendulumWall": 'VCIRL',
-    #     # "PPO_Pendulum": 'PPO',
-    #     "PPO_lag_Pendulum": 'PPO_lag',
-    # }
+    env_id = 'InvertedPendulumWall-v0'
+    max_episodes = 80000
+    average_num = 2000
+    title = 'Biased Pendulumn'
+    max_reward = float('inf')
+    min_reward = 0
+    plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
+    label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    label_key = [None, None, None, None]
+    img_size = None
+    save = False
+    plot_y_lim_dict = {'reward': None,
+                       'reward_nc': None,
+                       'constraint': None,
+                       'reward_valid': None}
+    constraint_keys = ['constraint']
+    method_names_labels_dict = {
+        # "GAIL_PendulumWall": 'GACL',  # 'GAIL',
+        # "Binary_PendulumWall": 'BC2L',  # 'Binary',
+        # "ICRL_Pendulum": 'MECL',  # 'ICRL',
+        "VICRL_PendulumWall": 'VCIRL-SR',
+        'VICRL_PendulumWall_VaR-1e-1': 'VCIRL2',
+        'VICRL_PendulumWall_VaR-5e-1': 'VCIRL3',
+        'VICRL_PendulumWall_VaR-7e-1': 'VCIRL4',
+        'VICRL_PendulumWall_VaR-9e-1': 'VCIRL5',
+        # "PPO_Pendulum": 'PPO',
+        # "PPO_lag_Pendulum": 'PPO_lag',
+    }
 
     # env_id = 'WalkerWithPos-v0'
     # max_episodes = 40000
     # average_num = 2000
     # title = 'Blocked Walker'
     # max_reward = float('inf')
-    # min_reward = -float('inf')
+    # min_reward = 0
     # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
     # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
     # label_key = [None, None, None, None]
@@ -210,7 +215,7 @@ def generate_plots():
     # average_num = 200
     # title = 'Blocked Swimmer'
     # max_reward = float('inf')
-    # min_reward = -float('inf')
+    # min_reward = 0
     # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
     # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
     # label_key = [None, None, None, None]
