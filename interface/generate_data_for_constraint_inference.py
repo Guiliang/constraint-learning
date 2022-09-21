@@ -15,7 +15,6 @@ from common.cns_env import make_env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 # from utils.model_utils import get_net_arch
 # from stable_baselines3 import PPO
-from commonroad_environment.commonroad_rl.gym_commonroad.commonroad_env import CommonroadEnv
 from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model
 from utils.env_utils import get_all_env_ids, get_benchmark_ids, is_mujoco, is_commonroad
 
