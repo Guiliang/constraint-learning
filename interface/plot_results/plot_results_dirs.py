@@ -1284,6 +1284,33 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64-multi_env-May-18-2022-23:31-seed_654/',
                 '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64-multi_env-May-19-2022-05:32-seed_666/',
             ],
+            'VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64_VaR-1e-1': [
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-1e-1-multi_env-Sep-21-2022-11:21-seed_123/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-1e-1-multi_env-Sep-21-2022-20:35-seed_321/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-1e-1-multi_env-Sep-22-2022-02:56-seed_456/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-1e-1-multi_env-Sep-22-2022-03:50-seed_654/',
+            ],
+            'VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1': [
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1-multi_env-Sep-21-2022-11:24-seed_123/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1-multi_env-Sep-21-2022-18:34-seed_321/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1-multi_env-Sep-22-2022-02:14-seed_456/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1-multi_env-Sep-22-2022-03:15-seed_654/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1-multi_env-Sep-22-2022-04:16-seed_666/',
+            ],
+            'VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64_VaR-7e-1': [
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-7e-1-multi_env-Sep-21-2022-11:24-seed_123/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-7e-1-multi_env-Sep-21-2022-18:56-seed_321/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-7e-1-multi_env-Sep-22-2022-03:12-seed_456/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-7e-1-multi_env-Sep-22-2022-03:28-seed_654/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-7e-1-multi_env-Sep-22-2022-04:34-seed_666/',
+            ],
+            'VICRL_Walker-v0_p-9e-3-1e-3_cl-64-64_VaR-9e-1': [
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-9e-1-multi_env-Sep-21-2022-11:24-seed_123/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-9e-1-multi_env-Sep-21-2022-18:58-seed_321/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-9e-1-multi_env-Sep-22-2022-02:22-seed_456/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-9e-1-multi_env-Sep-22-2022-03:23-seed_654/',
+                '../save_model/VICRL-WalkerWithPos/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-9e-1-multi_env-Sep-22-2022-04:22-seed_666/',
+            ],
         }
     elif env_id == 'SwimmerWithPos-v0':
         max_episodes = 10000

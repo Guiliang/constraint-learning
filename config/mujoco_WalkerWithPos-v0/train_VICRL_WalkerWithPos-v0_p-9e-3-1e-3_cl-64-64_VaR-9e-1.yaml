@@ -19,9 +19,9 @@ env:
   visualize_info_ranges: [ [ -10, 10 ] ]
 
 running:
-  n_iters: 10
-  n_eval_episodes: 1
-  save_every: 1
+  n_iters: 20
+  n_eval_episodes: 2
+  save_every: 2
   expert_rollouts: 50
   sample_rollouts: 50
   store_sample_rollouts: null
