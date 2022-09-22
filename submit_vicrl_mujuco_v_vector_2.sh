@@ -19,9 +19,9 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface
-python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1.yaml -n 5 -s 123 -l "$log_dir"
-python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1.yaml -n 5 -s 321 -l "$log_dir"
-python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1.yaml -n 5 -s 456 -l "$log_dir"
-python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1.yaml -n 5 -s 654 -l "$log_dir"
-python train_icrl.py ../config/mujoco_InvertedPendulumWall-v0/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1.yaml -n 5 -s 666 -l "$log_dir"
+python train_icrl.py ../config/mujoco_WalkerWithPos-v0/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujoco_WalkerWithPos-v0/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1.yaml -n 5 -s 321 -l "$log_dir"
+python train_icrl.py ../config/mujoco_WalkerWithPos-v0/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1.yaml -n 5 -s 456 -l "$log_dir"
+python train_icrl.py ../config/mujoco_WalkerWithPos-v0/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1.yaml -n 5 -s 654 -l "$log_dir"
+python train_icrl.py ../config/mujoco_WalkerWithPos-v0/train_VICRL_WalkerWithPos-v0_p-9e-3-1e-3_cl-64-64_VaR-5e-1.yaml -n 5 -s 666 -l "$log_dir"
 echo shell finish running
