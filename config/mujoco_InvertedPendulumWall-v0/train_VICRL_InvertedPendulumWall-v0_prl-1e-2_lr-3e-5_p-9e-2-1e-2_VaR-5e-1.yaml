@@ -85,4 +85,4 @@ CN:
   anneal_clr_by_factor: 0.9
   di_prior: [0.09, 0.01]
   mode: 'VaR'
-  confidence: 0.1
+  confidence: 0.5
