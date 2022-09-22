@@ -1182,22 +1182,16 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2-multi_env-May-16-2022-03:23-seed_666/',
             ],
             'VICRL_PendulumWall_VaR-9e-1': [
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-20-2022-06:21-seed_123/',
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-20-2022-11:57-seed_321/',
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-20-2022-17:56-seed_456/',
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-21-2022-01:51-seed_654/',
-                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-21-2022-09:53-seed_666/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-22-2022-01:10-seed_123/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-22-2022-07:10-seed_321/',
             ],
             'VICRL_PendulumWall_VaR-7e-1': [
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-7e-1-multi_env-Sep-20-2022-06:21-seed_321/',
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-20-2022-20:22-seed_456/',
-                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-7e-1-multi_env-Sep-21-2022-04:19-seed_666/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-7e-1-multi_env-Sep-22-2022-01:10-seed_123/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-7e-1-multi_env-Sep-22-2022-08:36-seed_321/',
             ],
             'VICRL_PendulumWall_VaR-5e-1': [
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-20-2022-08:52-seed_123/',
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-20-2022-14:46-seed_321/',
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-20-2022-20:22-seed_456/',
-                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-21-2022-12:42-seed_666/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-22-2022-04:10-seed_123/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-22-2022-10:05-seed_321/',
             ],
             'VICRL_PendulumWall_VaR-1e-1': [
                 # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-13:46-seed_123/',
