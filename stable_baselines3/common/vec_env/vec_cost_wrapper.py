@@ -78,14 +78,6 @@ class VecCostWrapper(VecEnvWrapper):
         self.previous_obs = obs
         return obs
 
-    def reset_with_info_cost(self, infos):
-        """
-        Reset all environments
-        """
-        obs, infos = self.venv.reset_with_info(infos)
-        self.previous_obs = obs
-        return obs, infos
-
     @staticmethod
     def load(load_path: str, venv: VecEnv):
         """
@@ -109,7 +101,5 @@ class VecCostWrapper(VecEnvWrapper):
         """
         with open(save_path, "wb") as file_handler:
             pickle.dump(self, file_handler)
-
-
 
 

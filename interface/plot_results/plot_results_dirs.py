@@ -1184,20 +1184,27 @@ def get_plot_results_dir(env_id):
             'VICRL_PendulumWall_VaR-9e-1': [
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-22-2022-01:10-seed_123/',
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-22-2022-07:10-seed_321/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-22-2022-16:18-seed_456/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-9e-1-multi_env-Sep-22-2022-22:48-seed_654/',
             ],
             'VICRL_PendulumWall_VaR-7e-1': [
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-7e-1-multi_env-Sep-22-2022-01:10-seed_123/',
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-7e-1-multi_env-Sep-22-2022-08:36-seed_321/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-7e-1-multi_env-Sep-22-2022-19:10-seed_456/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-7e-1-multi_env-Sep-23-2022-02:30-seed_654/',
+
             ],
             'VICRL_PendulumWall_VaR-5e-1': [
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-22-2022-04:10-seed_123/',
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-22-2022-10:05-seed_321/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-22-2022-15:29-seed_456/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-23-2022-00:02-seed_654/',
             ],
             'VICRL_PendulumWall_VaR-1e-1': [
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-13:46-seed_123/',
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-14:54-seed_321/',
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-19:32-seed_456/',
-                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-20-2022-10:12-seed_666/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-13:46-seed_123/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-14:54-seed_321/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-19:32-seed_456/',
+                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-20-2022-10:12-seed_666/',
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-13:48-seed_666/',
             ],
             'Binary_PendulumWall': [
@@ -1442,6 +1449,31 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-May-31-2022-04:19-seed_456/',
                 '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-May-31-2022-06:40-seed_654/',
                 '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5-multi_env-May-31-2022-09:03-seed_666/',
+            ],
+            'VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-1e-1': [
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-1e-1-multi_env-Sep-22-2022-11:57-seed_321/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-1e-1-multi_env-Sep-22-2022-15:41-seed_456/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-1e-1-multi_env-Sep-22-2022-19:17-seed_654/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-1e-1-multi_env-Sep-22-2022-23:04-seed_666/',
+            ],
+            'VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-5e-1': [
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-5e-1-multi_env-Sep-22-2022-11:57-seed_321/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-5e-1-multi_env-Sep-22-2022-15:16-seed_456/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-5e-1-multi_env-Sep-22-2022-18:38-seed_654/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-5e-1-multi_env-Sep-22-2022-22:27-seed_666/',
+            ],
+            'VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-7e-1': [
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-7e-1-multi_env-Sep-22-2022-11:57-seed_123/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-7e-1-multi_env-Sep-22-2022-15:19-seed_321/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-7e-1-multi_env-Sep-22-2022-18:35-seed_456/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-7e-1-multi_env-Sep-22-2022-22:04-seed_654/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-7e-1-multi_env-Sep-23-2022-01:39-seed_666/',
+            ],
+            'VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-9e-1': [
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-9e-1-multi_env-Sep-22-2022-11:57-seed_321/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-9e-1-multi_env-Sep-22-2022-15:19-seed_456/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-9e-1-multi_env-Sep-22-2022-18:32-seed_654/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-9e-1-multi_env-Sep-22-2022-22:03-seed_666/',
             ],
             'VICRL_SwmWithPos-v0_update_b-5e-1_piv-10': [
                 '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_piv-10-multi_env-May-31-2022-05:01-seed_123/',

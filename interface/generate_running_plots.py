@@ -153,34 +153,34 @@ def generate_plots():
     #     "PPO-Lag-AntWall": 'PPO_lag',
     # }
 
-    env_id = 'InvertedPendulumWall-v0'
-    max_episodes = 80000
-    average_num = 2000
-    title = 'Biased Pendulumn'
-    max_reward = float('inf')
-    min_reward = 0
-    plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-    label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
-    label_key = [None, None, None, None]
-    img_size = None
-    save = False
-    plot_y_lim_dict = {'reward': None,
-                       'reward_nc': None,
-                       'constraint': None,
-                       'reward_valid': None}
-    constraint_keys = ['constraint']
-    method_names_labels_dict = {
-        # "GAIL_PendulumWall": 'GACL',  # 'GAIL',
-        # "Binary_PendulumWall": 'BC2L',  # 'Binary',
-        # "ICRL_Pendulum": 'MECL',  # 'ICRL',
-        # "VICRL_PendulumWall": 'VCIRL-SR',
-        'VICRL_PendulumWall_VaR-1e-1': 'VCIRL2',
-        'VICRL_PendulumWall_VaR-5e-1': 'VCIRL3',
-        'VICRL_PendulumWall_VaR-7e-1': 'VCIRL4',
-        'VICRL_PendulumWall_VaR-9e-1': 'VCIRL5',
-        # "PPO_Pendulum": 'PPO',
-        # "PPO_lag_Pendulum": 'PPO_lag',
-    }
+    # env_id = 'InvertedPendulumWall-v0'
+    # max_episodes = 80000
+    # average_num = 2000
+    # title = 'Biased Pendulumn'
+    # max_reward = float('inf')
+    # min_reward = 0
+    # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
+    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    # label_key = [None, None, None, None]
+    # img_size = None
+    # save = False
+    # plot_y_lim_dict = {'reward': None,
+    #                    'reward_nc': None,
+    #                    'constraint': None,
+    #                    'reward_valid': None}
+    # constraint_keys = ['constraint']
+    # method_names_labels_dict = {
+    #     "GAIL_PendulumWall": 'GACL',  # 'GAIL',
+    #     "Binary_PendulumWall": 'BC2L',  # 'Binary',
+    #     "ICRL_Pendulum": 'MECL',  # 'ICRL',
+    #     "VICRL_PendulumWall": 'VCIRL-SR',
+    #     'VICRL_PendulumWall_VaR-1e-1': 'VCIRL-VaR',
+    #     # 'VICRL_PendulumWall_VaR-5e-1': 'VCIRL3',
+    #     # 'VICRL_PendulumWall_VaR-7e-1': 'VCIRL4',
+    #     # 'VICRL_PendulumWall_VaR-9e-1': 'VCIRL5',
+    #     # "PPO_Pendulum": 'PPO',
+    #     # "PPO_lag_Pendulum": 'PPO_lag',
+    # }
 
     # env_id = 'WalkerWithPos-v0'
     # max_episodes = 15000
@@ -215,29 +215,38 @@ def generate_plots():
     #     # "PPO_lag_Walker": 'PPO_lag',
     # }
 
-    # env_id = 'SwimmerWithPos-v0'
-    # max_episodes = 10000
-    # average_num = 200
-    # title = 'Blocked Swimmer'
-    # max_reward = float('inf')
-    # min_reward = 0
-    # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
-    # label_key = [None, None, None, None]
-    # img_size = None
-    # plot_y_lim_dict = {'reward': None,
-    #                    'reward_nc': None,
-    #                    'constraint': None,
-    #                    'reward_valid': None}
-    # constraint_keys = ['constraint']
-    # method_names_labels_dict = {
-    #     "GAIL_SwmWithPos-v0": 'GACL',
-    #     "Binary_SwmWithPos-v0_update_b-5e-1": 'BC2L',
-    #     "ICRL_SwmWithPos-v0_update_b-5e-1": 'MECL',
-    #     "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VCIRL',
-    #     # "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
-    #     "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
-    # }
+    env_id = 'SwimmerWithPos-v0'
+    max_episodes = 10000
+    average_num = 200
+    title = 'Blocked Swimmer'
+    max_reward = float('inf')
+    min_reward = 0
+    plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
+    label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    label_key = [None, None, None, None]
+    img_size = None
+    save = False
+    plot_y_lim_dict = {'reward': None,
+                       'reward_nc': None,
+                       'constraint': None,
+                       'reward_valid': None}
+    constraint_keys = ['constraint']
+    method_names_labels_dict = {
+        # "GAIL_SwmWithPos-v0": 'GACL',
+        # "Binary_SwmWithPos-v0_update_b-5e-1": 'BC2L',
+        # "ICRL_SwmWithPos-v0_update_b-5e-1": 'MECL',
+        "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VCIRL-SR',
+        "VICRL_SwmWithPos-v0_update_b-5e-1_piv-10": 'VCIRL2',
+        "VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10": 'VCIRL3',
+        "VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-3-1e-3": 'VCIRL4',
+        "VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-2-1e-2": 'VCIRL5',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-1e-1": 'VCIRL2',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-5e-1": 'VCIRL3',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-7e-1": 'VCIRL4',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-9e-1": 'VCIRL5',
+        # "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
+        # "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
+    }
 
     # env_id = 'highD_velocity_constraint'
     # max_episodes = 5000

@@ -25,7 +25,7 @@ running:
   expert_rollouts: 50
   sample_rollouts: 50
   store_sample_rollouts: null
-  expert_path: '../data/expert_data/no-constraint_train_ppo_lag_SwmWithPos-v0_update_b-5e-1-multi_env-May-29-2022-10:10-seed_123'
+  expert_path: '../data/expert_data/BlockedSwimmer/'
   use_buffer: False
   store_by_game: False
 

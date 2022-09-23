@@ -287,6 +287,3 @@ class VecNormalizeWithCost(VecNormalize):
         if self.training:
             self._update_cost(self.cost_ret)
         return normalized_obs
-
-    def add_reset_marker(self):
-        self.venv.set_attr('write_marker', 'True')
