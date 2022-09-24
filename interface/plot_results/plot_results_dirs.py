@@ -1499,7 +1499,35 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10-multi_env-Jun-01-2022-02:32-seed_456/',
                 '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10-multi_env-Jun-01-2022-05:00-seed_654/',
                 '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10-multi_env-Jun-01-2022-07:31-seed_666/',
-            ]
+            ],
+            "VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-1e-1": [
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-1e-1-multi_env-Sep-23-2022-13:49-seed_123/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-1e-1-multi_env-Sep-23-2022-17:15-seed_321/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-1e-1-multi_env-Sep-23-2022-20:31-seed_456/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-1e-1-multi_env-Sep-24-2022-00:02-seed_654/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-1e-1-multi_env-Sep-24-2022-03:37-seed_666/',
+            ],
+            "VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-5e-1": [
+                # '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-5e-1-multi_env-Sep-23-2022-13:49-seed_123/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-5e-1-multi_env-Sep-23-2022-13:49-seed_321/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-5e-1-multi_env-Sep-23-2022-17:20-seed_456/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-5e-1-multi_env-Sep-23-2022-20:53-seed_654/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-5e-1-multi_env-Sep-24-2022-00:18-seed_666/',
+            ],
+            "VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-7e-1": [
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-7e-1-multi_env-Sep-23-2022-13:49-seed_123/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-7e-1-multi_env-Sep-23-2022-17:33-seed_321/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-7e-1-multi_env-Sep-23-2022-21:30-seed_456/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-7e-1-multi_env-Sep-24-2022-01:16-seed_654/',
+                # '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-7e-1-multi_env-Sep-24-2022-05:12-seed_666/',
+            ],
+            "VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-9e-1": [
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-9e-1-multi_env-Sep-23-2022-13:49-seed_123/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-9e-1-multi_env-Sep-23-2022-17:12-seed_321/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-9e-1-multi_env-Sep-23-2022-20:40-seed_456/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-9e-1-multi_env-Sep-24-2022-00:08-seed_654/',
+                '../save_model/VICRL-Swm/train_VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-9e-1-multi_env-Sep-24-2022-03:45-seed_666/',
+            ],
         }
     else:
         raise ValueError("Unknown env id {0}".format(env_id))
