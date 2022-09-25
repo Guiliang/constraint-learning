@@ -829,6 +829,9 @@ class ConstraintNet(nn.Module):
     def _update_learning_rate(self, current_progress_remaining) -> None:
         self.current_progress_remaining = current_progress_remaining
         update_learning_rate(self.optimizer, self.lr_schedule(current_progress_remaining))
+        print("Learning rate is {0}.".format(self.lr_schedule(current_progress_remaining)),
+              file=self.log_file,
+              flush=True)
 
     def save(self, save_path):
         state_dict = dict(

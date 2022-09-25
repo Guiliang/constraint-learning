@@ -73,7 +73,7 @@ PPO:
 CN:
   cn_learning_rate: 0.005 # 0.01
   cn_reg_coeff: 0.5
-  cn_layers: [20]
+  cn_layers: [64, 64]
   cn_batch_size: 500
   cn_obs_select_name: null  # null means all
   cn_acs_select_name: null  # null means all
@@ -85,6 +85,6 @@ CN:
   cn_eps: 0.00001
   backward_iters: 10
   anneal_clr_by_factor: 0.9
-  di_prior: [0.09, 0.01]
+  di_prior: [0.9, 0.1]
   mode: 'sample'
 
