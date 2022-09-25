@@ -1,7 +1,8 @@
 # transfer raw data to .xml files
 cd ./environment/install
 git clone https://gitlab.lrz.de/tum-cps/dataset-converters.git
-python -m src.main highD ../../../data/highD/raw/ ../../../data/highD/xmls/ --num_time_steps_scenario 1000
+nohup python -m src.main highD ../../../data/highD/raw/ ../../../data/highD/xmls/ --num_time_steps_scenario 1000 > nohup.out 2>&1 &
+
 python -m src.main inD ../../../data/inD/raw/ ../../../data/inD/xmls/ --num_time_steps_scenario 1000
 
 # validate the .xml files
@@ -9,7 +10,7 @@ python -m commonroad_rl.tools.validate_cr -s ./commonroad_rl/tools/XML_commonRoa
 python -m commonroad_rl.tools.validate_cr -s ./commonroad_rl/tools/XML_commonRoad_XSD_2020a.xsd ../data/inD/xmls/*
 
 # compute the .pickle files
-python -m commonroad_rl.tools.pickle_scenario.xml_to_pickle -i ../data/highD/xmls -o ../data/highD/pickles
+nohup python -m commonroad_rl.tools.pickle_scenario.xml_to_pickle -i ../data/highD/xmls -o ../data/highD/pickles > nohup.out 2>&1 &
 python -m commonroad_rl.tools.pickle_scenario.xml_to_pickle -i ../data/inD/xmls -o ../data/inD/pickles
 
 # split the dataset
