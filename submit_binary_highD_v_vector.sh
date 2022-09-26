@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=36:00:00
-#SBATCH --mem=120GB
+#SBATCH --mem=150GB
 #SBATCH --job-name=Binary
 task_name="train-Mojuco-Binary_1"
 launch_time=$(date +"%H:%M-%m-%d-%y")
