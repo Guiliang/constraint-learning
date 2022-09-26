@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=24:00:00
-#SBATCH --mem=100GB
+#SBATCH --mem=150GB
 #SBATCH --job-name=ICRL
 task_name="train-HighD-ICRL"
 launch_time=$(date +"%H:%M-%m-%d-%y")
