@@ -1243,8 +1243,8 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-5e-1-multi_env-Sep-23-2022-00:02-seed_654/',
             ],
             'VICRL_PendulumWall_VaR-1e-1': [
-                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-13:46-seed_123/',
-                '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-14:54-seed_321/',
+                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-13:46-seed_123/',
+                # '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-14:54-seed_321/',
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-19:32-seed_456/',
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-20-2022-10:12-seed_666/',
                 '../save_model/VICRL-InvertedPendulumWall/train_VICRL_InvertedPendulumWall-v0_prl-1e-2_lr-3e-5_p-9e-2-1e-2_VaR-1e-1-multi_env-Sep-21-2022-13:48-seed_666/',

@@ -3,7 +3,7 @@ import imageio
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
-import seaborn as sns
+# import seaborn as sns
 from matplotlib.animation import FuncAnimation, ImageMagickWriter
 import numpy as np
 
@@ -66,7 +66,7 @@ def plot_shadow_curve(draw_keys,
                       axis_size=15,
                       title_size=15,
                       legend_size=15):
-    sns.set()
+    # sns.set()
     import matplotlib as mpl
     mpl.rcParams['xtick.labelsize'] = axis_size
     mpl.rcParams['ytick.labelsize'] = axis_size

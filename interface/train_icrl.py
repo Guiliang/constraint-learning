@@ -168,18 +168,18 @@ def train(config):
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
         os.mkdir(save_test_mother_dir)
-    eval_env, env_configs = make_eval_env(env_id=config['env']['eval_env_id'],
-                                          config_path=config['env']['config_path'],
-                                          save_dir=save_test_mother_dir,
-                                          group=config['group'],
-                                          num_threads=1,
-                                          mode='test',
-                                          use_cost=config['env']['use_cost'],
-                                          normalize_obs=not config['env']['dont_normalize_obs'],
-                                          cost_info_str=config['env']['cost_info_str'],
-                                          part_data=partial_data,
-                                          multi_env=False,
-                                          log_file=log_file)
+    # eval_env, env_configs = make_eval_env(env_id=config['env']['eval_env_id'],
+    #                                       config_path=config['env']['config_path'],
+    #                                       save_dir=save_test_mother_dir,
+    #                                       group=config['group'],
+    #                                       num_threads=1,
+    #                                       mode='test',
+    #                                       use_cost=config['env']['use_cost'],
+    #                                       normalize_obs=not config['env']['dont_normalize_obs'],
+    #                                       cost_info_str=config['env']['cost_info_str'],
+    #                                       part_data=partial_data,
+    #                                       multi_env=False,
+    #                                       log_file=log_file)
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                          process_name='Loading environment', log_file=log_file)
@@ -295,7 +295,7 @@ def train(config):
     # Pass updated cost_function to cost wrapper (train_env, eval_env, sampling_env)
     train_env.set_cost_function(constraint_net.cost_function)
     sampling_env.set_cost_function(constraint_net.cost_function)
-    eval_env.set_cost_function(constraint_net.cost_function)
+    # eval_env.set_cost_function(constraint_net.cost_function)
 
     # Init ppo agent
     ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
@@ -386,13 +386,13 @@ def train(config):
         # Pass updated cost_function to cost wrapper (train_env, eval_env, sampling_env)
         train_env.set_cost_function(constraint_net.cost_function)
         sampling_env.set_cost_function(constraint_net.cost_function)
-        eval_env.set_cost_function(constraint_net.cost_function)
+        # eval_env.set_cost_function(constraint_net.cost_function)
 
         # Evaluate:
         # reward on true environment
-        sync_envs_normalization(train_env, eval_env)
+        # sync_envs_normalization(train_env, eval_env)
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
-            evaluate_icrl_policy(nominal_agent, eval_env,
+            evaluate_icrl_policy(nominal_agent, sampling_env,
                                  record_info_names=config['env']["record_info_names"],
                                  n_eval_episodes=config['running']['n_eval_episodes'],
                                  deterministic=False,

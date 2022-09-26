@@ -154,7 +154,7 @@ def generate_plots():
     # }
 
     # env_id = 'InvertedPendulumWall-v0'
-    # max_episodes = 80000
+    # max_episodes = 70000
     # average_num = 2000
     # title = 'Biased Pendulumn'
     # max_reward = float('inf')
@@ -215,105 +215,105 @@ def generate_plots():
     #     # "PPO_lag_Walker": 'PPO_lag',
     # }
 
-    # env_id = 'SwimmerWithPos-v0'
-    # max_episodes = 10000
-    # average_num = 200
-    # title = 'Blocked Swimmer'
-    # max_reward = float('inf')
-    # min_reward = 0
-    # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
-    # label_key = [None, None, None, None]
-    # img_size = None
-    # save = True
-    # plot_y_lim_dict = {'reward': None,
-    #                    'reward_nc': None,
-    #                    'constraint': None,
-    #                    'reward_valid': None}
-    # constraint_keys = ['constraint']
-    # method_names_labels_dict = {
-    #     "GAIL_SwmWithPos-v0": 'GACL',
-    #     "Binary_SwmWithPos-v0_update_b-5e-1": 'BC2L',
-    #     "ICRL_SwmWithPos-v0_update_b-5e-1": 'MECL',
-    #     "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VCIRL-SR',
-    #     # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-10": 'VCIRL2',
-    #     # "VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10": 'VCIRL3',
-    #     # "VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-3-1e-3": 'VCIRL4',
-    #     # "VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-2-1e-2": 'VCIRL5',
-    #     'VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-1e-1': 'VCIRL-VaR',
-    #     # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-5e-1': 'VCIRL3',
-    #     # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-7e-1': 'VCIRL4',
-    #     # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-9e-1': 'VCIRL5',
-    #     # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-1e-1": 'VCIRL2',
-    #     # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-5e-1": 'VCIRL3',
-    #     # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-7e-1": 'VCIRL4',
-    #     # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-9e-1": 'VCIRL5',
-    #     # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-180-20_VaR-1e-1': 'VCIRL3',
-    #     # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-180-20_VaR-5e-1': 'VCIRL4',
-    #     # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-180-20_VaR-7e-1': 'VCIRL5',
-    #     # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-180-20_VaR-9e-1': 'VCIRL6',
-    #     # "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
-    #     # "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
-    # }
-    #
-    env_id = 'highD_velocity_constraint'
-    max_episodes = 3000
-    average_num = 100
-    max_reward = 50
-    min_reward = -50
-    axis_size = 20
-    img_size = [8.5, 6.5]
-    save = False
-    title = 'HighD Velocity Constraint'
-    constraint_keys = ['is_over_speed']
-    plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
-                'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'success_rate']
-    label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
-                 'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Speed Constraint Violation Rate',
-                 'Success Rate']
+    env_id = 'SwimmerWithPos-v0'
+    max_episodes = 10000
+    average_num = 200
+    title = 'Blocked Swimmer'
+    max_reward = float('inf')
+    min_reward = 0
+    plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
+    label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    label_key = [None, None, None, None]
+    img_size = None
+    save = True
     plot_y_lim_dict = {'reward': None,
                        'reward_nc': None,
-                       'reward_valid': None,
-                       'is_collision': None,
-                       'is_off_road': None,
-                       'is_goal_reached': None,
-                       'is_time_out': None,
-                       'avg_velocity': None,
-                       'is_over_speed': None,
-                       'success_rate': None}
-    bound_results = {
-        'reward': 50,
-        'reward_nc': 50,
-        'reward_valid': 50,
-        'is_collision': 0,
-        'is_off_road': 0,
-        'is_goal_reached': 0,
-        'is_time_out': 0,
-        'is_over_speed': 0,
-        'success_rate': 1,
-    }
+                       'constraint': None,
+                       'reward_valid': None}
+    constraint_keys = ['constraint']
     method_names_labels_dict = {
-        # "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GACL',
-        # "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'BC2L',
-        # "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'MECL',
-        # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VCIRL-SR",
-        "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": "VCIRL2",
-        "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40":  "VCIRL3",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-5_no-buffer_vm-40": "VCIRL3",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_plr-5e-4_no-buffer_vm-40": "VCIRL4",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": "VCIRL3",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_cl-64-64_no-buffer_vm-40": "VCIRL4",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-7e-1_no-buffer_vm-40": "VCIRL5",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40": "VCIRL6",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-2-1e-2_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": "VCIRL6",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_plr-1e-2_no-buffer_vm-40": "VCIRL7",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-5_no-buffer_vm-40": "VCIRL6",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-6_no-buffer_vm-40": "VCIRL7",
-        # "debug-part-train_VICRL_highD_velocity_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-5_no-buffer_vm-40": "VCIRL8",
-        # "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO',
-        # "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
-        # "Bound": 'Bound'
+        "GAIL_SwmWithPos-v0": 'GACL',
+        "Binary_SwmWithPos-v0_update_b-5e-1": 'BC2L',
+        "ICRL_SwmWithPos-v0_update_b-5e-1": 'MECL',
+        "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5": 'VCIRL-SR',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-10": 'VCIRL2',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10": 'VCIRL3',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-3-1e-3": 'VCIRL4',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_p-9e-2-1e-2": 'VCIRL5',
+        'VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-1e-1': 'VCIRL-VaR',
+        # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-5e-1': 'VCIRL3',
+        # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-7e-1': 'VCIRL4',
+        # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-90-10_VaR-9e-1': 'VCIRL5',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-1e-1": 'VCIRL2',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-5e-1": 'VCIRL3',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-7e-1": 'VCIRL4',
+        # "VICRL_SwmWithPos-v0_update_b-5e-1_piv-5_VaR-9e-1": 'VCIRL5',
+        # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-180-20_VaR-1e-1': 'VCIRL3',
+        # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-180-20_VaR-5e-1': 'VCIRL4',
+        # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-180-20_VaR-7e-1': 'VCIRL5',
+        # 'VICRL_SwmWithPos-v0_update_b-5e-1_p-180-20_VaR-9e-1': 'VCIRL6',
+        # "ppo_SwmWithPos-v0_update_b-5e-1": 'PPO',
+        # "ppo_lag_SwmWithPos-v0_update_b-5e-1": 'PPO_lag',
     }
+    #
+    # env_id = 'highD_velocity_constraint'
+    # max_episodes = 3000
+    # average_num = 100
+    # max_reward = 50
+    # min_reward = -50
+    # axis_size = 20
+    # img_size = [8.5, 6.5]
+    # save = False
+    # title = 'HighD Velocity Constraint'
+    # constraint_keys = ['is_over_speed']
+    # plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
+    #             'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'success_rate']
+    # label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
+    #              'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Speed Constraint Violation Rate',
+    #              'Success Rate']
+    # plot_y_lim_dict = {'reward': None,
+    #                    'reward_nc': None,
+    #                    'reward_valid': None,
+    #                    'is_collision': None,
+    #                    'is_off_road': None,
+    #                    'is_goal_reached': None,
+    #                    'is_time_out': None,
+    #                    'avg_velocity': None,
+    #                    'is_over_speed': None,
+    #                    'success_rate': None}
+    # bound_results = {
+    #     'reward': 50,
+    #     'reward_nc': 50,
+    #     'reward_valid': 50,
+    #     'is_collision': 0,
+    #     'is_off_road': 0,
+    #     'is_goal_reached': 0,
+    #     'is_time_out': 0,
+    #     'is_over_speed': 0,
+    #     'success_rate': 1,
+    # }
+    # method_names_labels_dict = {
+    #     # "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GACL',
+    #     # "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'BC2L',
+    #     # "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'MECL',
+    #     # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": "VCIRL-SR",
+    #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": "VCIRL2",
+    #     "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40":  "VCIRL3",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-5_no-buffer_vm-40": "VCIRL3",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_plr-5e-4_no-buffer_vm-40": "VCIRL4",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": "VCIRL3",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_cl-64-64_no-buffer_vm-40": "VCIRL4",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-7e-1_no-buffer_vm-40": "VCIRL5",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40": "VCIRL6",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-2-1e-2_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": "VCIRL6",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_plr-1e-2_no-buffer_vm-40": "VCIRL7",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-5_no-buffer_vm-40": "VCIRL6",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-6_no-buffer_vm-40": "VCIRL7",
+    #     # "debug-part-train_VICRL_highD_velocity_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-5_no-buffer_vm-40": "VCIRL8",
+    #     # "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO',
+    #     # "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
+    #     # "Bound": 'Bound'
+    # }
 
     # env_id = 'highD_velocity_constraint_dim2'
     # max_episodes = 5000
