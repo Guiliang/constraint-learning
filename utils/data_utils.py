@@ -489,17 +489,17 @@ def mean_std_plot_results(all_results):
         plot_value_all = []
         for plot_values in all_plot_values:
             plot_value_all.append(plot_values[:min_len])
-        for i in range(min_len, max_len):
-            plot_value_t = []
-            for plot_values in all_plot_values:
-                if len(plot_values) > i:
-                    plot_value_t.append(plot_values[i])
-
-            if 0 < len(plot_value_t) < len(all_plot_values):
-                for j in range(len(all_plot_values) - len(plot_value_t)):
-                    plot_value_t.append(plot_value_t[j % len(plot_value_t)])  # filling in values
-            for j in range(len(plot_value_t)):
-                plot_value_all[j].append(plot_value_t[j])
+        # for i in range(min_len, max_len):
+        #     plot_value_t = []
+        #     for plot_values in all_plot_values:
+        #         if len(plot_values) > i:
+        #             plot_value_t.append(plot_values[i])
+        #
+        #     if 0 < len(plot_value_t) < len(all_plot_values):
+        #         for j in range(len(all_plot_values) - len(plot_value_t)):
+        #             plot_value_t.append(plot_value_t[j % len(plot_value_t)])  # filling in values
+        #     for j in range(len(plot_value_t)):
+        #         plot_value_all[j].append(plot_value_t[j])
         mean_plot_values = np.mean(np.asarray(plot_value_all), axis=0)
         std_plot_values = np.std(np.asarray(plot_value_all), axis=0)
         mean_results.update({key: mean_plot_values})
