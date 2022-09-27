@@ -15,5 +15,5 @@ export PATH=/pkgs/anaconda3/bin:$PATH
 source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 cd ./interface
-python train_icrl.py ../config/highD_distance_constraint/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_dm-20_VaR-5e-1.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/highD_distance_constraint/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_dm-20_VaR-7e-1.yaml -n 5 -s 123 -l "$log_dir"
 echo shell finish running
