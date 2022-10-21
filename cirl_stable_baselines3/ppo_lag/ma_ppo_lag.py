@@ -103,6 +103,7 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             seed: Optional[int] = None,
             device: Union[torch.device, str] = "auto",
             _init_setup_model: bool = True,
+            n_probings: int = 1,
     ):
 
         super(MultiAgentPPOLagrangian, self).__init__(
@@ -129,6 +130,7 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             _init_setup_model=False,
             latent_dim=latent_dim,
             cid=cid,
+            n_probings= n_probings
         )
 
         self.algo_type = algo_type

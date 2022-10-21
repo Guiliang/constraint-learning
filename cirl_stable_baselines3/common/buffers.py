@@ -643,17 +643,18 @@ class RolloutBufferWithCost(BaseBuffer):
 
 class RolloutBufferWithCostCode(BaseBuffer):
     def __init__(
-        self,
-        buffer_size: int,
-        observation_space: spaces.Space,
-        action_space: spaces.Space,
-        code_dim: int,
-        device: Union[th.device, str] = "cpu",
-        reward_gamma: float = 0.99,
-        reward_gae_lambda: float = 1,
-        cost_gamma: float = 0.99,
-        cost_gae_lambda: float = 1,
-        n_envs: int = 1,
+            self,
+            buffer_size: int,
+            observation_space: spaces.Space,
+            action_space: spaces.Space,
+            code_dim: int,
+            device: Union[th.device, str] = "cpu",
+            reward_gamma: float = 0.99,
+            reward_gae_lambda: float = 1,
+            cost_gamma: float = 0.99,
+            cost_gae_lambda: float = 1,
+            n_envs: int = 1,
+            n_probings: int = 1,
     ):
 
         super(RolloutBufferWithCostCode, self).__init__(buffer_size, observation_space, action_space, device, n_envs=n_envs)
@@ -668,6 +669,7 @@ class RolloutBufferWithCostCode(BaseBuffer):
         self.new_observations, self.new_orig_observations = None, None
         self.reward_returns, self.cost_returns, self.dones, self.values, self.log_probs = None, None, None, None, None
         self.generator_ready = False
+        self.n_probings = n_probings
         self.reset()
 
     def reset(self) -> None:
@@ -679,11 +681,11 @@ class RolloutBufferWithCostCode(BaseBuffer):
         self.codes = np.zeros((self.buffer_size, self.n_envs, self.latent_dim), dtype=np.float32)
         self.pos_latent_signals = np.zeros((self.buffer_size,
                                             self.n_envs,
-                                            1,
+                                            self.n_probings,
                                             self.action_dim + self.obs_shape[0]), dtype=np.float32)
         self.neg_latent_signals = np.zeros((self.buffer_size,
                                             self.n_envs,
-                                            self.latent_dim - 1,
+                                            (self.latent_dim - 1)*self.n_probings,
                                             self.action_dim + self.obs_shape[0]), dtype=np.float32)
         self.dones = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
         self.log_probs = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)

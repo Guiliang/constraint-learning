@@ -56,6 +56,9 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
                 self.event_dict = {
                     'is_constraint_break': 0
                 }
+                for cid in range(self.env.latent_dim):
+                    self.event_dict['is_constraint_break_{0}'.format(cid)] = 0
+
             elif is_commonroad(self.env.spec.id):
                 self.logger = csv.DictWriter(self.file_handler,
                                              fieldnames=("reward", "reward_nc", "len", "time",
@@ -122,7 +125,13 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
 
     def record_step(self, action, observation, reward, done, info, code):
         if is_mujoco(self.env.spec.id):
-            if info['lag_cost']:
+            is_constraint_break = 1
+            for cid in info['lag_cost'].keys():
+                if info['lag_cost'][cid]:
+                    self.event_dict['is_constraint_break_{0}'.format(cid)] = 1
+                if not self.event_dict['is_constraint_break_{0}'.format(cid)]:
+                    is_constraint_break = 0
+            if is_constraint_break:
                 self.event_dict['is_constraint_break'] = 1
             # if self.env.spec.id == 'HCWithPos-v0' and info['xpos'] <= -3:
             #     self.event_dict['is_constraint_break'] = 1
@@ -238,6 +247,8 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
                 self.event_dict = {
                     'is_constraint_break': 0
                 }
+                for cid in range(self.env.latent_dim):
+                    self.event_dict['is_constraint_break_{0}'.format(cid)] = 0
             elif is_commonroad(self.env.spec.id):
                 self.event_dict = {
                     'is_collision': 0,

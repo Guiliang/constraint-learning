@@ -233,6 +233,9 @@ def train(config):
         cn_parameters.update({'latent_dim': config['CN']['latent_dim']})
         cn_parameters.update({'max_seq_length': config['running']['max_seq_length']})
         cn_parameters.update({'init_density': config['running']['init_density']})
+        cn_parameters.update({'use_expert_negative': config['CN']['use_expert_negative']})
+        cn_parameters.update({'sample_probing_points': config['CN']['sample_probing_points']})
+        cn_parameters.update({'n_probings': config['CN']['n_probings']})
         constraint_net = MixtureConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown group: {0}".format(config['group']))

@@ -147,20 +147,22 @@ def compute_moving_average(result_all, average_num=100):
     return result_moving_all[:-average_num]
 
 
-def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_episodes):
-    read_running_logs = {}
-
+def read_running_logs_by_cid(monitor_path_all, read_keys, max_episodes, max_reward, min_reward, cid_num):
     # handle the keys
     with open(monitor_path_all[0], 'r') as file:
         running_logs = file.readlines()
     key_indices = {}
     record_keys = running_logs[1].replace('\n', '').split(',')
-    # if len(record_keys) > 10:
-    #     raise ValueError("Something wrong with the file {0}".format(monitor_path_all[0]))
+    cid_index = record_keys.index('c_id')
     for key in read_keys:
         key_idx = record_keys.index(key)
         key_indices.update({key: key_idx})
-        read_running_logs.update({key: []})
+    read_running_logs_by_cid = {}
+    for cid in range(cid_num):
+        read_running_logs = {}
+        for key in read_keys:
+            read_running_logs.update({key: []})
+        read_running_logs_by_cid.update({cid: read_running_logs})
 
     # read all the logs
     running_logs_all = []
@@ -172,35 +174,24 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
         if len(running_logs[2:]) > max_len:
             max_len = len(running_logs[2:])
     max_len = min(float(max_episodes / len(monitor_path_all)), max_len)
+
     # iteratively read the logs
     line_num = 0
     while line_num < max_len:
-        old_results = None
+        # old_results = None
         for i in range(len(monitor_path_all)):
             if line_num >= len(running_logs_all[i]):
                 continue
             running_performance = running_logs_all[i][line_num]
             log_items = running_performance.split(',')
-            if len(log_items) != len(record_keys):
-                # continue
-                results = old_results
-            else:
-                try:
-                    results = [item.replace("\n", "") for item in log_items]
-                    if float(results[key_indices['reward']]) > max_reward or float(
-                            results[key_indices['reward']]) < min_reward:
-                        # continue
-                        results = old_results
-                except:
-                    results = old_results
-                    # continue
-            if results is None:
-                continue
+            results = [item.replace("\n", "") for item in log_items]
+            cid = int(results[cid_index])
+            # print(cid)
             for key in read_keys:
-                read_running_logs[key].append(float(results[key_indices[key]]))
+                read_running_logs_by_cid[cid][key].append(float(results[key_indices[key]]))
         line_num += 1
 
-    return read_running_logs
+    return read_running_logs_by_cid
 
 
 def save_game_record(info, file, type, cost=None):

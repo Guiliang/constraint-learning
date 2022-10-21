@@ -311,6 +311,7 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         super(MujocoExternalSignalWrapper, self).__init__(env=env)
         self.wrapper_config = wrapper_config
         self.group = group
+        self.latent_dim = wrapper_config['latent_dim']
 
     def step_with_code(self, action: np.ndarray, code: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
         # if self.wrapper_config['constraint_id'] is None:  # dynamic constraint
@@ -319,14 +320,17 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         #     action = action[:-self.wrapper_config['latent_dim']]
         # else:
         #     constraint_id = self.wrapper_config['constraint_id']  # fix constraint
-        constraint_id = np.argmax(code)
+
         obs, reward, done, info = self.env.step(action)
-        ture_cost_function = get_true_constraint_function(env_id=self.spec.id,
-                                                          env_configs=self.wrapper_config,
-                                                          constraint_id=constraint_id)
-        lag_cost_ture = int(ture_cost_function(obs, action) == True)
+        lag_cost_ture_by_cid = {}
+        for cid in range(self.latent_dim):
+            ture_cost_function = get_true_constraint_function(env_id=self.spec.id,
+                                                              env_configs=self.wrapper_config,
+                                                              constraint_id=cid)
+            lag_cost_ture = int(ture_cost_function(obs, action) == True)
+            lag_cost_ture_by_cid.update({cid: lag_cost_ture})
         # add true constraint for evaluation
-        info.update({'lag_cost': lag_cost_ture})
+        info.update({'lag_cost': lag_cost_ture_by_cid})
         return obs, reward, done, info
 
 

@@ -1,6 +1,3 @@
-import os
-import random
-from itertools import accumulate
 from typing import Any, Callable, Dict, Optional, Tuple, Type, Union, List
 import numpy as np
 import torch
@@ -46,6 +43,9 @@ class MixtureConstraintNet(ConstraintNet):
             train_gail_lambda: Optional[bool] = False,
             max_seq_length: float = 10,
             init_density: bool = True,
+            use_expert_negative: bool = False,
+            sample_probing_points: bool = False,
+            n_probings: int = 1,
             eps: float = 1e-5,
             eta: float = 0.1,
             device: str = "cpu",
@@ -82,10 +82,13 @@ class MixtureConstraintNet(ConstraintNet):
         self.latent_dim = latent_dim
         self.max_seq_length = max_seq_length
         self.init_density = init_density
+        self.use_expert_negative = use_expert_negative
+        self.sample_probing_points = sample_probing_points
         self.eta = eta
         self.pivot_vectors_by_cid = {}
+        self.n_probings = n_probings
         for cid in range(self.latent_dim):
-            self.pivot_vectors_by_cid.update({cid: np.ones([self.obs_dim + self.acs_dim])})
+            self.pivot_vectors_by_cid.update({cid: np.ones([self.n_probings, self.obs_dim + self.acs_dim])})
         self._build()
         self.criterion = nn.BCELoss()
 
@@ -184,12 +187,13 @@ class MixtureConstraintNet(ConstraintNet):
         cids = codes.argmax(0)
         latent_signals = []
         for cid in cids:
-            positive_samples = [self.pivot_vectors_by_cid[cid]]
+            positive_samples = self.pivot_vectors_by_cid[cid]
             negative_samples = []
             for nid in self.pivot_vectors_by_cid.keys():
                 if nid == cid:
                     continue
                 negative_samples.append(self.pivot_vectors_by_cid[nid])
+            negative_samples = np.concatenate(negative_samples, axis=0)
             latent_signals.append({'pos': positive_samples, 'neg': negative_samples})
         return latent_signals
 
@@ -197,6 +201,22 @@ class MixtureConstraintNet(ConstraintNet):
         with torch.no_grad():
             out = self.__call__(torch.tensor(x, dtype=torch.float32).to(self.device), )
         return out
+
+    def mixture_get(self, nom_size: int, exp_size: int, neg_exp_size: int) -> np.ndarray:
+        if self.batch_size is None:
+            yield np.arange(nom_size), np.arange(exp_size), np.arange(neg_exp_size)
+        else:
+            size = min(nom_size, exp_size, neg_exp_size)
+            nom_indices = np.random.permutation(nom_size)
+            expert_indices = np.random.permutation(exp_size)
+            neg_expert_indices = np.random.permutation(neg_exp_size)
+            start_idx = 0
+            while start_idx < size:
+                batch_expert_indices = expert_indices[start_idx:start_idx + self.batch_size]
+                batch_nom_indices = nom_indices[start_idx:start_idx + self.batch_size]
+                batch_neg_expert_indices = neg_expert_indices[start_idx:start_idx + self.batch_size]
+                yield batch_nom_indices, batch_expert_indices, batch_neg_expert_indices
+                start_idx += self.batch_size
 
     def train_nn(
             self,
@@ -251,15 +271,15 @@ class MixtureConstraintNet(ConstraintNet):
         bw_metrics.update({"backward/density_loss": density_loss.item()})
 
         # save training data for different codes
-        nominal_data_by_cid = {}
-        for cid in range(self.latent_dim):
-            nominal_data_by_cid.update({cid: None})
+        nominal_data_by_cids = {}
+        for aid in range(self.latent_dim):
+            nominal_data_by_cids.update({aid: None})
         nominal_log_prob_by_cid = {}
-        for cid in range(self.latent_dim):
-            nominal_log_prob_by_cid.update({cid: None})
+        for aid in range(self.latent_dim):
+            nominal_log_prob_by_cid.update({aid: None})
         expert_data_by_cid = {}
-        for cid in range(self.latent_dim):
-            expert_data_by_cid.update({cid: None})
+        for aid in range(self.latent_dim):
+            expert_data_by_cid.update({aid: None})
 
         # scan through the expert data and classify them
         # list all possible candidate codes with shape [batch_size, latent_dim, latent_dim],
@@ -281,81 +301,107 @@ class MixtureConstraintNet(ConstraintNet):
             expert_sum_log_prob_by_games.append(to_np(expert_log_sum_game))
         expert_sum_log_prob_by_games = np.asarray(expert_sum_log_prob_by_games)
         expert_code_games = [None for i in range(len(expert_data_games))]
-        for expert_cid in range(self.latent_dim):
+        for expert_aid in range(self.latent_dim):
             if 'sanity_check' in debug_msg:
                 top_ids = []
                 for i in range(len(expert_data_games)):
                     ground_truth_id = np.argmax(other_parameters['expert_codes'][i][0])
-                    if ground_truth_id == expert_cid:
+                    if ground_truth_id == expert_aid:
                         top_ids.append(i)
             else:
                 other_dims = list(range(self.latent_dim))
-                other_dims.remove(expert_cid)
+                other_dims.remove(expert_aid)
                 diff = np.zeros([len(expert_data_games)])
                 for k in other_dims:
-                    diff += expert_sum_log_prob_by_games[:, expert_cid] - expert_sum_log_prob_by_games[:, k]
+                    diff += expert_sum_log_prob_by_games[:, expert_aid] - expert_sum_log_prob_by_games[:, k]
                 tmp = np.argsort(diff)[::-1]
                 top_ids = np.argsort(diff)[::-1][:int(len(expert_data_games) / self.latent_dim)]
             for i in top_ids:
                 print("expert game: {0}, cid: {1}, log_sum: {2}".format(i,
-                                                                        expert_cid,
+                                                                        expert_aid,
                                                                         expert_sum_log_prob_by_games[i]),
                       file=self.log_file, flush=True)
-                if expert_data_by_cid[expert_cid] is None:
-                    expert_data_by_cid[expert_cid] = expert_data_games[i]
+                if expert_data_by_cid[expert_aid] is None:
+                    expert_data_by_cid[expert_aid] = expert_data_games[i]
                 else:
-                    expert_data_by_cid[expert_cid] = torch.cat([expert_data_by_cid[expert_cid],
+                    expert_data_by_cid[expert_aid] = torch.cat([expert_data_by_cid[expert_aid],
                                                                 expert_data_games[i]], dim=0)
-                expert_cid_game = torch.tensor(np.repeat(expert_cid, len(expert_data_games[i])))
+                expert_cid_game = torch.tensor(np.repeat(expert_aid, len(expert_data_games[i])))
                 # repeat the cid to label all the expert datapoints.
                 expert_code_game = F.one_hot(expert_cid_game, num_classes=self.latent_dim).to(self.device)
                 expert_code_games[i] = expert_code_game
 
-        # scan through the nominal data and pick some pivot points
         for i in range(len(nominal_data_games)):
             nominal_data_game = nominal_data_games[i]
             nominal_code_game = nominal_code_games[i]
             nominal_cid = nominal_code_game[0].argmax()
-            if nominal_data_by_cid[nominal_cid.item()] is None:
-                nominal_data_by_cid[nominal_cid.item()] = nominal_data_game
+            if nominal_data_by_cids[nominal_cid.item()] is None:
+                nominal_data_by_cids[nominal_cid.item()] = nominal_data_game
             else:
-                nominal_data_by_cid[nominal_cid.item()] = torch.cat([nominal_data_by_cid[nominal_cid.item()],
-                                                                     nominal_data_game], dim=0)
-            nominal_code_game_reverse = torch.ones(size=nominal_code_game.shape).to(self.device) - nominal_code_game
-            _, reverse_log_prob_game = self.density_model.log_probs(inputs=nominal_data_game,
-                                                                    cond_inputs=nominal_code_game_reverse)
-            if nominal_log_prob_by_cid[nominal_cid.item()] is None:
-                nominal_log_prob_by_cid[nominal_cid.item()] = reverse_log_prob_game
+                nominal_data_by_cids[nominal_cid.item()] = torch.cat([nominal_data_by_cids[nominal_cid.item()],
+                                                                      nominal_data_game], dim=0)
+        # get some probing points
+        if self.sample_probing_points:  # sample the probing points
+            nominal_log_prob_by_cid = None
+        else:  # scan through the nominal data and pick some probing points
+            for nominal_cid in nominal_data_by_cids.keys():
+                nominal_data_cid = nominal_data_by_cids[nominal_cid]
+                nominal_code_cid = F.one_hot(torch.tensor([nominal_cid] * nominal_data_cid.shape[0]),
+                                             num_classes=self.latent_dim).to(torch.float32).to(self.device)
+                _, log_prob_game = self.density_model.log_probs(inputs=nominal_data_cid,
+                                                                cond_inputs=nominal_code_cid)
+                nominal_reverse_cid_game = torch.ones(size=nominal_code_cid.shape).to(self.device) - nominal_code_cid
+                _, reverse_log_prob_game = self.density_model.log_probs(inputs=nominal_data_cid,
+                                                                        cond_inputs=nominal_reverse_cid_game)
+                if nominal_log_prob_by_cid[nominal_cid] is None:
+                    nominal_log_prob_by_cid[nominal_cid] = log_prob_game - reverse_log_prob_game
+                else:
+                    nominal_log_prob_by_cid[nominal_cid] = torch.cat(
+                        [nominal_log_prob_by_cid[nominal_cid],
+                         log_prob_game - reverse_log_prob_game], dim=0)
+        for aid in range(self.latent_dim):
+            if self.sample_probing_points:
+                cond_inputs = F.one_hot(torch.tensor([aid] * self.n_probings), num_classes=self.latent_dim).to(
+                    torch.float32).to(self.device)
+                pivot_points = self.density_model.sample(num_samples=self.n_probings, noise=None,
+                                                         cond_inputs=cond_inputs)
             else:
-                nominal_log_prob_by_cid[nominal_cid.item()] = torch.cat([nominal_log_prob_by_cid[nominal_cid.item()],
-                                                                         reverse_log_prob_game], dim=0)
-
-        for cid in range(self.latent_dim):
-            reverse_log_prob_cid = nominal_log_prob_by_cid[cid]
-            _, botk = (-reverse_log_prob_cid.squeeze(dim=-1)).topk(10, dim=0, largest=True, sorted=False)
-            pivot_points = nominal_data_by_cid[cid][botk]
-            self.pivot_vectors_by_cid.update({cid: to_np(pivot_points.mean(dim=0))})
-            print('cid: {0}, pivot_vectors is {1}'.format(cid, self.pivot_vectors_by_cid[cid]),
+                reverse_log_prob_cid = nominal_log_prob_by_cid[aid]
+                _, topk = reverse_log_prob_cid.squeeze(dim=-1).topk(self.n_probings, dim=0, largest=True, sorted=False)
+                pivot_points = nominal_data_by_cids[aid][topk]
+            self.pivot_vectors_by_cid.update({aid: to_np(pivot_points)})
+            print('cid: {0}, pivot_vectors is {1}'.format(aid, self.pivot_vectors_by_cid[aid].mean(axis=0)),
                   flush=True, file=self.log_file)
-            if expert_data_by_cid[cid] is None:
+            if expert_data_by_cid[aid] is None:
                 continue
             for itr in tqdm(range(iterations)):
                 discriminator_loss_record, expert_loss_record, nominal_loss_record, \
                 regularizer_loss_record, nominal_preds_record, expert_preds_record = [], [], [], [], [], []
                 # Do a complete pass on data
-                for nom_batch_indices, exp_batch_indices in self.get(nominal_data_by_cid[cid].shape[0],
-                                                                     expert_data_by_cid[cid].shape[0]):
+                if self.use_expert_negative:  # if we treat the expert data of other cid as nominal data
+                    other_cids = [i for i in range(self.latent_dim)]
+                    other_cids.remove(aid)
+                    expert_data_for_other_cids = torch.cat([expert_data_by_cid[od] for od in other_cids], dim=0)
+                    expert_data_for_other_cids_size = expert_data_for_other_cids.shape[0]
+                else:
+                    expert_data_for_other_cids = None
+                    expert_data_for_other_cids_size = max(nominal_data_by_cids[aid].shape[0],
+                                                          expert_data_by_cid[aid].shape[0])
+                for nom_batch_indices, exp_batch_indices, neg_exp_batch_indices in self.mixture_get(
+                        nominal_data_by_cids[aid].shape[0],
+                        expert_data_by_cid[aid].shape[0],
+                        expert_data_for_other_cids_size):
                     # Get batch data
-                    nominal_data_batch = nominal_data_by_cid[cid][nom_batch_indices]
-                    expert_data_batch = expert_data_by_cid[cid][exp_batch_indices]
+                    nominal_data_batch = nominal_data_by_cids[aid][nom_batch_indices]
+                    expert_data_batch = expert_data_by_cid[aid][exp_batch_indices]
                     # Make predictions
-                    nom_cid_code = build_code(code_axis=[cid for i in range(len(nom_batch_indices))],
+                    nom_cid_code = build_code(code_axis=[aid for i in range(len(nom_batch_indices))],
                                               code_dim=self.latent_dim,
                                               num_envs=len(nom_batch_indices))
                     nom_cid_code = torch.tensor(nom_cid_code).to(self.device)
                     nominal_preds = self.__call__(torch.cat([nominal_data_batch, nom_cid_code], dim=1))
                     nominal_preds_record.append(to_np(nominal_preds))
-                    expert_cid_code = build_code(code_axis=[cid for i in range(len(exp_batch_indices))],
+                    expert_cid_code = build_code(code_axis=[aid for i in range(len(exp_batch_indices))],
                                                  code_dim=self.latent_dim,
                                                  num_envs=len(exp_batch_indices))
                     expert_cid_code = torch.tensor(expert_cid_code).to(self.device)
@@ -363,8 +409,6 @@ class MixtureConstraintNet(ConstraintNet):
                     expert_preds_record.append(to_np(expert_preds))
 
                     # Calculate loss
-                    # expert_loss = -torch.mean(torch.log(expert_preds + self.eps))
-                    # nominal_loss = torch.mean(torch.log(nominal_preds + self.eps))
                     nominal_loss = self.criterion(nominal_preds, torch.zeros(*nominal_preds.size()).to(self.device))
                     nominal_loss_record.append(nominal_loss.item())
                     expert_loss = self.criterion(expert_preds, torch.ones(*expert_preds.size()).to(self.device))
@@ -372,7 +416,19 @@ class MixtureConstraintNet(ConstraintNet):
                     regularizer_loss = self.regularizer_coeff * (
                             torch.mean(1 - expert_preds) + torch.mean(1 - nominal_preds))
                     regularizer_loss_record.append(regularizer_loss.item())
-                    discriminator_loss = (expert_loss + nominal_loss) + regularizer_loss
+
+                    if self.use_expert_negative:
+                        neg_expert_data_batch = expert_data_for_other_cids[neg_exp_batch_indices]
+                        neg_expert_cid_code = build_code(code_axis=[aid for i in range(len(neg_exp_batch_indices))],
+                                                         code_dim=self.latent_dim,
+                                                         num_envs=len(neg_exp_batch_indices))
+                        neg_expert_cid_code = torch.tensor(neg_expert_cid_code).to(self.device)
+                        neg_expert_preds = self.__call__(torch.cat([neg_expert_data_batch, neg_expert_cid_code], dim=1))
+                        neg_exp_loss = self.criterion(neg_expert_preds,
+                                                      torch.zeros(*neg_expert_preds.size()).to(self.device))
+                        discriminator_loss = (expert_loss + nominal_loss + neg_exp_loss) + regularizer_loss
+                    else:
+                        discriminator_loss = (expert_loss + nominal_loss) + regularizer_loss
                     discriminator_loss_record.append(discriminator_loss.item())
 
                     # Update
@@ -398,16 +454,16 @@ class MixtureConstraintNet(ConstraintNet):
             regularizer_loss_record = np.asarray(regularizer_loss_record)
             expert_preds_record = np.concatenate(expert_preds_record, axis=0)
             nominal_preds_record = np.concatenate(nominal_preds_record, axis=0)
-            bw_metrics.update({"backward/cid:{0}/cn_loss".format(cid): discriminator_loss_record.mean(),
-                               "backward/cid:{0}/e_loss".format(cid): expert_loss_record.mean(),
-                               "backward/cid:{0}/n_loss".format(cid): nominal_loss_record.mean(),
-                               "backward/cid:{0}/r_loss".format(cid): regularizer_loss_record.mean(),
-                               "backward/cid:{0}/n_pred_max".format(cid): np.max(nominal_preds_record).item(),
-                               "backward/cid:{0}/n_pred_min".format(cid): np.min(nominal_preds_record).item(),
-                               "backward/cid:{0}/n_pred_mean".format(cid): np.mean(nominal_preds_record).item(),
-                               "backward/cid:{0}/e_pred_max".format(cid): np.max(expert_preds_record).item(),
-                               "backward/cid:{0}/e_pred_min".format(cid): np.min(expert_preds_record).item(),
-                               "backward/cid:{0}/e_pred_mean".format(cid): np.mean(expert_preds_record).item(),
+            bw_metrics.update({"backward/cid:{0}/cn_loss".format(aid): discriminator_loss_record.mean(),
+                               "backward/cid:{0}/e_loss".format(aid): expert_loss_record.mean(),
+                               "backward/cid:{0}/n_loss".format(aid): nominal_loss_record.mean(),
+                               "backward/cid:{0}/r_loss".format(aid): regularizer_loss_record.mean(),
+                               "backward/cid:{0}/n_pred_max".format(aid): np.max(nominal_preds_record).item(),
+                               "backward/cid:{0}/n_pred_min".format(aid): np.min(nominal_preds_record).item(),
+                               "backward/cid:{0}/n_pred_mean".format(aid): np.mean(nominal_preds_record).item(),
+                               "backward/cid:{0}/e_pred_max".format(aid): np.max(expert_preds_record).item(),
+                               "backward/cid:{0}/e_pred_min".format(aid): np.min(expert_preds_record).item(),
+                               "backward/cid:{0}/e_pred_mean".format(aid): np.mean(expert_preds_record).item(),
                                })
         return bw_metrics
 

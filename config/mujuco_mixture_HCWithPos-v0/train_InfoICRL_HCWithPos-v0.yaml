@@ -21,7 +21,7 @@ env:
   visualize_info_ranges: [[-30, 30]]
 
 running:
-  n_iters: 300
+  n_iters: 20
   n_eval_episodes: 3
   save_every: 5
   max_seq_length: 10
@@ -58,7 +58,7 @@ PPO:
   use_curiosity_driven_exploration: False
   warmup_timesteps: False
   reset_policy: False
-  forward_timesteps: 200000
+  forward_timesteps: 2000000
   clip_range_reward_vf: null
   clip_range_cost_vf: null
   penalty_initial_value: 1

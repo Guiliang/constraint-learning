@@ -534,6 +534,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             use_sde: bool,
             sde_sample_freq: int,
             latent_dim: int,
+            n_probings: int,
             cid: int,
             tensorboard_log: Optional[str] = None,
             create_eval_env: bool = False,
@@ -573,6 +574,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
         self.rollout_buffer = None
         self.code_dim = latent_dim
         self.code_id = cid
+        self.n_probings = n_probings
 
         if _init_setup_model:
             self._setup_model()
@@ -601,6 +603,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             cost_gamma=self.cost_gamma,
             cost_gae_lambda=self.cost_gae_lambda,
             n_envs=self.n_envs,
+            n_probings=self.n_probings
         )
 
         self.policy = self.policy_class(

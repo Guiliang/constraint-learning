@@ -223,6 +223,7 @@ def load_ppo_config(config, train_env, seed, log_file):
             ppo_parameters.update({"latent_dim": config['CN']['latent_dim']})
             ppo_parameters["policy_kwargs"].update({"latent_dim": config['CN']['latent_dim']})
             ppo_parameters.update({"cid": config['CN']['cid']})
+            ppo_parameters.update({"n_probings": config['CN']['n_probings']})
     else:
         raise ValueError("Unknown Group {0}".format(config['group']))
 
@@ -254,8 +255,8 @@ def contrastive_loss_function(observations, actions, pos_latent_signals, neg_lat
             neg_latent_signals.reshape(-1, act_obs_dim),
             obs_act_repeat.reshape(-1, act_obs_dim)).reshape([-1, neg_sample_size]).sum(dim=1)
         c_prob_pid = torch.exp(pos_similarity) / (torch.exp(neg_similarity) + torch.exp(pos_similarity))
-        c_loss_pid = c_prob_pid.log()
-        contrastive_loss.append(-c_loss_pid)
+        c_log_prob_pid = c_prob_pid.log()
+        contrastive_loss.append(-c_log_prob_pid)
     contrastive_loss = torch.stack(contrastive_loss, dim=1).sum(dim=1)
     return contrastive_loss
 

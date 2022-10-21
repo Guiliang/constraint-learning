@@ -324,7 +324,7 @@ class FlowSequential(nn.Sequential):
 
     def sample(self, num_samples=None, noise=None, cond_inputs=None):
         if noise is None:
-            noise = torch.Tensor(num_samples, self.num_inputs).normal_()
+            noise = torch.Tensor(num_samples, self.num_inputs).normal_(mean=0, std=0.01)
         device = next(self.parameters()).device
         noise = noise.to(device)
         if cond_inputs is not None:

@@ -21,7 +21,7 @@ env:
   visualize_info_ranges: [[-30, 30]]
 
 running:
-  n_iters: 30
+  n_iters: 20
   n_eval_episodes: 10
   save_every: 1
   max_seq_length: 10
@@ -31,7 +31,7 @@ running:
   expert_path: '../data/expert_data/Mixture-HCWithPos-v0/'
   use_buffer: False
   store_by_game: True
-  init_density: True
+  init_density: False
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'
@@ -90,3 +90,6 @@ CN:
   backward_iters: 100
   anneal_clr_by_factor: 0.6
   latent_dim: 2
+  use_expert_negative: False
+  sample_probing_points: False
+  n_probings: 10
