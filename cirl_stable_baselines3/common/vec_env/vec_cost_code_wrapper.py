@@ -34,6 +34,7 @@ class VecCostCodeWrapper(VecEnvWrapper):
             if len(self.action_seqs[i]) >= self.max_seq_len:
                 self.action_seqs[i].pop(0)
             self.action_seqs[i].append(self.actions[i])
+        self.venv.games_by_aids = self.games_by_aids
         self.venv.step_async_with_code(self.actions, self.codes)
 
     def __getstate__(self):

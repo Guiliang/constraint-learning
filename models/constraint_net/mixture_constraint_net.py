@@ -1,3 +1,4 @@
+import random
 from typing import Any, Callable, Dict, Optional, Tuple, Type, Union, List
 import numpy as np
 import torch
@@ -87,10 +88,19 @@ class MixtureConstraintNet(ConstraintNet):
         self.eta = eta
         self.pivot_vectors_by_cid = {}
         self.n_probings = n_probings
-        for cid in range(self.latent_dim):
-            self.pivot_vectors_by_cid.update({cid: np.ones([self.n_probings, self.obs_dim + self.acs_dim])})
+        for aid in range(self.latent_dim):
+            self.pivot_vectors_by_cid.update({aid: np.ones([self.n_probings, self.obs_dim + self.acs_dim])})
         self._build()
         self.criterion = nn.BCELoss()
+        self._init_games_by_aids()
+        for i in range(len(expert_obs)):
+            aid = random.randrange(self.latent_dim)
+            self.games_by_aids[aid].append(i)
+
+    def _init_games_by_aids(self):
+        self.games_by_aids = {}
+        for aid in range(self.latent_dim):
+            self.games_by_aids.update({aid: []})
 
     def _define_input_dims(self) -> None:
         self.input_obs_dim = []
@@ -301,6 +311,7 @@ class MixtureConstraintNet(ConstraintNet):
             expert_sum_log_prob_by_games.append(to_np(expert_log_sum_game))
         expert_sum_log_prob_by_games = np.asarray(expert_sum_log_prob_by_games)
         expert_code_games = [None for i in range(len(expert_data_games))]
+        self._init_games_by_aids()
         for expert_aid in range(self.latent_dim):
             if 'sanity_check' in debug_msg:
                 top_ids = []
@@ -321,6 +332,7 @@ class MixtureConstraintNet(ConstraintNet):
                                                                         expert_aid,
                                                                         expert_sum_log_prob_by_games[i]),
                       file=self.log_file, flush=True)
+                self.games_by_aids[expert_aid].append(i)
                 if expert_data_by_cid[expert_aid] is None:
                     expert_data_by_cid[expert_aid] = expert_data_games[i]
                 else:
@@ -343,7 +355,9 @@ class MixtureConstraintNet(ConstraintNet):
         # get some probing points
         if self.sample_probing_points:  # sample the probing points
             nominal_log_prob_by_cid = None
+            print('Sampling probing points.', flush=True, file=self.log_file)
         else:  # scan through the nominal data and pick some probing points
+            print('Predicting probing points.', flush=True, file=self.log_file)
             for nominal_cid in nominal_data_by_cids.keys():
                 nominal_data_cid = nominal_data_by_cids[nominal_cid]
                 nominal_code_cid = F.one_hot(torch.tensor([nominal_cid] * nominal_data_cid.shape[0]),
@@ -381,16 +395,16 @@ class MixtureConstraintNet(ConstraintNet):
                 if self.use_expert_negative:  # if we treat the expert data of other cid as nominal data
                     other_cids = [i for i in range(self.latent_dim)]
                     other_cids.remove(aid)
-                    expert_data_for_other_cids = torch.cat([expert_data_by_cid[od] for od in other_cids], dim=0)
-                    expert_data_for_other_cids_size = expert_data_for_other_cids.shape[0]
+                    expert_data_for_other_aids = torch.cat([expert_data_by_cid[od] for od in other_cids], dim=0)
+                    expert_data_for_other_aids_size = expert_data_for_other_aids.shape[0]
                 else:
-                    expert_data_for_other_cids = None
-                    expert_data_for_other_cids_size = max(nominal_data_by_cids[aid].shape[0],
+                    expert_data_for_other_aids = None
+                    expert_data_for_other_aids_size = max(nominal_data_by_cids[aid].shape[0],
                                                           expert_data_by_cid[aid].shape[0])
                 for nom_batch_indices, exp_batch_indices, neg_exp_batch_indices in self.mixture_get(
                         nominal_data_by_cids[aid].shape[0],
                         expert_data_by_cid[aid].shape[0],
-                        expert_data_for_other_cids_size):
+                        expert_data_for_other_aids_size):
                     # Get batch data
                     nominal_data_batch = nominal_data_by_cids[aid][nom_batch_indices]
                     expert_data_batch = expert_data_by_cid[aid][exp_batch_indices]
@@ -418,7 +432,7 @@ class MixtureConstraintNet(ConstraintNet):
                     regularizer_loss_record.append(regularizer_loss.item())
 
                     if self.use_expert_negative:
-                        neg_expert_data_batch = expert_data_for_other_cids[neg_exp_batch_indices]
+                        neg_expert_data_batch = expert_data_for_other_aids[neg_exp_batch_indices]
                         neg_expert_cid_code = build_code(code_axis=[aid for i in range(len(neg_exp_batch_indices))],
                                                          code_dim=self.latent_dim,
                                                          num_envs=len(neg_exp_batch_indices))

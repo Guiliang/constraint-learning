@@ -40,10 +40,9 @@ def plot_results(mean_results_moving_avg_dict,
 def generate_plots():
     env_id = 'HCWithPos-v0'
     method_names_labels_dict = {
-        "Sanity_Check_MEICRL_HCWithPos": 'MEICRL',
-        "Sanity_Check_MEICRL_HCWithPos_cbs-64": 'MEICRL_cbs-64',
-        "Sanity_Check_MEICRL_HCWithPos_cbs-64_lr-5e-5": 'MEICRL_cbs-64_lr-5e-5',
-        "Sanity_Check_MEICRL_HCWithPos_cbs-64_lr-5e-5_exp-neg": 'MEICRL_cbs-64_lr-5e-5_exp-neg',
+        "MEICRL_HCWithPos_cbs-64_lr-5e-5": 'MEICRL_cbs-64_lr-5e-5',
+        "MEICRL_HCWithPos_cbs-64_lr-5e-5_exp-neg": 'MEICRL_cbs-64_lr-5e-5_exp-neg',
+        # "MEICRL_HCWithPos_cbs-64_lr-5e-5_exp-neg_spp": 'MEICRL_cbs-64_lr-5e-5_exp-neg_spp',
     }
 
     modes = ['train']
@@ -58,7 +57,7 @@ def generate_plots():
         method_names_labels_dict = method_names_labels_dict
     for mode in modes:
         if env_id == 'HCWithPos-v0':
-            max_episodes = 30000
+            max_episodes = 20000
             average_num = 1000
             max_reward = 10000
             min_reward = -10000
@@ -89,6 +88,15 @@ def generate_plots():
                     '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_exp-neg-multi_env-Oct-18-2022-12:29-seed_123/',
                     '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_exp-neg-multi_env-Oct-18-2022-12:29-seed_321/',
                     '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_exp-neg-multi_env-Oct-18-2022-12:29-seed_666/',
+                ],
+                "MEICRL_HCWithPos_cbs-64_lr-5e-5": [
+                    '../save_model/MEICRL_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5-multi_env-Oct-24-2022-17:42-seed_123/',
+                ],
+                "MEICRL_HCWithPos_cbs-64_lr-5e-5_exp-neg": [
+                    '../save_model/MEICRL_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_exp-neg-multi_env-Oct-24-2022-17:42-seed_123/',
+                ],
+                "MEICRL_HCWithPos_cbs-64_lr-5e-5_exp-neg_spp": [
+                    '../save_model/MEICRL_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_exp-neg_spp-multi_env-Oct-24-2022-17:42-seed_123/',
                 ],
             }
         else:

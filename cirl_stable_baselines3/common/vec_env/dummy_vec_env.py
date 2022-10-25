@@ -51,7 +51,7 @@ class DummyVecEnv(VecEnv):
                     self.envs[env_idx].step(self.actions[env_idx])
             else:
                 obs, self.buf_rews[env_idx], self.buf_dones[env_idx], self.buf_infos[env_idx] = \
-                    self.envs[env_idx].step_with_code(self.actions[env_idx], self.codes[env_idx])
+                    self.envs[env_idx].step_with_code(self.actions[env_idx], self.codes[env_idx], self.games_by_aids)
             if self.buf_dones[env_idx]:
                 # save final observation where user can get it, then reset
                 self.buf_infos[env_idx]["terminal_observation"] = obs

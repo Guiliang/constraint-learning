@@ -10,7 +10,8 @@ from common.cns_monitor import CNSMonitor
 from common.true_constraint_functions import get_true_constraint_function
 from cirl_stable_baselines3.common import callbacks
 from cirl_stable_baselines3.common.utils import set_random_seed
-from cirl_stable_baselines3.common.vec_env import VecEnvWrapper, VecEnv, VecNormalize, VecCostWrapper, VecCostCodeWrapper
+from cirl_stable_baselines3.common.vec_env import VecEnvWrapper, VecEnv, VecNormalize, VecCostWrapper, \
+    VecCostCodeWrapper
 from utils.env_utils import is_mujoco, is_commonroad
 
 
@@ -123,7 +124,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
 
 def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
                   mode='test', use_cost=False, normalize_obs=True,
-                  part_data=False, multi_env=False, log_file=None,**kwargs):
+                  part_data=False, multi_env=False, log_file=None, **kwargs):
     if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
@@ -164,7 +165,8 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
                                              latent_info_str=kwargs['latent_info_str'],
                                              max_seq_len=kwargs['max_seq_len'])  # cost with code
         else:
-            env = vec_env.VecCostWrapper(venv=env, cost_info_str=kwargs['cost_info_str'])  # external cost, must be learned
+            env = vec_env.VecCostWrapper(venv=env,
+                                         cost_info_str=kwargs['cost_info_str'])  # external cost, must be learned
     # print("Wrapping eval env in a VecNormalize.", file=log_file, flush=True)
     if group == 'PPO' or group == 'GAIL':
         env = vec_env.VecNormalize(env, training=False, norm_obs=normalize_obs, norm_reward=False)
@@ -286,7 +288,8 @@ def sync_envs_normalization_ppo(env: "GymEnv", eval_env: "GymEnv") -> None:
             eval_env_tmp.obs_rms = deepcopy(env_tmp.obs_rms)
             eval_env_tmp.ret_rms = deepcopy(env_tmp.ret_rms)
         env_tmp = env_tmp.venv
-        if isinstance(env_tmp, VecCostWrapper) or isinstance(env_tmp, InternalVecCostWrapper) or isinstance(env_tmp, VecCostCodeWrapper):
+        if isinstance(env_tmp, VecCostWrapper) or isinstance(env_tmp, InternalVecCostWrapper) or isinstance(env_tmp,
+                                                                                                            VecCostCodeWrapper):
             env_tmp = env_tmp.venv
         eval_env_tmp = eval_env_tmp.venv
 
@@ -313,7 +316,8 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         self.group = group
         self.latent_dim = wrapper_config['latent_dim']
 
-    def step_with_code(self, action: np.ndarray, code: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
+    def step_with_code(self, action: np.ndarray, agent_code: np.ndarray, games_by_aids: dict) -> Tuple[
+        np.ndarray, float, bool, Dict[Any, Any]]:
         # if self.wrapper_config['constraint_id'] is None:  # dynamic constraint
         #     tmp = np.argmax(action[-self.wrapper_config['latent_dim']:])
         #     constraint_id = np.argmax(action[-self.wrapper_config['latent_dim']:])
@@ -321,16 +325,17 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         # else:
         #     constraint_id = self.wrapper_config['constraint_id']  # fix constraint
 
+        aid = np.argmax(agent_code)
+
         obs, reward, done, info = self.env.step(action)
-        lag_cost_ture_by_cid = {}
-        for cid in range(self.latent_dim):
-            ture_cost_function = get_true_constraint_function(env_id=self.spec.id,
-                                                              env_configs=self.wrapper_config,
-                                                              constraint_id=cid)
-            lag_cost_ture = int(ture_cost_function(obs, action) == True)
-            lag_cost_ture_by_cid.update({cid: lag_cost_ture})
+        ture_cost_function = get_true_constraint_function(env_id=self.spec.id,
+                                                          env_configs=self.wrapper_config,
+                                                          agent_id=aid,
+                                                          games_by_aids=games_by_aids)
+        lag_cost_ture = int(ture_cost_function(obs, action) == True)
+
         # add true constraint for evaluation
-        info.update({'lag_cost': lag_cost_ture_by_cid})
+        info.update({'lag_cost': lag_cost_ture})
         return obs, reward, done, info
 
 

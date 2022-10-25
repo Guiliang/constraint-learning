@@ -273,6 +273,9 @@ def train(config):
         train_env.set_latent_function(constraint_net.latent_function)
         eval_env.set_latent_function(constraint_net.latent_function)
         sample_env.set_latent_function(constraint_net.latent_function)
+        train_env.games_by_aids = constraint_net.games_by_aids
+        eval_env.games_by_aids = constraint_net.games_by_aids
+        sample_env.games_by_aids = constraint_net.games_by_aids
 
         # Update agent
         forward_metrics_all = {}
@@ -291,6 +294,7 @@ def train(config):
                                              time_prev=time_prev,
                                              process_name='Training PPO model',
                                              log_file=log_file)
+
         # Sample nominal trajectories
         sync_envs_normalization(train_env, sample_env)
         sample_parameters = {}

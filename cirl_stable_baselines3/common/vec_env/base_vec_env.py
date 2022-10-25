@@ -275,6 +275,7 @@ class VecEnvWrapper(VecEnv):
         self.venv.step_async(actions)
 
     def step_async_with_code(self, actions: np.ndarray, codes: np.ndarray):
+        self.venv.games_by_aids = self.games_by_aids
         self.venv.step_async_with_code(actions, codes)
 
     @abstractmethod
