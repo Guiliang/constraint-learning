@@ -93,3 +93,4 @@ CN:
   use_expert_negative: False
   sample_probing_points: False
   n_probings: 10
+  contrastive_weight: 1.0

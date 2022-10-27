@@ -48,8 +48,8 @@ def train(config):
         log_file = open(log_file_path, 'w')
     else:
         log_file = None
-    debug_msg = ''
-    # debug_msg = 'sanity_check-'
+    # debug_msg = ''
+    debug_msg = 'sanity_check-'
     if debug_mode:
         config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
@@ -243,13 +243,15 @@ def train(config):
     # Init ppo agent
     nominal_agents = {}
     create_nominal_agent_functions = {}
-    for cid in range(config['CN']['latent_dim']):
-        config['CN']['cid'] = cid
+    for aid in range(config['CN']['latent_dim']):
+        config['CN']['cid'] = aid
+        if 'sanity_check-' in debug_msg:
+            config['CN']['contrastive_weight'] = 0.0
         ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
         create_nominal_agent = lambda: MultiAgentPPOLagrangian(**ppo_parameters)
-        create_nominal_agent_functions.update({cid: create_nominal_agent})
+        create_nominal_agent_functions.update({aid: create_nominal_agent})
         nominal_agent = create_nominal_agent()
-        nominal_agents.update({cid: nominal_agent})
+        nominal_agents.update({aid: nominal_agent})
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev,
                                          time_prev=time_prev,
@@ -262,8 +264,8 @@ def train(config):
     for itr in range(config['running']['n_iters']):
         if config['PPO']['reset_policy'] and itr != 0:
             print("\nResetting agent", file=log_file, flush=True)
-            for cid in range(config['CN']['latent_dim']):
-                nominal_agents[cid] = create_nominal_agent_functions[cid]
+            for aid in range(config['CN']['latent_dim']):
+                nominal_agents[aid] = create_nominal_agent_functions[aid]
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
         # Pass constraint net cost function to cost wrapper
@@ -280,15 +282,15 @@ def train(config):
         # Update agent
         forward_metrics_all = {}
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
-            for cid in range(config['CN']['latent_dim']):
-                nominal_agents[cid].learn(
+            for aid in range(config['CN']['latent_dim']):
+                nominal_agents[aid].learn(
                     total_timesteps=config['PPO']['forward_timesteps'],
                     cost_info_str=config['env']['cost_info_str'],
                     latent_info_str=config['env']['latent_info_str'],
                     callback=[callback],
                 )
-                forward_metrics_all.update({cid: logger.Logger.CURRENT.name_to_value})
-                timesteps += nominal_agents[cid].num_timesteps
+                forward_metrics_all.update({aid: logger.Logger.CURRENT.name_to_value})
+                timesteps += nominal_agents[aid].num_timesteps
 
         mem_prev, time_prev = print_resource(mem_prev=mem_prev,
                                              time_prev=time_prev,
@@ -391,8 +393,8 @@ def train(config):
         # Save
         # (1) periodically
         if itr % config['running']['save_every'] == 0:
-            for cid in range(config['CN']['latent_dim']):
-                nominal_agents[cid].save(os.path.join(save_path, "nominal_agent_cid-{0}".format(cid)))
+            for aid in range(config['CN']['latent_dim']):
+                nominal_agents[aid].save(os.path.join(save_path, "nominal_agent_cid-{0}".format(aid)))
             constraint_net.save(os.path.join(save_path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
@@ -427,8 +429,8 @@ def train(config):
         if mean_nc_reward > best_true_reward:
             # print(utils.colorize("Saving new best model", color="green", bold=True), flush=True)
             print("Saving new best model", file=log_file, flush=True)
-            for cid in range(config['CN']['latent_dim']):
-                nominal_agents[cid].save(os.path.join(save_model_mother_dir, "best_nominal_agent_cid-{0}".format(cid)))
+            for aid in range(config['CN']['latent_dim']):
+                nominal_agents[aid].save(os.path.join(save_model_mother_dir, "best_nominal_agent_cid-{0}".format(aid)))
             constraint_net.save(os.path.join(save_model_mother_dir, "best_constraint_net_model"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))

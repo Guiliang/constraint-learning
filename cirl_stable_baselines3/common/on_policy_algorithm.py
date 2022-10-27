@@ -19,7 +19,7 @@ from cirl_stable_baselines3.common.utils import safe_mean
 from cirl_stable_baselines3.common.vec_env import VecEnv, VecNormalize, VecNormalizeWithCost
 
 # from cirl_stable_baselines3.common.dual_variable import DualVariable
-from utils.model_utils import build_code
+from utils.model_utils import build_code, contrastive_loss_function
 
 
 class OnPolicyAlgorithm(BaseAlgorithm):
@@ -535,6 +535,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             sde_sample_freq: int,
             latent_dim: int,
             n_probings: int,
+            contrastive_weight: float,
             cid: int,
             tensorboard_log: Optional[str] = None,
             create_eval_env: bool = False,
@@ -575,6 +576,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
         self.code_dim = latent_dim
         self.code_id = cid
         self.n_probings = n_probings
+        self.contrastive_weight = contrastive_weight
 
         if _init_setup_model:
             self._setup_model()
@@ -674,13 +676,18 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
                 else:
                     orig_costs = costs_signals
                 # apply logarithm
-                costs_signals = np.log(costs_signals + 1e-5)
-                orig_costs = np.log(orig_costs + 1e-5)
+                costs_signals = np.log(costs_signals + 1e-5)  # normalized costs, pls do not use this one
+                orig_costs = np.log(orig_costs + 1e-5)  # unnormalized costs, this is more reasonable
             else:
                 raise ValueError("This part is not yet done.")
                 # costs = cost_function(orig_obs.copy(), clipped_actions)
                 # orig_costs = costs
 
+            contrastive_loss = contrastive_loss_function(observations=self._last_original_obs,
+                                                         actions=actions,
+                                                         pos_latent_signals=pos_latent_signals,
+                                                         neg_latent_signals=neg_latent_signals)
+            rewards = rewards-self.contrastive_weight * contrastive_loss
             self.num_timesteps += env.num_envs
 
             # Give access to local variables

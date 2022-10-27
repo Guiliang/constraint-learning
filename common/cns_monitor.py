@@ -46,7 +46,7 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
 
             if is_mujoco(self.env.spec.id):
                 if 'constraint_id' in self.env.wrapper_config.keys():
-                    fieldnames = ("reward", "reward_nc", "len", "time", "c_id", "constraint")
+                    fieldnames = ("reward", "reward_nc", "len", "time", "a_id", "constraint")
                 else:
                     fieldnames = ("reward", "reward_nc", "len", "time", "constraint")
 
@@ -190,7 +190,7 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
                                "reward_nc": round(ep_rew_nc, 2),
                                "len": ep_len,
                                "time": round(time.time() - self.t_start, 2),
-                               'c_id': np.argmax(action[-2:]) if code is None else np.argmax(code),
+                               'a_id': self.env.wrapper_config['constraint_id'] if code is None else np.argmax(code),
                                'constraint': self.event_dict['is_constraint_break']}
                 else:
                     ep_info = {"reward": round(ep_rew, 2),

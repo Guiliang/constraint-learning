@@ -1,3 +1,6 @@
+
+
+
 task: 'PPO-Lag-AntWall'
 group: 'PPO-Lag'
 device: 'cuda'
@@ -27,6 +30,7 @@ running:
   expert_path: '../data/expert_data/AntWall/'
   use_buffer: False
   store_by_game: False
+  latent_dim: 2
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'

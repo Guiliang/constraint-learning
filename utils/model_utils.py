@@ -1,7 +1,9 @@
 import gym
 import torch
 import numpy as np
+from numpy.linalg import norm
 from torch.nn import functional as F
+
 
 # def get_net_arch(config):
 #     """
@@ -224,6 +226,7 @@ def load_ppo_config(config, train_env, seed, log_file):
             ppo_parameters["policy_kwargs"].update({"latent_dim": config['CN']['latent_dim']})
             ppo_parameters.update({"cid": config['CN']['cid']})
             ppo_parameters.update({"n_probings": config['CN']['n_probings']})
+            ppo_parameters.update({"contrastive_weight": config['CN']['contrastive_weight']})
     else:
         raise ValueError("Unknown Group {0}".format(config['group']))
 
@@ -245,20 +248,28 @@ def update_code(code_axis, code_dim):
 def contrastive_loss_function(observations, actions, pos_latent_signals, neg_latent_signals):
     pos_sample_size = pos_latent_signals.shape[1]
     neg_sample_size = neg_latent_signals.shape[1]
-    obs_act = torch.cat([observations, actions], dim=1)
-    obs_act_repeat = obs_act.unsqueeze(1).repeat(1, neg_sample_size, 1)
+    obs_act = np.concatenate([observations, actions], axis=1)
+    tmp = np.expand_dims(obs_act, axis=1)
+    obs_act_repeat = np.expand_dims(obs_act, axis=1).repeat(repeats=neg_sample_size, axis=1)
     act_obs_dim = obs_act_repeat.shape[-1]
     contrastive_loss = []
     for pos_id in range(pos_sample_size):
-        pos_similarity = F.cosine_similarity(pos_latent_signals[:, pos_id, :], obs_act)
-        neg_similarity = F.cosine_similarity(
+        pos_similarity = cosine_similarity(pos_latent_signals[:, pos_id, :], obs_act)
+        neg_similarity = cosine_similarity(
             neg_latent_signals.reshape(-1, act_obs_dim),
-            obs_act_repeat.reshape(-1, act_obs_dim)).reshape([-1, neg_sample_size]).sum(dim=1)
-        c_prob_pid = torch.exp(pos_similarity) / (torch.exp(neg_similarity) + torch.exp(pos_similarity))
-        c_log_prob_pid = c_prob_pid.log()
+            obs_act_repeat.reshape(-1, act_obs_dim)).reshape([-1, neg_sample_size]).sum(axis=1)
+        c_prob_pid = np.exp(pos_similarity) / (np.exp(neg_similarity) + np.exp(pos_similarity))
+        c_log_prob_pid = np.log(c_prob_pid)
         contrastive_loss.append(-c_log_prob_pid)
-    contrastive_loss = torch.stack(contrastive_loss, dim=1).sum(dim=1)
+    contrastive_loss = np.stack(contrastive_loss, axis=1).mean(axis=1)
     return contrastive_loss
+
+
+def cosine_similarity(A, B):
+    cosine = []
+    for i in range(A.shape[0]):
+        cosine.append(np.dot(A[i, :], B[i, :]) / (norm(A[i, :]) * norm(B[i, :])))
+    return np.asarray(cosine)
 
 
 def to_np(x):

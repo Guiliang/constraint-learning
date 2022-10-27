@@ -2,22 +2,22 @@ from functools import partial
 import numpy as np
 
 
-def get_true_constraint_function(env_id, env_configs={}, agent_id=0, games_by_aids={}):
+def get_true_constraint_function(env_id, env_configs={}, agent_id=0, c_id=None, games_by_aids={}):
     """Returns the cost function correpsonding to provided env)"""
-    c_id = None  # Unknown
     if env_id in ["HCWithPosTest-v0",
                   "AntWallTest-v0",
                   "HCWithPos-v0",
                   "AntWall-v0",
                   ]:
-        games_by_cids = {0: 1, 2: 1, 4: 1, 6: 1, 8: 1,
-                         1: 0, 3: 0, 5: 0, 7: 0, 9: 0,
-                         }
-        vote = [0 for i in range(len(games_by_aids.keys()))]
-        for game_index in games_by_aids[agent_id]:
-            cid = games_by_cids[game_index]
-            vote[cid] += 1
-        c_id = np.argmax(np.asarray(vote))
+        if c_id is None:
+            games_by_cids = {0: 1, 2: 1, 4: 1, 6: 1, 8: 1,
+                             1: 0, 3: 0, 5: 0, 7: 0, 9: 0,
+                             }
+            vote = [0 for i in range(len(games_by_aids.keys()))]
+            for game_index in games_by_aids[agent_id]:
+                cid = games_by_cids[game_index]
+                vote[cid] += 1
+            c_id = np.argmax(np.asarray(vote))
         if c_id == 0:
             return partial(wall_behind, -3)
         elif c_id == 1:

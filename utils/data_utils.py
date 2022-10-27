@@ -153,7 +153,10 @@ def read_running_logs_by_cid(monitor_path_all, read_keys, max_episodes, max_rewa
         running_logs = file.readlines()
     key_indices = {}
     record_keys = running_logs[1].replace('\n', '').split(',')
-    cid_index = record_keys.index('c_id')
+    try:
+        aid_index = record_keys.index('a_id')
+    except:  # TODO: remove it later
+        aid_index = record_keys.index('c_id')
     for key in read_keys:
         key_idx = record_keys.index(key)
         key_indices.update({key: key_idx})
@@ -185,7 +188,7 @@ def read_running_logs_by_cid(monitor_path_all, read_keys, max_episodes, max_rewa
             running_performance = running_logs_all[i][line_num]
             log_items = running_performance.split(',')
             results = [item.replace("\n", "") for item in log_items]
-            cid = int(results[cid_index])
+            cid = int(results[aid_index])
             # print(cid)
             for key in read_keys:
                 read_running_logs_by_cid[cid][key].append(float(results[key_indices[key]]))

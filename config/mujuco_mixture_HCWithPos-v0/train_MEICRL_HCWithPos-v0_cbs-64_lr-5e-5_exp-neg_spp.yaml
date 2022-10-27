@@ -21,7 +21,7 @@ env:
   visualize_info_ranges: [[-30, 30]]
 
 running:
-  n_iters: 15
+  n_iters: 20
   n_eval_episodes: 10
   save_every: 1
   max_seq_length: 10
@@ -93,3 +93,4 @@ CN:
   use_expert_negative: True
   sample_probing_points: True
   n_probings: 10
+  contrastive_weight: 1.0

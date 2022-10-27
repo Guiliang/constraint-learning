@@ -316,6 +316,18 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         self.group = group
         self.latent_dim = wrapper_config['latent_dim']
 
+    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
+        obs, reward, done, info = self.env.step(action)
+        c_id = self.wrapper_config['constraint_id']
+        ture_cost_function = get_true_constraint_function(env_id=self.spec.id,
+                                                          env_configs=self.wrapper_config,
+                                                          c_id=c_id)
+        lag_cost_ture = int(ture_cost_function(obs, action) == True)
+
+        # add true constraint for evaluation
+        info.update({'lag_cost': lag_cost_ture})
+        return obs, reward, done, info
+
     def step_with_code(self, action: np.ndarray, agent_code: np.ndarray, games_by_aids: dict) -> Tuple[
         np.ndarray, float, bool, Dict[Any, Any]]:
         # if self.wrapper_config['constraint_id'] is None:  # dynamic constraint
@@ -330,6 +342,7 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         obs, reward, done, info = self.env.step(action)
         ture_cost_function = get_true_constraint_function(env_id=self.spec.id,
                                                           env_configs=self.wrapper_config,
+                                                          c_id=None,  # unknown
                                                           agent_id=aid,
                                                           games_by_aids=games_by_aids)
         lag_cost_ture = int(ture_cost_function(obs, action) == True)

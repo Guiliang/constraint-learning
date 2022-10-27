@@ -102,6 +102,7 @@ def train(args):
                                             part_data=partial_data,
                                             multi_env=multi_env,
                                             constraint_id=config['env']['constraint_id'],
+                                            latent_dim=config['running']['latent_dim'],
                                             )
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
@@ -118,6 +119,7 @@ def train(args):
                                           log_file=log_file,
                                           part_data=partial_data,
                                           constraint_id=config['env']['constraint_id'],
+                                          latent_dim=config['running']['latent_dim'],
                                           )
 
     mem_loading_environment = process_memory()
