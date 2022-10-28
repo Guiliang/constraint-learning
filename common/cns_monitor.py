@@ -132,7 +132,8 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
             #     if not self.event_dict['is_constraint_break_{0}'.format(cid)]:
             #         is_constraint_break = 0
             # if is_constraint_break:
-            self.event_dict['is_constraint_break'] = info['lag_cost']
+            if info['lag_cost']:
+                self.event_dict['is_constraint_break'] = 1
             # if self.env.spec.id == 'HCWithPos-v0' and info['xpos'] <= -3:
             #     self.event_dict['is_constraint_break'] = 1
             # if self.env.spec.id == 'LGW-v0' and action == 1:

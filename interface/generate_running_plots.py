@@ -43,6 +43,8 @@ def generate_plots():
         "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5": 'MEICRL_cbs-64_lr-1e-4_ft-2e5',
         "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-5e5": 'MEICRL_cbs-64_lr-1e-4_ft-5e5',
         "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-1e6": 'MEICRL_cbs-64_lr-1e-4_ft-1e6',
+        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5": 'MEICRL_cbs-64_lr-5e-4_ft-2e5',
+        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5": 'MEICRL_cbs-64_lr-5e-5_ft-2e5',
     }
 
     modes = ['train']
@@ -77,6 +79,12 @@ def generate_plots():
                 ],
                 "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-1e6": [
                     '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-1e6_exp-neg-multi_env-Oct-26-2022-15:17-seed_123/',
+                ],
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5": [
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg-multi_env-Oct-27-2022-09:36-seed_123/',
+                ],
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5": [
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-multi_env-Oct-27-2022-09:37-seed_123/',
                 ],
             }
         else:
