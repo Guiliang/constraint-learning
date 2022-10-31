@@ -18,7 +18,7 @@ source /pkgs/anaconda3/bin/activate
 conda activate cn-py37
 pip install -e ./mujuco_environment
 cd ./interface/
-python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg.yaml -n 5 -s 123 -l "$log_dir"
-python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg.yaml -n 5 -s 321 -l "$log_dir"
-python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg.yaml -n 5 -s 666 -l "$log_dir"
+python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-5_ft-2e5_exp-neg.yaml -n 5 -s 123 -l "$log_dir"
+python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-5_ft-2e5_exp-neg.yaml -n 5 -s 321 -l "$log_dir"
+python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-5_ft-2e5_exp-neg.yaml -n 5 -s 666 -l "$log_dir"
 echo shell finish running

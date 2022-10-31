@@ -41,8 +41,7 @@ def generate_plots():
     env_id = 'HCWithPos-v0'
     method_names_labels_dict = {
         "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5": 'MEICRL_cbs-64_lr-1e-4_ft-2e5',
-        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-5e5": 'MEICRL_cbs-64_lr-1e-4_ft-5e5',
-        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-1e6": 'MEICRL_cbs-64_lr-1e-4_ft-1e6',
+        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5": 'MEICRL_cbs-64_lr-3e-4_ft-2e5',
         "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5": 'MEICRL_cbs-64_lr-5e-4_ft-2e5',
         "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5": 'MEICRL_cbs-64_lr-5e-5_ft-2e5',
     }
@@ -72,20 +71,17 @@ def generate_plots():
             title = 'Blocked Half-Cheetah'
             log_path_dict = {
                 "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5_exp-neg-multi_env-Oct-26-2022-15:19-seed_123/',
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:01-seed_123/',
                 ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-5e5": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-5e5_exp-neg-multi_env-Oct-26-2022-15:19-seed_123/',
-                ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-1e6": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-1e6_exp-neg-multi_env-Oct-26-2022-15:17-seed_123/',
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5": [
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:01-seed_123/',
                 ],
                 "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg-multi_env-Oct-27-2022-09:36-seed_123/',
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:01-seed_123/',
                 ],
                 "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-multi_env-Oct-27-2022-09:37-seed_123/',
-                ],
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-multi_env-Oct-28-2022-17:39-seed_123/',
+                ]
             }
         else:
             raise ValueError("Unknown env id {0}".format(env_id))
@@ -110,7 +106,8 @@ def generate_plots():
                     monitor_path_all.append(log_path + 'test/test.monitor.csv')
 
                 results_by_cid = read_running_logs_by_cid(monitor_path_all=monitor_path_all, read_keys=plot_key,
-                                                          max_episodes=(max_episodes + float(max_episodes / 5))*aid_num,
+                                                          max_episodes=(max_episodes + float(
+                                                              max_episodes / 5)) * aid_num,
                                                           max_reward=max_reward, min_reward=min_reward, cid_num=aid_num)
                 for aid in range(aid_num):
                     all_results_by_cid[aid].append(results_by_cid[aid])
@@ -152,8 +149,10 @@ def generate_plots():
                 mean_results_moving_avg_dict = {}
                 std_results_moving_avg_dict = {}
                 for method_name in method_names_labels_dict.keys():
-                    mean_results_moving_avg_dict.update({method_name: all_mean_dict_by_cid[aid][method_name][plot_key[idx]]})
-                    std_results_moving_avg_dict.update({method_name: all_std_dict_by_cid[aid][method_name][plot_key[idx]]})
+                    mean_results_moving_avg_dict.update(
+                        {method_name: all_mean_dict_by_cid[aid][method_name][plot_key[idx]]})
+                    std_results_moving_avg_dict.update(
+                        {method_name: all_std_dict_by_cid[aid][method_name][plot_key[idx]]})
                     if (plot_key[idx] == 'reward_nc' or plot_key[idx] == 'constraint') and mode == 'test':
                         print(method_name, plot_key[idx],
                               all_mean_dict_by_cid[aid][method_name][plot_key[idx]][-1],
