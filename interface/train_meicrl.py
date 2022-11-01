@@ -49,7 +49,7 @@ def train(config):
     else:
         log_file = None
     # debug_msg = ''
-    debug_msg = 'sanity_check-'
+    debug_msg = 'semi_check-'
     if debug_mode:
         config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
@@ -236,6 +236,7 @@ def train(config):
         cn_parameters.update({'use_expert_negative': config['CN']['use_expert_negative']})
         cn_parameters.update({'sample_probing_points': config['CN']['sample_probing_points']})
         cn_parameters.update({'n_probings': config['CN']['n_probings']})
+        cn_parameters.update({'negative_weight': config['CN']['negative_weight']})
         constraint_net = MixtureConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown group: {0}".format(config['group']))

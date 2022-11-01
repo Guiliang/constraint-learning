@@ -45,6 +45,7 @@ class MixtureConstraintNet(ConstraintNet):
             max_seq_length: float = 10,
             init_density: bool = True,
             use_expert_negative: bool = False,
+            negative_weight: float = 1.0,
             sample_probing_points: bool = False,
             n_probings: int = 1,
             eps: float = 1e-5,
@@ -84,6 +85,7 @@ class MixtureConstraintNet(ConstraintNet):
         self.max_seq_length = max_seq_length
         self.init_density = init_density
         self.use_expert_negative = use_expert_negative
+        self.negative_weight = negative_weight
         self.sample_probing_points = sample_probing_points
         self.eta = eta
         self.pivot_vectors_by_cid = {}
@@ -313,7 +315,7 @@ class MixtureConstraintNet(ConstraintNet):
         expert_code_games = [None for i in range(len(expert_data_games))]
         self._init_games_by_aids()
         for expert_aid in range(self.latent_dim):
-            if 'sanity_check' in debug_msg:
+            if 'sanity_check' in debug_msg or 'semi_check' in debug_msg:
                 top_ids = []
                 for i in range(len(expert_data_games)):
                     ground_truth_id = np.argmax(other_parameters['expert_codes'][i][0])
@@ -440,7 +442,8 @@ class MixtureConstraintNet(ConstraintNet):
                         neg_expert_preds = self.__call__(torch.cat([neg_expert_data_batch, neg_expert_cid_code], dim=1))
                         neg_exp_loss = self.criterion(neg_expert_preds,
                                                       torch.zeros(*neg_expert_preds.size()).to(self.device))
-                        discriminator_loss = (expert_loss + nominal_loss + neg_exp_loss) + regularizer_loss
+                        discriminator_loss = (expert_loss + self.negative_weight * nominal_loss +
+                                              self.negative_weight * neg_exp_loss) + regularizer_loss
                     else:
                         discriminator_loss = (expert_loss + nominal_loss) + regularizer_loss
                     discriminator_loss_record.append(discriminator_loss.item())

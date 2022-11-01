@@ -11,8 +11,10 @@ cd ./interface/
 #nohup python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5_exp-neg.yaml -s 123 -n 5 -l "$log_dir" > nohup.out 2>&1 &
 #nohup python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg.yaml -s 123 -n 5 -l "$log_dir" > nohup.out 2>&1 &
 #nohup python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg.yaml -s 123 -n 5 -l "$log_dir" > nohup.out 2>&1 &
-nohup python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-5_ft-2e5_exp-neg.yaml -s 123 -n 5 -l "$log_dir" > nohup.out 2>&1 &
+#nohup python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-5_ft-2e5_exp-neg.yaml -s 123 -n 5 -l "$log_dir" > nohup.out 2>&1 &
 #nohup python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-5_ft-2e5_exp-neg.yaml -s 123 -n 5 -l "$log_dir" > nohup.out 2>&1 &
+#nohup python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5.yaml -s 123 -n 5 -l "$log_dir" > nohup2.out 2>&1 &
+nohup python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1.yaml -s 666 -n 5 -l "$log_dir" > nohup.out 2>&1 &
 #process_id=$!
 #wait $process_id
 #echo shell finish running round $process_id

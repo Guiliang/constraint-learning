@@ -91,6 +91,7 @@ CN:
   anneal_clr_by_factor: 0.6
   latent_dim: 2
   use_expert_negative: True
+  negative_weight: 0.5
   sample_probing_points: False
   n_probings: 10
-  contrastive_weight: 0.5
+  contrastive_weight: 0.1

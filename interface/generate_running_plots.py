@@ -40,10 +40,14 @@ def plot_results(mean_results_moving_avg_dict,
 def generate_plots():
     env_id = 'HCWithPos-v0'
     method_names_labels_dict = {
-        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5": 'MEICRL_cbs-64_lr-1e-4_ft-2e5',
-        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5": 'MEICRL_cbs-64_lr-3e-4_ft-2e5',
-        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5": 'MEICRL_cbs-64_lr-5e-4_ft-2e5',
-        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5": 'MEICRL_cbs-64_lr-5e-5_ft-2e5',
+        # "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5": 'MEICRL_cbs-64_lr-1e-4_ft-2e5',
+        # "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5": 'MEICRL_cbs-64_lr-3e-4_ft-2e5',
+        # "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5": 'MEICRL_cbs-64_lr-5e-4_ft-2e5',
+        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg": 'MEICRL_cbs-64_lr-5e-5_ft-2e5_exp-neg',
+        'sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-5_ft-2e5_exp-neg': 'MEICRL_cbs-64_lr-1e-5_ft-2e5_exp-neg',
+        'sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-5_ft-2e5_exp-neg': 'MEICRL_cbs-64_lr-3e-5_ft-2e5_exp-neg',
+        'sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5': 'MEICRL_cbs-64_lr-5e-5_ft-2e5',
+        'sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1': 'MEICRL_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1',
     }
 
     modes = ['train']
@@ -70,18 +74,37 @@ def generate_plots():
                                'constraint': None}
             title = 'Blocked Half-Cheetah'
             log_path_dict = {
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5": [
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5_exp-neg": [
                     '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:01-seed_123/',
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5_exp-neg-multi_env-Oct-27-2022-23:16-seed_321/',
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:44-seed_666/',
                 ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5": [
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5_exp-neg": [
                     '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:01-seed_123/',
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5_exp-neg-multi_env-Oct-27-2022-23:16-seed_666/',
                 ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5": [
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg": [
                     '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:01-seed_123/',
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg-multi_env-Oct-27-2022-09:57-seed_321/',
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg-multi_env-Oct-27-2022-23:16-seed_666/',
+                ],
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg": [
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-multi_env-Oct-28-2022-17:39-seed_123/',
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-multi_env-Oct-27-2022-23:16-seed_321/',
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-multi_env-Oct-28-2022-12:13-seed_666/',
+                ],
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-5_ft-2e5_exp-neg": [
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-5_ft-2e5_exp-neg-multi_env-Oct-31-2022-20:29-seed_123/',
+                ],
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-5_ft-2e5_exp-neg": [
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-5_ft-2e5_exp-neg-multi_env-Oct-31-2022-20:29-seed_123/',
                 ],
                 "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-multi_env-Oct-28-2022-17:39-seed_123/',
-                ]
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5-multi_env-Oct-31-2022-20:33-seed_123/',
+                ],
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1": [
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1-multi_env-Oct-31-2022-20:29-seed_123/',
+                ],
             }
         else:
             raise ValueError("Unknown env id {0}".format(env_id))
