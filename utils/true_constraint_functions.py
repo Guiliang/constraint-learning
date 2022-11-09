@@ -41,6 +41,8 @@ def get_true_cost_function(env_id, env_configs={}):
     #     return lap_grid_world
     # elif env_id in ["AntTest-v0", 'HalfCheetahTest-v0', 'Walker2dTest-v0', 'SwimmerTest-v0']:
     #     return partial(torque_constraint, 0.5)
+    elif env_id in ["Circle-v0", "CircleNeg-v0"]:
+        return partial(wall_circle, 0.4, 0, 0.4)
     else:
         print("Cost function for %s is not implemented yet. Returning null cost function" % env_id)
         return null_cost
@@ -58,6 +60,10 @@ def wall_infront(pos, obs, acs):
     return (obs[..., 0] > pos)
 
 
+def wall_circle(r, x0, y0, obs, acs):
+    return (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 > (1.1*r)**2  # 0.1r for the noise
+
+
 def wall_in(unsafe_states, obs, acs):
     return (obs in unsafe_states)
 
@@ -68,7 +74,7 @@ def wall_behind_and_infront(pos_back, pos_front, obs, acs):
 
 def null_cost(x, *args):
     # Zero cost everywhere
-    return np.zeros(x.shape[:1])
+    return 0
 
 
 def torque_constraint(threshold, obs, acs):

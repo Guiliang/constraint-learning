@@ -1,3 +1,4 @@
+import itertools
 import os
 
 import numpy as np
@@ -9,9 +10,9 @@ from utils.data_utils import del_and_make
 from utils.plot_utils import plot_curve
 
 
-def plot_constraints(cost_function, feature_range, select_dim, obs_dim, acs_dim,
-                     save_name, device='cpu', feature_data=None, feature_cost=None, feature_name=None,
-                     empirical_input_means=None, num_points=1000, axis_size=24):
+def constraint_visualization_1d(cost_function, feature_range, select_dim, obs_dim, acs_dim,
+                                save_name, device='cpu', feature_data=None, feature_cost=None, feature_name=None,
+                                empirical_input_means=None, num_points=1000, axis_size=24):
     import matplotlib as mpl
     mpl.rcParams['xtick.labelsize'] = axis_size
     mpl.rcParams['ytick.labelsize'] = axis_size
@@ -51,6 +52,41 @@ def plot_constraints(cost_function, feature_range, select_dim, obs_dim, acs_dim,
     fig.savefig(save_name)
     plt.close(fig=fig)
 
+
+def constraint_visualization_2d(cost_function, feature_range, select_dims,
+                                obs_dim, acs_dim,
+                                num_points_per_feature=100,
+                                axis_size=20, save_path=None, empirical_input_means=None):
+    import matplotlib as mpl
+    mpl.rcParams['xtick.labelsize'] = axis_size
+    mpl.rcParams['ytick.labelsize'] = axis_size
+
+    selected_feature_1_generation = np.linspace(feature_range[0][0], feature_range[0][1], num_points_per_feature)
+    selected_feature_2_generation = np.linspace(feature_range[1][1], feature_range[1][0], num_points_per_feature)
+    selected_feature_all = np.asarray(
+        [d for d in itertools.product(selected_feature_1_generation, selected_feature_2_generation)])
+    tmp = selected_feature_all.reshape([num_points_per_feature, num_points_per_feature, 2]).transpose(1, 0, 2)
+    if empirical_input_means is None:
+        input_all = np.zeros((num_points_per_feature ** 2, obs_dim + acs_dim))
+    else:
+        assert len(empirical_input_means) == obs_dim + acs_dim
+        input_all = np.expand_dims(empirical_input_means, 0).repeat(num_points_per_feature ** 2, axis=0)
+    input_all[:, select_dims[0]] = selected_feature_all[:, 0]
+    input_all[:, select_dims[1]] = selected_feature_all[:, 1]
+
+    obs = input_all[:, :obs_dim]
+    acs = input_all[:, obs_dim:]
+
+    with torch.no_grad():
+        preds = cost_function(obs=obs, acs=acs)
+    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+    im = ax.imshow(preds.reshape([num_points_per_feature, num_points_per_feature]).transpose(1, 0),
+                   cmap='gray',  # 'cool',
+                   interpolation="nearest",
+                   extent=[feature_range[0][0], feature_range[0][1], feature_range[1][0], feature_range[1][1]])
+    cbar = plt.colorbar(im)
+    cbar.set_label("Constraint")
+    plt.savefig(os.path.join(save_path, "constraint_visualization.png".format()))
 
 class PlotCallback(callbacks.BaseCallback):
     """

@@ -99,6 +99,7 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         ture_cost_function = get_true_cost_function(env_id=self.spec.id,
                                                     env_configs=self.wrapper_config)
         lag_cost_ture = int(ture_cost_function(obs, action) == True)
+        # print(obs[-2], obs[-1], lag_cost_ture)
         # print(obs[0])
         # print(obs)
         # if lag_cost_ture == 1:
@@ -220,7 +221,7 @@ def get_all_env_ids(num_threads, env):
 
 
 def is_mujoco(env_id):
-    mujoco_env_id = ['HC', 'AntWall', 'Pendulum', 'Walker', 'LGW', 'WGW', 'Swimmer']
+    mujoco_env_id = ['HC', 'AntWall', 'Pendulum', 'Walker', 'LGW', 'WGW', 'Swimmer', 'Circle']
     # if 'HC' in env_id or 'LGW' in env_id or 'AntWall' in env_id or 'Pendulum' in env_id or 'Walker' in env_id:
     for item in mujoco_env_id:
         if item in env_id:
@@ -294,9 +295,13 @@ def get_obs_feature_names(env, env_id):
              'distance_togoal_via_referencepath_0', 'distance_togoal_via_referencepath_1',
              'distance_togoal_via_referencepath_2']
 
-    if is_mujoco(env_id):
-        feature_names.append('(pls visit mujoco xml settings at: {0})'.format(
-            'https://www.gymlibrary.ml/environments/mujoco/'))
+    elif is_mujoco(env_id):
+        if env_id == 'Circle-v0' or env_id == 'CircleNeg-v0':
+            # feature_names = ["x_t", "y_t", "x_t-1", "y_t-1", "x_t-2", "y_t-2", "x_t-3", "y_t-3", "x_t-4", "y_t-4"]
+            feature_names = ["x_t-4", "y_t-4", "x_t-3", "y_t-3", "x_t-2", "y_t-2", "x_t-1", "y_t-1", "x_t", "y_t"]
+        else:
+            feature_names = ['(pls visit mujoco xml settings at: {0})'.format(
+                'https://www.gymlibrary.ml/environments/mujoco/')]
     return feature_names
 
 

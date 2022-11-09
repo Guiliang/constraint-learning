@@ -1,8 +1,8 @@
 task_name="train-ppo-lag"
-launch_time=$(date +"%H:%M-%m-%d-%y")
+launch_time=$(date +"%m-%d-%y-%H:%M:%S")
 log_dir="log-local-${task_name}-${launch_time}.out"
 source /scratch1/miniconda3/bin/activate
-conda activate me-py37
+conda activate cr37
 export MUJOCO_PY_MUJOCO_PATH=/scratch1/PycharmProjects/constraint-learning-benchmark/.mujoco/mujoco210
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch1/PycharmProjects/constraint-learning-benchmark/.mujoco/mujoco210/bin:/usr/lib/nvidia
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia

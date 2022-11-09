@@ -13,7 +13,7 @@ cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_sampler import ConstrainedRLSampler
 from common.cns_evaluation import evaluate_icrl_policy
-from common.cns_visualization import plot_constraints
+from common.cns_visualization import constraint_visualization_1d, constraint_visualization_2d
 from common.cns_env import make_train_env, make_eval_env
 from common.memory_buffer import IRLDataQueue
 from constraint_models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
@@ -56,7 +56,7 @@ def train(config):
     if debug_mode:  # this is for a fast debugging, use python train_icrl.py -d 1 to enable the debug model
         config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 500
+        config['PPO']['forward_timesteps'] = 1030
         config['PPO']['n_steps'] = 100
         config['PPO']['n_epochs'] = 2
         config['running']['n_eval_episodes'] = 10
@@ -64,7 +64,7 @@ def train(config):
         config['running']['sample_rollouts'] = 10
         config['running']['sample_data_num'] = 500
         config['running']['store_sample_num'] = 1000
-        config['CN']['cn_batch_size'] = 3
+        config['CN']['cn_batch_size'] = 1000
         config['CN']['backward_iters'] = 2
         debug_msg = 'debug-'
         partial_data = True
@@ -391,24 +391,37 @@ def train(config):
         # Evaluate:
         # reward on true environment
         # sync_envs_normalization(train_env, eval_env)
+        save_path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
+        if itr % config['running']['save_every'] == 0:
+            del_and_make(save_path)
+        else:
+            save_path = None
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
             evaluate_icrl_policy(nominal_agent, sampling_env,
+                                 render=True if 'Circle' in config['env']['train_env_id'] else False,
                                  record_info_names=config['env']["record_info_names"],
                                  n_eval_episodes=config['running']['n_eval_episodes'],
                                  deterministic=False,
-                                 cost_info_str=config['env']['cost_info_str'])
+                                 cost_info_str=config['env']['cost_info_str'],
+                                 save_path=save_path,)
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Evaluation', log_file=log_file)
 
         # Save
         # (1) periodically
         if itr % config['running']['save_every'] == 0:
-            path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
-            del_and_make(path)
-            nominal_agent.save(os.path.join(path, "nominal_agent"))
-            constraint_net.save(os.path.join(path, "constraint_net"))
+            nominal_agent.save(os.path.join(save_path, "nominal_agent"))
+            constraint_net.save(os.path.join(save_path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
-                train_env.save(os.path.join(path, "train_env_stats.pkl"))
+                train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
+            if 'Circle' in config['env']['train_env_id']:
+                constraint_visualization_2d(cost_function=constraint_net.cost_function,
+                                            feature_range=config['env']["visualize_info_ranges"],
+                                            select_dims=config['env']["record_info_input_dims"],
+                                            obs_dim=constraint_net.obs_dim,
+                                            acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                            save_path=save_path
+                                            )
             for record_info_idx in range(len(config['env']["record_info_names"])):
                 record_info_name = config['env']["record_info_names"][record_info_idx]
                 plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
@@ -416,17 +429,17 @@ def train(config):
                     empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
                 else:
                     empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
-                plot_constraints(cost_function=constraint_net.cost_function,
-                                 feature_range=config['env']["visualize_info_ranges"][record_info_idx],
-                                 select_dim=config['env']["record_info_input_dims"][record_info_idx],
-                                 obs_dim=constraint_net.obs_dim,
-                                 acs_dim=1 if is_discrete else constraint_net.acs_dim,
-                                 device=constraint_net.device,
-                                 save_name=os.path.join(path, "{0}_visual.png".format(record_info_name)),
-                                 feature_data=plot_record_infos,
-                                 feature_cost=plot_costs,
-                                 feature_name=record_info_name,
-                                 empirical_input_means=empirical_input_means)
+                constraint_visualization_1d(cost_function=constraint_net.cost_function,
+                                            feature_range=config['env']["visualize_info_ranges"][record_info_idx],
+                                            select_dim=config['env']["record_info_input_dims"][record_info_idx],
+                                            obs_dim=constraint_net.obs_dim,
+                                            acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                            device=constraint_net.device,
+                                            save_name=os.path.join(save_path, "{0}_visual.png".format(record_info_name)),
+                                            feature_data=plot_record_infos,
+                                            feature_cost=plot_costs,
+                                            feature_name=record_info_name,
+                                            empirical_input_means=empirical_input_means)
 
         # (2) best
         if mean_nc_reward > best_true_reward:

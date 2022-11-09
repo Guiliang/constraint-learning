@@ -71,27 +71,27 @@ def generate_plots():
     #                    'constraint': (0, 1.1),
     #                    'reward_valid': (0, 5000),
     #                    }
-    # method_names_labels_dict = {
-    #     "GAIL_HCWithPos-v0_with-action": 'GACL',  # 'GAIL',
-    #     "Binary_HCWithPos-v0_with-action": 'BC2L',  # 'Binary',
-    #     "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
-    #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-1e-1": "VICRL2",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-5e-1": "VICRL-VaR",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-9e-1": "VICRL4",
-    #     # "PPO_Pos": 'PPO',
-    #     "PPO_lag_Pos": 'PPO_lag',
-    # }
+    # # method_names_labels_dict = {
+    # #     "GAIL_HCWithPos-v0_with-action": 'GACL',  # 'GAIL',
+    # #     "Binary_HCWithPos-v0_with-action": 'BC2L',  # 'Binary',
+    # #     "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
+    # #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
+    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-1e-1": "VICRL2",
+    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-5e-1": "VICRL-VaR",
+    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-9e-1": "VICRL4",
+    # #     # "PPO_Pos": 'PPO',
+    # #     "PPO_lag_Pos": 'PPO_lag',
+    # # }
     # # ================= rebuttal ====================
     # max_episodes = 5000
     # img_size = None
     # save = False
-    # title = 'Dataset with Noise'
+    # title = 'Incomplete Dataset'
     # method_names_labels_dict = {
     #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting1": "VICRL1",
     #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": "VICRL2",
     #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting3": "VICRL3",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1_no_is": "VICRL1",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1_no_is": "VICRL-Full",
     #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1_no_is": "VICRL-0.3",
     #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1_no_is": "VICRL3",
     #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1-b_no_is": "VICRL1",
@@ -303,9 +303,9 @@ def generate_plots():
     #     # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40_VaR-5e-1": "VICRL5",
     #     # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40_VaR-7e-1": "VICRL6",
     #     # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40_VaR-9e-1": "VICRL7",
-    #     "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO',
+    #     # "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO',
     #     "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
-    #     # "Bound": 'Bound'
+    #     "Bound": 'Bound'
     # }
 
     # env_id = 'highD_velocity_constraint_dim2'
@@ -502,14 +502,14 @@ def generate_plots():
     min_reward = -50
     axis_size = 20
     img_size = [9, 6.5]
-    save = False
+    save = True
     title = 'HighD Velocity and Distance Constraint'
     constraint_keys = ['is_too_closed', 'is_over_speed']
     plot_key = ['reward', 'reward_nc', 'reward_valid', 'is_collision', 'is_off_road',
                 'is_goal_reached', 'is_time_out', 'avg_velocity', 'is_over_speed', 'avg_distance',
                 'is_too_closed', 'success_rate']
     label_key = ['Rewards', 'Feasible Rewards', 'Feasible Rewards', 'Collision Rate', 'Off Road Rate',
-                 'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Over Speed Rate', 'Avg. Distance',
+                 'Goal Reached Rate', 'Time Out Rate', 'Avg. Velocity', 'Speed Constraint Violation Rate', 'Avg. Distance',
                  'Distance Constraint Violation Rate', 'Success Rate']
     plot_y_lim_dict = {'reward': None,
                        'reward_nc': None,
@@ -537,18 +537,18 @@ def generate_plots():
         'success_rate': 1,
     }
     method_names_labels_dict = {
+        'GAIL_velocity_distance_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20': 'GACL',
+        'Binary_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40_dm-20': 'BC2L',
+        'ICRL_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40_dm-20': 'MECL',
+        # 'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_no-buffer_vm-40_dm-20': 'VICRL',
+        # 'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40_dm-20': 'VICRL1',
+        # 'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20': 'VICRL2',
+        # 'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_clay-64-64_no-buffer_vm-40_dm-20': 'VICRL3',
+        'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_clay-64-64_no-buffer_vm-40_dm-20': 'VICRL',
+        # 'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_clay-64-64-64_no-buffer_vm-40_dm-20': 'VICRL5',
         # "ppo_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20": 'PPO',
         "ppo_lag_highD_velocity_distance_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40_dm-20": 'PPO_lag',
-        'GAIL_velocity_distance_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20': 'GACL',
-        'Binary_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20': 'BC2L',
-        'ICRL_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20': 'MECL',
-        'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_no-buffer_vm-40_dm-20': 'VICRL',
-        'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40_dm-20': 'VICRL1',
-        'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20': 'VICRL2',
-        'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_clay-64-64_no-buffer_vm-40_dm-20': 'VICRL3',
-        'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_clay-64-64_no-buffer_vm-40_dm-20': 'VICRL',
-        'VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_clay-64-64-64_no-buffer_vm-40_dm-20': 'VICRL5',
-        # "Bound": 'Bound'
+        "Bound": 'Bound'
     }
 
     # env_id = 'highD_distance_constraint_dm-40'
@@ -596,8 +596,8 @@ def generate_plots():
         "VICRL6": "-",
         "VICRL7": "-",
         "VICRL8": "-",
-        "VICRL-0.3": "-",
-        "VICRL-0.5": "-",
+        "VICRL-0.3": ":",
+        "VICRL-0.5": "-.",
         "VICRL-Full": "-",
         "Ram": "-",
         "Ram-1": "-",

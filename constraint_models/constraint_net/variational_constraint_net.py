@@ -210,6 +210,7 @@ class VariationalConstraintNet(ConstraintNet):
         expert_preds_all = []
 
         for itr in tqdm(range(iterations)):
+            print(itr)
             # Compute IS weights
             if self.importance_sampling:
                 with th.no_grad():
@@ -233,8 +234,8 @@ class VariationalConstraintNet(ConstraintNet):
                 is_batch = is_weights[nom_batch_indices][..., None]
 
                 # Make predictions
-
                 nominal_alpha_beta = self.network(nominal_batch)
+                # print(torch.max(nominal_alpha_beta).data)
                 nominal_alpha = nominal_alpha_beta[:, 0]
                 nominal_beta = nominal_alpha_beta[:, 1]
                 nominal_preds = torch.distributions.Beta(nominal_alpha, nominal_beta).rsample()
@@ -276,6 +277,7 @@ class VariationalConstraintNet(ConstraintNet):
                 # Update
                 self.optimizer.zero_grad()
                 loss.backward()
+                # print(loss.data)
                 self.optimizer.step()
 
         loss_all = torch.stack(loss_all, dim=0)
