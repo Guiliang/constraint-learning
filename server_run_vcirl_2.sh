@@ -1,4 +1,4 @@
-task_name="train-vicrl_1"
+task_name="train-vicrl_2"
 launch_time=$(date +"%m-%d-%y-%H:%M:%S")
 log_dir="log-server-${task_name}-${launch_time}.out"
 source /data/Galen/miniconda3-4.12.0/bin/activate
