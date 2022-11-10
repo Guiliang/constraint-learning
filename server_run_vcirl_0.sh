@@ -10,7 +10,6 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 pip install -e ./mujuco_environment/
 cd ./interface/
 export CUDA_VISIBLE_DEVICES=0
-python train_icrl.py ../config/mujoco_Circle-v0/train_VICRL_Circle_dim2.yaml -n 5 -s 123 -l "$log_dir"
-python train_icrl.py ../config/mujoco_Circle-v0/train_VICRL_Circle_dim2.yaml -n 5 -s 321 -l "$log_dir"
-python train_icrl.py ../config/mujoco_Circle-v0/train_VICRL_Circle_dim2.yaml -n 5 -s 666 -l "$log_dir"
+#python train_icrl.py ../config/mujoco_Circle-v0/train_VICRL_Circle_dim2.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujoco_Circle-v0/train_VICRL_Circle_dim2_acbf-8e-1.yaml -n 5 -s 123 -l "$log_dir"
 cd ../
