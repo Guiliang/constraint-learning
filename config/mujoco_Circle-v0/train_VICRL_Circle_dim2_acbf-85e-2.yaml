@@ -84,6 +84,6 @@ CN:
   train_gail_lambda: False
   cn_eps: 0.00001
   backward_iters: 10
-  anneal_clr_by_factor: 0.8
+  anneal_clr_by_factor: 0.85
   di_prior: [1, 1]
   mode: 'sample'

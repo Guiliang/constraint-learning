@@ -20,7 +20,7 @@ env:
   visualize_info_ranges: [[-1, 1], [-1, 1]]
 
 running:
-  n_iters: 200
+  n_iters: 100
   n_eval_episodes: 3
   save_every: 10
   max_seq_length: null

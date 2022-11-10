@@ -60,7 +60,7 @@ PPO:
   forward_timesteps: 50000
   clip_range_reward_vf: null
   clip_range_cost_vf: null
-  penalty_initial_value: 1
+  penalty_initial_value: 20
   penalty_learning_rate: 0.1
   budget: 0
   proportional_control_coeff: 10
@@ -84,6 +84,6 @@ CN:
   train_gail_lambda: False
   cn_eps: 0.00001
   backward_iters: 10
-  anneal_clr_by_factor: 0.8
+  anneal_clr_by_factor: 0.9
   di_prior: [1, 1]
   mode: 'sample'
