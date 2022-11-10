@@ -125,6 +125,8 @@ def train(config):
                                             multi_env=multi_env,
                                             part_data=partial_data,
                                             log_file=log_file,
+                                            noise_mean=config['env']['noise_mean'],
+                                            noise_std=config['env']['noise_std'],
                                             )
     all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
     print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
@@ -150,7 +152,10 @@ def train(config):
                                               cost_info_str=config['env']['cost_info_str'],
                                               part_data=partial_data,
                                               multi_env=sample_multi_env,
-                                              log_file=log_file)
+                                              log_file=log_file,
+                                              noise_mean=config['env']['noise_mean'],
+                                              noise_std=config['env']['noise_std'],
+                                              )
     if "planning" in config['running'].keys() and config['running']['planning']:
         planning_config = config['Plan']
         config['Plan']['top_candidates'] = int(config['running']['sample_rollouts'])

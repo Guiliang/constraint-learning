@@ -66,7 +66,10 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
                 env_configs['test_reset_config_path'] += '_debug'
                 env_configs['meta_scenario_path'] += '_debug'
     else:
-        env_configs = {}
+        if 'Noise' in env_id:
+            env_configs = {'noise_mean': kwargs['noise_mean'], 'noise_std': kwargs['noise_std']}
+        else:
+            env_configs = {}
     env = [make_env(env_id=env_id,
                     env_configs=env_configs,
                     rank=i,
@@ -131,7 +134,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
 
 def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
                   mode='test', use_cost=False, normalize_obs=True, cost_info_str='cost',
-                  part_data=False, multi_env=False, log_file=None):
+                  part_data=False, multi_env=False, **kwargs):
     if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
@@ -144,7 +147,10 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
         if is_commonroad(env_id) and mode == 'test':
             env_configs["test_env"] = True
     else:
-        env_configs = {}
+        if 'Noise' in env_id:
+            env_configs = {'noise_mean': kwargs['noise_mean'], 'noise_std': kwargs['noise_std']}
+        else:
+            env_configs = {}
     # env = [lambda: gym.make(env_id, **env_configs)]
     # env = [make_env(env_id, env_configs, 0, os.path.join(save_dir, mode))]
     env = [make_env(env_id=env_id,

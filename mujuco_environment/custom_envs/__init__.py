@@ -70,6 +70,15 @@ register(
     nondeterministic=False,
 )
 
+register(
+    id="HCWithPosNoise-v0",
+    entry_point=ABS_PATH+".half_cheetah:HalfCheetahWithPosNoise",
+    max_episode_steps=CHEETAH_LEN,
+    reward_threshold=None,
+    nondeterministic=False,
+)
+
+
 # =========================================================================== #
 #                                   Walker                                    #
 # =========================================================================== #

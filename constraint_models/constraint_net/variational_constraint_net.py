@@ -252,8 +252,12 @@ class VariationalConstraintNet(ConstraintNet):
                     regularizer_loss = th.tensor(0)
                     loss = nominal_loss + expert_loss
                 else:
-                    expert_loss = th.mean(th.log(expert_preds + self.eps))
-                    nominal_loss = th.mean(is_batch * th.log(nominal_preds + self.eps))
+                    expert_preds = torch.clip(expert_preds, min=self.eps, max=1)
+                    expert_loss = th.mean(th.log(expert_preds))
+                    # expert_loss = th.mean(th.log(expert_preds + self.eps))
+                    nominal_preds = torch.clip(nominal_preds, min=self.eps, max=1)
+                    nominal_loss = th.mean(is_batch * th.log(nominal_preds))
+                    # nominal_loss = th.mean(is_batch * th.log(nominal_preds + self.eps))
                     nominal_batch_size = nominal_preds.shape[0]
                     expert_batch_size = expert_preds.shape[0]
                     regularizer_loss = self.kl_regularizer_loss(batch_size=nominal_batch_size,
