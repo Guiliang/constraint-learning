@@ -61,8 +61,8 @@ def wall_infront(pos, obs, acs):
 
 
 def wall_circle(r, x0, y0, obs, acs):
-    upper = (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 > (1.5 * r) ** 2
-    lower = (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 < (0.5 * r) ** 2
+    upper = (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 > (1.2 * r) ** 2
+    lower = (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 < (0.8 * r) ** 2
     return upper or lower
 
 
