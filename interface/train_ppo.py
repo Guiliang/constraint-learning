@@ -39,10 +39,10 @@ def train(args):
     debug_msg = ''
     if debug_mode:
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        # config['PPO']['forward_timesteps'] = 2000  # 2000
-        # config['PPO']['n_steps'] = 200
-        # config['running']['n_eval_episodes'] = 10
-        # config['running']['save_every'] = 1
+        config['PPO']['forward_timesteps'] = 2000  # 2000
+        config['PPO']['n_steps'] = 200
+        config['running']['n_eval_episodes'] = 10
+        config['running']['save_every'] = 1
         debug_msg = 'debug-'
         partial_data = True
     if partial_data:
@@ -202,19 +202,28 @@ def train(args):
 
         # Evaluate:
         # reward on true environment
-        sync_envs_normalization_ppo(train_env, eval_env)
+        save_path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
+        if itr % config['running']['save_every'] == 0:
+            del_and_make(save_path)
+        else:
+            save_path = None
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
-            evaluate_icrl_policy(model=ppo_agent, env=eval_env, record_info_names=config['env']["record_info_names"],
-                                 n_eval_episodes=config['running']['n_eval_episodes'], deterministic=False,
-                                 cost_info_str=config['env']['cost_info_str'], save_path=saving)
+            evaluate_icrl_policy(model=ppo_agent,
+                                 env=eval_env,
+                                 render=True if 'Circle' in config['env']['train_env_id'] else False,
+                                 record_info_names=config['env']["record_info_names"],
+                                 n_eval_episodes=config['running']['n_eval_episodes'],
+                                 deterministic=False,
+                                 cost_info_str=config['env']['cost_info_str'],
+                                 save_path=save_path,)
 
         # Save
         if itr % config['running']['save_every'] == 0:
-            path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
-            del_and_make(path)
-            ppo_agent.save(os.path.join(path, "nominal_agent"))
+            # path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
+            # del_and_make(path)
+            ppo_agent.save(os.path.join(save_path, "nominal_agent"))
             if isinstance(train_env, VecNormalize):
-                train_env.save(os.path.join(path, "train_env_stats.pkl"))
+                train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
             if costs is not None:
                 for record_info_name in config['env']["record_info_names"]:
                     plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
@@ -223,7 +232,7 @@ def train(args):
                                y_dict={record_info_name: plot_costs},
                                xlabel=record_info_name,
                                ylabel='cost',
-                               save_name=os.path.join(path, "{0}".format(record_info_name)),
+                               save_name=os.path.join(save_path, "{0}".format(record_info_name)),
                                apply_scatter=True
                                )
             # env_tmp = train_env

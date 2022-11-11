@@ -54,6 +54,29 @@ def generate_plots():
     axis_size = None
     save = True
 
+    # env_id = 'Circle-v0'
+    # max_episodes = 8000
+    # average_num = 100
+    # max_reward = 0
+    # min_reward = 0
+    # plot_key = ['constraint']
+    # label_key = ['Constraint Violation Rate']
+    # label_key = [None, ]
+    # img_size = None
+    # save = True
+    # title = '2D Plane'
+    # constraint_keys = ['constraint']
+    # plot_y_lim_dict = {'constraint': (0, 1)}
+    # plot_y_lim_dict = {'reward': (0, 7000),
+    #                    'reward_nc': (0, 5000),
+    #                    'constraint': (0, 1.1),
+    #                    'reward_valid': (0, 5000),
+    #                    }
+    # method_names_labels_dict = {
+    #     "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
+    #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
+    # }
+
     env_id = 'HCWithPos-v0'
     max_episodes = 6000
     average_num = 100
@@ -114,14 +137,15 @@ def generate_plots():
     save = False
     title = 'Stochastic Environment'
     method_names_labels_dict = {
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3": "VICRL",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-5e-3": "VICRL1",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-5e-4": "VICRL2",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3": "VICRL",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-5e-3": "VICRL1",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-5e-4": "VICRL2",
         "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e0": "VICRL3",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL4",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2": "VICRL5",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-3": "VICRL6",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3": "VICRL7",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL4",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2": "VICRL5",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-3": "VICRL6",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3": "VICRL7",
+        "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e0": "MECL",
         "PPO_lag_Pos": 'PPO_lag',
     }
 

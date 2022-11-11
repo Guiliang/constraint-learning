@@ -223,9 +223,9 @@ class HalfCheetahWithPosNoise(HalfCheetahEnv):
     """Also returns the `global' position in HalfCheetah."""
 
     def __init__(self, noise_mean, noise_std):
-        super().__init__()
         self.noise_mean = noise_mean
         self.noise_std = noise_std
+        super().__init__()
 
     def _get_obs(self):
         return np.concatenate([
@@ -290,8 +290,8 @@ class HalfCheetahWithPosNoise(HalfCheetahEnv):
         xposafter = self.sim.data.qpos[0]
 
         # add noise to the transition function
-        qpos = self.sim.data.qpos.flat[:] + np.random.normal(0, 0.005)
-        qvel = self.sim.data.qvel.flat[:] + np.random.normal(0, 0.005)
+        qpos = self.sim.data.qpos.flat[:] + np.random.normal(self.noise_mean, self.noise_std)
+        qvel = self.sim.data.qvel.flat[:] + np.random.normal(self.noise_mean, self.noise_std)
         self.set_state(qpos=qpos, qvel=qvel)
 
         ob = self._get_obs()

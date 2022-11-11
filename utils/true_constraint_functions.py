@@ -61,7 +61,9 @@ def wall_infront(pos, obs, acs):
 
 
 def wall_circle(r, x0, y0, obs, acs):
-    return (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 > (1.1 * r) ** 2  # 0.1r for the noise
+    upper = (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 > (1.5 * r) ** 2
+    lower = (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 < (0.5 * r) ** 2
+    return upper or lower
 
 
 def wall_in(unsafe_states, obs, acs):
