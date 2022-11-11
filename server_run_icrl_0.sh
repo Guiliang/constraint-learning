@@ -1,3 +1,5 @@
+#!/bin/bash
+
 task_name="train-icrl_0"
 launch_time=$(date +"%m-%d-%y-%H:%M:%S")
 log_dir="log-server-${task_name}-${launch_time}.out"
