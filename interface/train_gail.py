@@ -100,6 +100,10 @@ def train(args):
                                             multi_env=multi_env,
                                             part_data=partial_data,
                                             log_file=log_file,
+                                            noise_mean=config['env']['noise_mean'] if 'Noise' in config['env'][
+                                                'train_env_id'] else None,
+                                            noise_std=config['env']['noise_std'] if 'Noise' in config['env'][
+                                                'train_env_id'] else None,
                                             )
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
@@ -115,7 +119,12 @@ def train(args):
                                           cost_info_str=config['env']['cost_info_str'],
                                           part_data=partial_data,
                                           multi_env=False,
-                                          log_file=log_file)
+                                          log_file=log_file,
+                                          noise_mean=config['env']['noise_mean'] if 'Noise' in config['env'][
+                                              'train_env_id'] else None,
+                                          noise_std=config['env']['noise_std'] if 'Noise' in config['env'][
+                                              'train_env_id'] else None,
+                                          )
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                          process_name='Loading environment', log_file=log_file)

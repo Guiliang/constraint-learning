@@ -125,8 +125,10 @@ def train(config):
                                             multi_env=multi_env,
                                             part_data=partial_data,
                                             log_file=log_file,
-                                            noise_mean=config['env']['noise_mean'] if 'Noise' in config['env']['train_env_id'] else None,
-                                            noise_std=config['env']['noise_std'] if 'Noise' in config['env']['train_env_id'] else None,
+                                            noise_mean=config['env']['noise_mean'] if 'Noise' in config['env'][
+                                                'train_env_id'] else None,
+                                            noise_std=config['env']['noise_std'] if 'Noise' in config['env'][
+                                                'train_env_id'] else None,
                                             )
     all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
     print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
@@ -153,8 +155,10 @@ def train(config):
                                               part_data=partial_data,
                                               multi_env=sample_multi_env,
                                               log_file=log_file,
-                                              noise_mean=config['env']['noise_mean'] if 'Noise' in config['env']['train_env_id'] else None,
-                                              noise_std=config['env']['noise_std'] if 'Noise' in config['env']['train_env_id'] else None,
+                                              noise_mean=config['env']['noise_mean'] if 'Noise' in config['env'][
+                                                  'train_env_id'] else None,
+                                              noise_std=config['env']['noise_std'] if 'Noise' in config['env'][
+                                                  'train_env_id'] else None,
                                               )
     if "planning" in config['running'].keys() and config['running']['planning']:
         planning_config = config['Plan']
