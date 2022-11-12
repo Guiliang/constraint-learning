@@ -142,8 +142,9 @@ def generate_plots():
     save = False
     title = 'Stochastic Environment'
     method_names_labels_dict = {
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL",
-        # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "MECL",
+        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL",
+        "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "MECL",
+        # "ICRL_HCWithPos-v0_with-action_noise-1e-1": "MECL2",
         # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-2": "VICRL",
         # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-5e-2": "MECL",
         # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2": "VICRL",
@@ -631,6 +632,7 @@ def generate_plots():
         "GACL": ':',  # 'GAIL',
         "BC2L": '--',  # 'Binary',
         "MECL": '-.',  # 'ICRL',
+        "MECL2": '-.',  # 'ICRL',
         "VICRL-VaR": "-",
         "VICRL-SR": "-",
         "VICRL": "-",
