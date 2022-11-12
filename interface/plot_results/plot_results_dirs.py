@@ -69,7 +69,7 @@ def get_plot_results_dir(env_id):
                 # '../save_model/ICRL-highD-velocity/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Apr-29-2022-04:50-seed_666/',
                 '../save_model/ICRL-highD-velocity/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40-multi_env-Sep-20-2022-09:11-seed_123/'
             ],
-            "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40":[
+            "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": [
                 '../save_model/ICRL-highD-velocity/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40-multi_env-Sep-26-2022-07:33-seed_123/',
                 '../save_model/ICRL-highD-velocity/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40-multi_env-Sep-26-2022-13:00-seed_321/',
                 '../save_model/ICRL-highD-velocity/train_ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40-multi_env-Sep-26-2022-13:06-seed_666/',
@@ -482,10 +482,10 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_no-buffer_dm-20-multi_env-Sep-27-2022-13:05-seed_321/',
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_no-buffer_dm-20-multi_env-Sep-27-2022-13:06-seed_666/',
             ],
-            "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-7e-1_no-buffer_dm-20":[
+            "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-7e-1_no-buffer_dm-20": [
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-7e-1_no-buffer_dm-20-multi_env-Sep-26-2022-12:36-seed_123/',
             ],
-            "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_dm-20":[
+            "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_dm-20": [
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_dm-20-multi_env-Sep-26-2022-12:56-seed_123/',
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_dm-20-multi_env-Sep-27-2022-23:20-seed_321/',
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_dm-20-multi_env-Sep-27-2022-23:21-seed_666/',
@@ -688,7 +688,7 @@ def get_plot_results_dir(env_id):
                 '../save_model/GAIL-highD-velocity-distance/train_GAIL_velocity_distance_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20-multi_env-Aug-30-2022-17:43-seed_321/',
                 '../save_model/GAIL-highD-velocity-distance/train_GAIL_velocity_distance_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20-multi_env-Aug-30-2022-17:49-seed_666/'
             ],
-            "Binary_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20":[
+            "Binary_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20": [
                 '../save_model/Binary-highD-velocity-distance/train_Binary_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20-multi_env-Aug-29-2022-05:12-seed_123/',
                 '../save_model/Binary-highD-velocity-distance/train_Binary_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20-multi_env-Aug-30-2022-07:47-seed_321/',
                 '../save_model/Binary-highD-velocity-distance/train_Binary_highD_velocity_distance_constraint_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40_dm-20-multi_env-Aug-30-2022-08:29-seed_666/'
@@ -1017,6 +1017,31 @@ def get_plot_results_dir(env_id):
                 # '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-14:35-seed_456/',
                 # '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action-multi_env-Apr-20-2022-17:55-seed_666/',
             ],
+            "Binary_HCWithPos-v0_with-action_noise-1e-1": [
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-1-multi_env-Nov-11-2022-21:11-seed_123/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-1-multi_env-Nov-12-2022-01:25-seed_321/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-1-multi_env-Nov-12-2022-04:12-seed_666/',
+            ],
+            "Binary_HCWithPos-v0_with-action_noise-1e-2": [
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-2-multi_env-Nov-11-2022-21:11-seed_123/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-2-multi_env-Nov-11-2022-23:40-seed_321/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-2-multi_env-Nov-12-2022-01:39-seed_666/',
+            ],
+            "Binary_HCWithPos-v0_with-action_noise-1e-3": [
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-3-multi_env-Nov-11-2022-21:11-seed_123/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-3-multi_env-Nov-11-2022-23:33-seed_321/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-3-multi_env-Nov-12-2022-01:36-seed_666/',
+            ],
+            "Binary_HCWithPos-v0_with-action_noise-5e-2": [
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-5e-2-multi_env-Nov-11-2022-21:11-seed_123/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-5e-2-multi_env-Nov-12-2022-00:13-seed_321/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-5e-2-multi_env-Nov-12-2022-02:54-seed_666/',
+            ],
+            "Binary_HCWithPos-v0_with-action_noise-5e-3": [
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-5e-3-multi_env-Nov-11-2022-21:11-seed_123/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-5e-3-multi_env-Nov-12-2022-00:12-seed_321/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-5e-3-multi_env-Nov-12-2022-02:53-seed_666/',
+            ],
             "GAIL_HCWithPos-v0_with-action": [
                 '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-21-2022-05:55-seed_123/',
                 '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-21-2022-07:32-seed_321/',
@@ -1028,6 +1053,31 @@ def get_plot_results_dir(env_id):
                 # '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-09:03-seed_456/',
                 # '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-09:50-seed_654/',
                 # '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action-multi_env-Apr-20-2022-10:37-seed_666/'
+            ],
+            "GAIL_HCWithPos-v0_with-action_noise-1e-1": [
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-1e-1-multi_env-Nov-11-2022-21:12-seed_123/',
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-1e-1-multi_env-Nov-12-2022-01:35-seed_321/',
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-1e-1-multi_env-Nov-12-2022-04:24-seed_666/',
+            ],
+            "GAIL_HCWithPos-v0_with-action_noise-1e-2": [
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-1e-2-multi_env-Nov-11-2022-21:12-seed_123/',
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-1e-2-multi_env-Nov-11-2022-23:24-seed_321/',
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-1e-2-multi_env-Nov-12-2022-01:12-seed_666/',
+            ],
+            "GAIL_HCWithPos-v0_with-action_noise-1e-3": [
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-1e-3-multi_env-Nov-11-2022-21:12-seed_123/',
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-1e-3-multi_env-Nov-11-2022-23:17-seed_321/',
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-1e-3-multi_env-Nov-12-2022-01:06-seed_666/',
+            ],
+            "GAIL_HCWithPos-v0_with-action_noise-5e-2": [
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-5e-2-multi_env-Nov-11-2022-21:13-seed_123/',
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-5e-2-multi_env-Nov-12-2022-00:01-seed_321/',
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-5e-2-multi_env-Nov-12-2022-02:30-seed_666/',
+            ],
+            "GAIL_HCWithPos-v0_with-action_noise-5e-3": [
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-5e-3-multi_env-Nov-11-2022-21:13-seed_123/',
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-5e-3-multi_env-Nov-11-2022-23:48-seed_321/',
+                '../save_model/GAIL-HC/train_GAIL_HCWithPos-v0_with-action_noise-5e-3-multi_env-Nov-12-2022-02:09-seed_666/',
             ],
             "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-1": [
                 '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-1-multi_env-Aug-12-2022-05:09-seed_123/',
