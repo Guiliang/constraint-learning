@@ -101,6 +101,8 @@ def train(args):
                                             log_file=log_file,
                                             part_data=partial_data,
                                             multi_env=multi_env,
+                                            circle_info=config['env']['circle_info'] if 'Circle' in config[
+                                                'env']['train_env_id'] else None,
                                             )
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
@@ -115,7 +117,10 @@ def train(args):
                                           normalize_obs=not config['env']['dont_normalize_obs'],
                                           cost_info_str=config['env']['cost_info_str'],
                                           log_file=log_file,
-                                          part_data=partial_data)
+                                          part_data=partial_data,
+                                          circle_info=config['env']['circle_info'] if 'Circle' in config[
+                                              'env']['train_env_id'] else None,
+                                          )
 
     mem_loading_environment = process_memory()
     time_loading_environment = time.time()

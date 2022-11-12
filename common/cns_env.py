@@ -68,6 +68,11 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     else:
         if 'Noise' in env_id:
             env_configs = {'noise_mean': kwargs['noise_mean'], 'noise_std': kwargs['noise_std']}
+        elif 'Circle' in env_id:
+            env_configs = {
+                'r': kwargs['circle_info'][0],
+                'x0': kwargs['circle_info'][1],
+                'y0': kwargs['circle_info'][2], }
         else:
             env_configs = {}
     env = [make_env(env_id=env_id,
@@ -149,6 +154,11 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
     else:
         if 'Noise' in env_id:
             env_configs = {'noise_mean': kwargs['noise_mean'], 'noise_std': kwargs['noise_std']}
+        elif 'Circle' in env_id:
+            env_configs = {
+                'r': kwargs['circle_info'][0],
+                'x0': kwargs['circle_info'][1],
+                'y0': kwargs['circle_info'][2], }
         else:
             env_configs = {}
     # env = [lambda: gym.make(env_id, **env_configs)]
@@ -186,7 +196,7 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
 
 
 class InternalVecCostWrapper(VecEnvWrapper):
-    def __init__(self, venv, cost_info_str = 'cost'):
+    def __init__(self, venv, cost_info_str='cost'):
         super().__init__(venv)
         self.cost_info_str = cost_info_str
 

@@ -104,6 +104,8 @@ def train(args):
                                                 'train_env_id'] else None,
                                             noise_std=config['env']['noise_std'] if 'Noise' in config['env'][
                                                 'train_env_id'] else None,
+                                            circle_info=config['env']['circle_info'] if 'Circle' in config[
+                                                'env']['train_env_id'] else None,
                                             )
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
     if not os.path.exists(save_test_mother_dir):
@@ -124,6 +126,8 @@ def train(args):
                                               'train_env_id'] else None,
                                           noise_std=config['env']['noise_std'] if 'Noise' in config['env'][
                                               'train_env_id'] else None,
+                                          circle_info=config['env']['circle_info'] if 'Circle' in config[
+                                              'env']['train_env_id'] else None,
                                           )
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,

@@ -42,7 +42,10 @@ def get_true_cost_function(env_id, env_configs={}):
     # elif env_id in ["AntTest-v0", 'HalfCheetahTest-v0', 'Walker2dTest-v0', 'SwimmerTest-v0']:
     #     return partial(torque_constraint, 0.5)
     elif env_id in ["Circle-v0", "CircleNeg-v0"]:
-        return partial(wall_circle, 0.4, 0, 0.4)
+        r = env_configs['r']
+        x0 = env_configs['x0']
+        y0 = env_configs['y0']
+        return partial(wall_circle, r, x0, y0)
     else:
         print("Cost function for %s is not implemented yet. Returning null cost function" % env_id)
         return null_cost
@@ -61,8 +64,8 @@ def wall_infront(pos, obs, acs):
 
 
 def wall_circle(r, x0, y0, obs, acs):
-    upper = (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 > (1.1 * r) ** 2
-    lower = (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 < (0.9 * r) ** 2
+    upper = (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 > (1.5 * r) ** 2
+    lower = (obs[..., -2] - x0) ** 2 + (obs[..., -1] - y0) ** 2 < (0.5 * r) ** 2
     return upper or lower
 
 
