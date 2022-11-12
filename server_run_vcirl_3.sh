@@ -2,7 +2,7 @@ task_name="train-vicrl_3"
 launch_time=$(date +"%m-%d-%y-%H:%M:%S")
 log_dir="log-server-${task_name}-${launch_time}.out"
 source /data/Galen/miniconda3-4.12.0/bin/activate
-conda activate cn-py37
+source activate cn-py37
 export MUJOCO_PY_MUJOCO_PATH=/data/Galen/project-constraint-learning-benchmark/constraint-learning/.mujoco/mujoco210
 export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/data/Galen/project-constraint-learning-benchmark/constraint-learning/.mujoco/mujoco210/bin:/usr/lib/nvidia
