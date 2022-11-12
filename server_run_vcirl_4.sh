@@ -13,4 +13,12 @@ export CUDA_VISIBLE_DEVICES=0
 python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3.yaml -n 5 -s 123 -l "$log_dir"
 python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3.yaml -n 5 -s 321 -l "$log_dir"
 python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3.yaml -n 5 -s 666 -l "$log_dir"
+
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3.yaml -n 5 -s 321 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3.yaml -n 5 -s 666 -l "$log_dir"
+
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3.yaml -n 5 -s 321 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3.yaml -n 5 -s 666 -l "$log_dir"
 cd ../
