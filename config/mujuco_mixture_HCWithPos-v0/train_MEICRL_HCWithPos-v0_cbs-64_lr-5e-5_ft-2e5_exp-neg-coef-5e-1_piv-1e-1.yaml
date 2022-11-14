@@ -35,7 +35,7 @@ running:
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'
-  learning_rate: 0.0001
+  learning_rate: 0.00005
   n_steps: 2048
   n_epochs: 10
   reward_gamma: 0.99
@@ -62,7 +62,7 @@ PPO:
   forward_timesteps: 200000
   clip_range_reward_vf: null
   clip_range_cost_vf: null
-  penalty_initial_value: 1
+  penalty_initial_value: 0.1
   penalty_learning_rate: 0.1
   budget: 0
   proportional_control_coeff: 10
@@ -93,7 +93,7 @@ CN:
   anneal_clr_by_factor: 0.6
   latent_dim: 2
   use_expert_negative: True
-  negative_weight: 1
+  negative_weight: 0.5
   sample_probing_points: False
   n_probings: 10
   reverse_probing: False

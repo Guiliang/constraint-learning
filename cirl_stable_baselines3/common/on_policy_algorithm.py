@@ -537,6 +537,8 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             n_probings: int,
             contrastive_weight: float,
             cid: int,
+            log_cost: bool = True,
+            contrastive_augment_reward: bool = False,
             tensorboard_log: Optional[str] = None,
             create_eval_env: bool = False,
             monitor_wrapper: bool = True,
@@ -577,6 +579,8 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
         self.code_id = cid
         self.n_probings = n_probings
         self.contrastive_weight = contrastive_weight
+        self.log_cost = log_cost
+        self.contrastive_augment_type = contrastive_augment_reward
 
         if _init_setup_model:
             self._setup_model()
@@ -676,18 +680,19 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
                 else:
                     orig_costs = costs_signals
                 # apply logarithm
-                costs_signals = np.log(costs_signals + 1e-5)  # normalized costs, pls do not use this one
-                orig_costs = np.log(orig_costs + 1e-5)  # unnormalized costs, this is more reasonable
+                # if self.log_cost:
+                #     costs_signals = np.log(costs_signals + 1e-5)  # normalized costs, pls do not use this one
+                #     orig_costs = np.log(orig_costs + 1e-5)  # unnormalized costs, this is more reasonable
             else:
                 raise ValueError("This part is not yet done.")
                 # costs = cost_function(orig_obs.copy(), clipped_actions)
                 # orig_costs = costs
-
-            contrastive_loss = contrastive_loss_function(observations=self._last_original_obs,
-                                                         actions=actions,
-                                                         pos_latent_signals=pos_latent_signals,
-                                                         neg_latent_signals=neg_latent_signals)
-            rewards = rewards-self.contrastive_weight * contrastive_loss
+            if self.contrastive_augment_type == 'reward augmentation':  # directly augment contrastive loss to rewards
+                contrastive_loss = contrastive_loss_function(observations=self._last_original_obs,
+                                                             actions=actions,
+                                                             pos_latent_signals=pos_latent_signals,
+                                                             neg_latent_signals=neg_latent_signals)
+                rewards = rewards-self.contrastive_weight * contrastive_loss
             self.num_timesteps += env.num_envs
 
             # Give access to local variables

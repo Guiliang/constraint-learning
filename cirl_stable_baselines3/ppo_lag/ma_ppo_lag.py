@@ -104,7 +104,9 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             device: Union[torch.device, str] = "auto",
             _init_setup_model: bool = True,
             n_probings: int = 1,
-            contrastive_weight: float = 0
+            contrastive_weight: float = 0,
+            log_cost: bool = True,
+            contrastive_augment_reward: bool = False
     ):
 
         super(MultiAgentPPOLagrangian, self).__init__(
@@ -131,8 +133,10 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             _init_setup_model=False,
             latent_dim=latent_dim,
             cid=cid,
-            n_probings= n_probings,
+            log_cost=log_cost,
+            n_probings=n_probings,
             contrastive_weight=contrastive_weight,
+            contrastive_augment_reward=contrastive_augment_reward,
         )
 
         self.algo_type = algo_type
@@ -199,7 +203,7 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
         if self.clip_range_cost_vf is not None:
             clip_range_cost_vf = self.clip_range_cost_vf(self._current_progress_remaining)
 
-        entropy_losses, all_kl_divs = [], []
+        entropy_losses, contrastive_losses, all_kl_divs = [], [], []
         pg_losses, reward_value_losses, cost_value_losses = [], [], []
         clip_fractions = []
 
@@ -246,13 +250,6 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
                 policy_loss += current_penalty * torch.mean(cost_advantages * ratio)
                 policy_loss /= (1 + current_penalty)
 
-                # # Add the contrastive information into the loss
-                # contrastive_loss = contrastive_loss_function(observations=rollout_data.observations,
-                #                                              actions=rollout_data.actions,
-                #                                              pos_latent_signals=rollout_data.pos_latent_signals,
-                #                                              neg_latent_signals=rollout_data.neg_latent_signals).mean()
-                # policy_loss += self.contrastive_weight * contrastive_loss
-
                 # Logging
                 pg_losses.append(policy_loss.item())
                 clip_fraction = torch.mean((torch.abs(ratio - 1) > clip_range).float()).item()
@@ -292,8 +289,20 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
 
                 entropy_losses.append(entropy_loss.item())
 
+                # Contrastive loss favor diversity
+                if not self.contrastive_augment_type:
+                    contrastive_loss = contrastive_loss_function(observations=rollout_data.observations,
+                                                                 actions=rollout_data.actions,
+                                                                 pos_latent_signals=rollout_data.pos_latent_signals,
+                                                                 neg_latent_signals=rollout_data.neg_latent_signals).mean()
+
+                else:
+                    contrastive_loss = torch.tensor(0).to(self.device)
+                contrastive_losses.append(contrastive_loss.item())
+
                 loss = (policy_loss
                         + self.ent_coef * entropy_loss
+                        + self.contrastive_weight * contrastive_loss
                         + self.reward_vf_coef * reward_value_loss
                         + self.cost_vf_coef * cost_value_loss)
 
@@ -321,6 +330,7 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
         total_cost = np.sum(self.rollout_buffer.orig_costs)
         if self.update_penalty_after is None or ((self._n_updates / self.n_epochs) % self.update_penalty_after == 0):
             self.dual.update_parameter(average_cost)
+        tmp = self.dual.nu().item()
 
         mean_reward_advantages = np.mean(self.rollout_buffer.reward_advantages.flatten())
         mean_cost_advantages = np.mean(self.rollout_buffer.cost_advantages.flatten())

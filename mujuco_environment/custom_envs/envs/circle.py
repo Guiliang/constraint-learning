@@ -10,7 +10,7 @@ class CircleEnv(gym.Env):
     # -------------------------
     # Constructor
     # -------------------------
-    def __init__(self, speed=0.02, sigma1=0.01, sigma2=0.005, max_step=512, **_kwargs):
+    def __init__(self, speed=0.02, sigma1=0.01, sigma2=0.03, max_step=512, **_kwargs):
         self.state = np.zeros((5, 2), dtype=np.float32)
         self.max_step = max_step
         self.n_step = 1
@@ -51,7 +51,7 @@ class CircleEnv(gym.Env):
         self.xs.append(self.p[0])
         self.ys.append(self.p[1])
         self.n_step += 1
-
+        # noise = np.random.normal(0, self.var, 2)
         for i in range(4):
             self.state[i, :] = self.state[i + 1, :]
         self.state[4, :] = np.array(self.p)

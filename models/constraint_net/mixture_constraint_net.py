@@ -48,6 +48,8 @@ class MixtureConstraintNet(ConstraintNet):
             negative_weight: float = 1.0,
             sample_probing_points: bool = False,
             n_probings: int = 1,
+            reverse_probing: bool = False,
+            log_cost: bool = False,
             eps: float = 1e-5,
             eta: float = 0.1,
             device: str = "cpu",
@@ -90,6 +92,8 @@ class MixtureConstraintNet(ConstraintNet):
         self.eta = eta
         self.pivot_vectors_by_cid = {}
         self.n_probings = n_probings
+        self.reverse_probing = reverse_probing
+        self.log_cost = log_cost
         for aid in range(self.latent_dim):
             self.pivot_vectors_by_cid.update({aid: np.ones([self.n_probings, self.obs_dim + self.acs_dim])})
         self._build()
@@ -191,8 +195,11 @@ class MixtureConstraintNet(ConstraintNet):
         codes = torch.tensor(codes, dtype=torch.float32).to(self.device)
         function_input = torch.cat([data, codes], dim=1)
         with torch.no_grad():
-            out = self.__call__(function_input)
-        cost = 1 - out.detach().cpu().numpy()
+            out = self.__call__(function_input).detach().cpu().numpy()
+        if self.log_cost:
+            cost = -np.log(np.maximum(out, np.ones([out.shape[0]])*1e-8))
+        else:
+            cost = 1 - out
         return cost
 
     def latent_function(self, obs: np.ndarray, acs: np.ndarray, codes: np.ndarray):
@@ -286,9 +293,9 @@ class MixtureConstraintNet(ConstraintNet):
         nominal_data_by_cids = {}
         for aid in range(self.latent_dim):
             nominal_data_by_cids.update({aid: None})
-        nominal_log_prob_by_cid = {}
+        nominal_log_prob_by_aid = {}
         for aid in range(self.latent_dim):
-            nominal_log_prob_by_cid.update({aid: None})
+            nominal_log_prob_by_aid.update({aid: None})
         expert_data_by_cid = {}
         for aid in range(self.latent_dim):
             expert_data_by_cid.update({aid: None})
@@ -356,7 +363,7 @@ class MixtureConstraintNet(ConstraintNet):
                                                                       nominal_data_game], dim=0)
         # get some probing points
         if self.sample_probing_points:  # sample the probing points
-            nominal_log_prob_by_cid = None
+            nominal_log_prob_by_aid = None
             print('Sampling probing points.', flush=True, file=self.log_file)
         else:  # scan through the nominal data and pick some probing points
             print('Predicting probing points.', flush=True, file=self.log_file)
@@ -369,12 +376,18 @@ class MixtureConstraintNet(ConstraintNet):
                 nominal_reverse_cid_game = torch.ones(size=nominal_code_cid.shape).to(self.device) - nominal_code_cid
                 _, reverse_log_prob_game = self.density_model.log_probs(inputs=nominal_data_cid,
                                                                         cond_inputs=nominal_reverse_cid_game)
-                if nominal_log_prob_by_cid[nominal_cid] is None:
-                    nominal_log_prob_by_cid[nominal_cid] = log_prob_game - reverse_log_prob_game
+                if nominal_log_prob_by_aid[nominal_cid] is None:
+                    if self.reverse_probing:
+                        nominal_log_prob_by_aid[nominal_cid] = -reverse_log_prob_game
+                    else:
+                        nominal_log_prob_by_aid[nominal_cid] = log_prob_game - reverse_log_prob_game
                 else:
-                    nominal_log_prob_by_cid[nominal_cid] = torch.cat(
-                        [nominal_log_prob_by_cid[nominal_cid],
-                         log_prob_game - reverse_log_prob_game], dim=0)
+                    if self.reverse_probing:
+                        nominal_log_prob_by_aid[nominal_cid] = torch.cat(
+                            [nominal_log_prob_by_aid[nominal_cid], -reverse_log_prob_game], dim=0)
+                    else:
+                        nominal_log_prob_by_aid[nominal_cid] = torch.cat(
+                            [nominal_log_prob_by_aid[nominal_cid], log_prob_game - reverse_log_prob_game], dim=0)
         for aid in range(self.latent_dim):
             if self.sample_probing_points:
                 cond_inputs = F.one_hot(torch.tensor([aid] * self.n_probings), num_classes=self.latent_dim).to(
@@ -382,7 +395,7 @@ class MixtureConstraintNet(ConstraintNet):
                 pivot_points = self.density_model.sample(num_samples=self.n_probings, noise=None,
                                                          cond_inputs=cond_inputs)
             else:
-                reverse_log_prob_cid = nominal_log_prob_by_cid[aid]
+                reverse_log_prob_cid = nominal_log_prob_by_aid[aid]
                 _, topk = reverse_log_prob_cid.squeeze(dim=-1).topk(self.n_probings, dim=0, largest=True, sorted=False)
                 pivot_points = nominal_data_by_cids[aid][topk]
             self.pivot_vectors_by_cid.update({aid: to_np(pivot_points)})

@@ -71,6 +71,8 @@ PPO:
   pid_delay: 1
   proportional_cost_ema_alpha: 0.5
   derivative_cost_ema_alpha: 0.5
+  log_cost: True
+  contrastive_augment_reward: True
 
 CN:
   cn_learning_rate: 0.0005
@@ -94,4 +96,5 @@ CN:
   negative_weight: 0.5
   sample_probing_points: False
   n_probings: 10
-  contrastive_weight: 0.8
+  reverse_probing: True
+  contrastive_weight: 0.1

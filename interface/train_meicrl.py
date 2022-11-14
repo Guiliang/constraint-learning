@@ -1,3 +1,4 @@
+import copy
 import datetime
 import importlib
 import json
@@ -49,9 +50,10 @@ def train(config):
     else:
         log_file = None
     # debug_msg = ''
-    debug_msg = 'semi_check-'
+    debug_msg = 'semi_check-'  # 'sanity_check-'
+    # config['CN']['latent_dim'] = 1
     if debug_mode:
-        config['device'] = 'cpu'
+        # config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
         config['PPO']['forward_timesteps'] = 3000  # 2000
         config['PPO']['n_steps'] = 500
@@ -236,7 +238,9 @@ def train(config):
         cn_parameters.update({'use_expert_negative': config['CN']['use_expert_negative']})
         cn_parameters.update({'sample_probing_points': config['CN']['sample_probing_points']})
         cn_parameters.update({'n_probings': config['CN']['n_probings']})
+        cn_parameters.update({'reverse_probing': config['CN']['reverse_probing']})
         cn_parameters.update({'negative_weight': config['CN']['negative_weight']})
+        cn_parameters.update({"log_cost": config['PPO']['log_cost']})
         constraint_net = MixtureConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown group: {0}".format(config['group']))
@@ -283,6 +287,7 @@ def train(config):
         # Update agent
         forward_metrics_all = {}
         with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
+            # for aid in [0]:
             for aid in range(config['CN']['latent_dim']):
                 nominal_agents[aid].learn(
                     total_timesteps=config['PPO']['forward_timesteps'],
@@ -290,7 +295,7 @@ def train(config):
                     latent_info_str=config['env']['latent_info_str'],
                     callback=[callback],
                 )
-                forward_metrics_all.update({aid: logger.Logger.CURRENT.name_to_value})
+                forward_metrics_all.update({aid: copy.copy(logger.Logger.CURRENT.name_to_value)})
                 timesteps += nominal_agents[aid].num_timesteps
 
         mem_prev, time_prev = print_resource(mem_prev=mem_prev,
@@ -458,14 +463,17 @@ def train(config):
             "best_true/best_reward": best_true_reward
         }
         for c_id in range(config['CN']['latent_dim']):
+        # for c_id in [0, 1]:
             forward_metrics = forward_metrics_all[c_id]
-            metrics.update({'cid:{0}/'.format(c_id)+k.replace("train/", "forward/"): v for k, v in forward_metrics.items()})
+            metrics.update(
+                {"forward/" + 'aid:{0}/'.format(c_id) + k.replace("train/", ""): v for k, v in forward_metrics.items()})
         metrics.update(backward_metrics)
         print('\n\n', file=log_file, flush=True)
 
         # Log
         if config['verbose'] > 0:
-            icrl_logger.write(metrics, {k: None for k in metrics.keys()}, step=itr)
+            # icrl_logger.write(metrics, {k: None for k in metrics.keys()}, step=itr)
+            icrl_logger.write(metrics, {k: str(metrics[k]) for k in metrics.keys()}, step=itr)
 
 
 if __name__ == "__main__":

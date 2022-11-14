@@ -1,4 +1,6 @@
 import math
+import os
+
 import numpy as np
 import pickle as pkl
 # from mujuco_environment.custom_envs.envs.circle import plt
@@ -42,7 +44,7 @@ import gym
 import mujuco_environment.custom_envs
 
 env = gym.make(id='Circle-v0')
-
+std = str(5e-3)
 rs = [0.4, 0.2, 0.2]
 cs = [True, True, False]
 us = [True, True, False]
@@ -50,7 +52,9 @@ idx = 0
 
 for i in range(len(rs)):
     print("r = {:.2f}".format(rs[i]))
-
+    save_circle_data_path = '../data/expert_data/Circle-v0-std-{0}-id-{1}/'.format(std, i)
+    if not os.path.exists(save_circle_data_path):
+        os.mkdir(save_circle_data_path)
     for j in tqdm(range(2)):  # default 50
         state = env.reset()
         # s_traj.append([])
@@ -80,16 +84,17 @@ for i in range(len(rs)):
                 idx += 1
                 plt.savefig('tmp{0}.png'.format(str(one_hot_code)))
                 break
-
         # pkl.dump({'original_observations': s_traj,
         #           'actions': a_traj,
         #           'codes': c_traj,
         #           'reward': r_traj,
         #           'reward_sum': 0,
         #           },
-        #          open("../data/expert_data/Circle-v0/"
-        #               "scene-{0}_code-{1}_len-{2}.pkl".format(idx,
-        #                                                       str(one_hot_code),
-        #                                                       len(s_traj)
-        #                                                       ),
+        #          open(save_circle_data_path +
+        #               "scene-{1}_len-{3}.pkl".format(
+        #                   std,
+        #                   idx,
+        #                   str(one_hot_code),
+        #                   len(s_traj)
+        #               ),
         #               "wb"))

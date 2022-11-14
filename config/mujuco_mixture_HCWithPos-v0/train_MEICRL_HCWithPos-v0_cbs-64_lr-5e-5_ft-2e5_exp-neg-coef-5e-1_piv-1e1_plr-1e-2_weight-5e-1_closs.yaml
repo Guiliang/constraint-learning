@@ -35,7 +35,7 @@ running:
 
 PPO:
   policy_name: 'TwoCriticsMlpPolicy'
-  learning_rate: 0.0001
+  learning_rate: 0.00005
   n_steps: 2048
   n_epochs: 10
   reward_gamma: 0.99
@@ -72,7 +72,7 @@ PPO:
   proportional_cost_ema_alpha: 0.5
   derivative_cost_ema_alpha: 0.5
   log_cost: True
-  contrastive_augment_reward: True
+  contrastive_augment_reward: False
 
 CN:
   cn_learning_rate: 0.0005
@@ -93,8 +93,8 @@ CN:
   anneal_clr_by_factor: 0.6
   latent_dim: 2
   use_expert_negative: True
-  negative_weight: 1
+  negative_weight: 0.5
   sample_probing_points: False
   n_probings: 10
-  reverse_probing: False
-  contrastive_weight: 1.0
+  reverse_probing: True
+  contrastive_weight: 0.5

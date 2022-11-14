@@ -6,6 +6,27 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 
+# class Nu(nn.Module):
+#     """
+#     Class for Lagrangian multiplier.
+#
+#     :param penalty_init: The value with which to initialize the Lagrange multiplier with
+#     :param clamp_at    : The minimum value to allow nu to drop to. If None, is set to penalty_init
+#     """
+#     def __init__(self, penalty_init=1., clamp_at=None):
+#         super(Nu, self).__init__()
+#         assert penalty_init > 0
+#         self.penalty_init = penalty_init
+#         log_penalty_init = np.log(self.penalty_init)
+#         self.log_nu = nn.Parameter(log_penalty_init*torch.ones(1))
+#         self.clamp_at = log_penalty_init if clamp_at is None else clamp_at
+#
+#     def forward(self):
+#         return self.log_nu.exp()
+#
+#     def clamp(self):
+#         self.log_nu.data.clamp_(min=self.clamp_at)
+
 class Nu(nn.Module):
     """
     Class for Lagrangian multiplier.
@@ -16,17 +37,21 @@ class Nu(nn.Module):
     def __init__(self, penalty_init=1., clamp_at=None):
         super(Nu, self).__init__()
         self.penalty_init = penalty_init
-        penalty_init = np.log(max(np.exp(penalty_init)-1, 1e-8))
-        self.log_nu = nn.Parameter(penalty_init*torch.ones(1))
+        penalty_init = np.log(max(np.exp(penalty_init)-1, 1e-8))  #  log(exp(init)-1) to be compatible with soft-plus
+        self.nu = nn.Parameter(penalty_init * torch.ones(1))
         self.clamp_at = penalty_init if clamp_at is None else clamp_at
 
     def forward(self):
-        #return self.log_nu.exp()
-        return F.softplus(self.log_nu)
+        # return self.log_nu.exp()
+        # log(1+exp(nu))
+        return F.softplus(self.nu)
 
     def clamp(self):
-        self.log_nu.data.clamp_(
-                min=np.log(max(np.exp(self.clamp_at)-1, 1e-8)))
+        # tmp1 = np.exp(self.clamp_at)-1
+        # tmp2 = max(np.exp(self.clamp_at) - 1, 1e-8)
+        # tmp3 = np.log(max(np.exp(self.clamp_at)-1, 1e-8))
+        self.nu.data.clamp_(
+                min=np.log(max(np.exp(self.clamp_at), 1e-8)))  # log(exp(clamp)), for using the solt-plus function
 
 
 class DualVariable:
@@ -47,7 +72,7 @@ class DualVariable:
     def update_parameter(self, cost):
         # Compute loss.
         self.loss = - self.nu() * (cost-self.alpha)
-
+        tmp = self.nu
         # Update.
         self.optimizer.zero_grad()
         self.loss.backward()

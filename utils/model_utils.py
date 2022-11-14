@@ -227,6 +227,8 @@ def load_ppo_config(config, train_env, seed, log_file):
             ppo_parameters.update({"cid": config['CN']['cid']})
             ppo_parameters.update({"n_probings": config['CN']['n_probings']})
             ppo_parameters.update({"contrastive_weight": config['CN']['contrastive_weight']})
+            ppo_parameters.update({"log_cost": config['PPO']['log_cost']})
+            ppo_parameters.update({"contrastive_augment_reward": config['PPO']['contrastive_augment_reward']})
     else:
         raise ValueError("Unknown Group {0}".format(config['group']))
 
@@ -248,6 +250,10 @@ def update_code(code_axis, code_dim):
 def contrastive_loss_function(observations, actions, pos_latent_signals, neg_latent_signals):
     pos_sample_size = pos_latent_signals.shape[1]
     neg_sample_size = neg_latent_signals.shape[1]
+    observations = to_np(observations)
+    actions = to_np(actions)
+    pos_latent_signals = to_np(pos_latent_signals)
+    neg_latent_signals = to_np(neg_latent_signals)
     obs_act = np.concatenate([observations, actions], axis=1)
     tmp = np.expand_dims(obs_act, axis=1)
     obs_act_repeat = np.expand_dims(obs_act, axis=1).repeat(repeats=neg_sample_size, axis=1)

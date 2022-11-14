@@ -94,7 +94,7 @@ def constraint_visualization_1d(cost_function, feature_range, select_dim, obs_di
         ax[1].set_ylabel('Frequency', fontdict={'fontsize': axis_size})
     ax[0].set_xlabel(feature_name, fontdict={'fontsize': axis_size})
     ax[0].set_ylabel('Cost', fontdict={'fontsize': axis_size})
-    ax[0].set_ylim([0, 1])
+    # ax[0].set_ylim([0, 1])
     ax[0].set_xlim(feature_range)
     ax[0].set_axisbelow(True)
     # Turn on the minor TICKS, which are required for the minor GRID
