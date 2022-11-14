@@ -538,7 +538,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             contrastive_weight: float,
             cid: int,
             log_cost: bool = True,
-            contrastive_augment_reward: bool = False,
+            contrastive_augment_type: bool = False,
             tensorboard_log: Optional[str] = None,
             create_eval_env: bool = False,
             monitor_wrapper: bool = True,
@@ -580,7 +580,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
         self.n_probings = n_probings
         self.contrastive_weight = contrastive_weight
         self.log_cost = log_cost
-        self.contrastive_augment_type = contrastive_augment_reward
+        self.contrastive_augment_type = contrastive_augment_type
 
         if _init_setup_model:
             self._setup_model()

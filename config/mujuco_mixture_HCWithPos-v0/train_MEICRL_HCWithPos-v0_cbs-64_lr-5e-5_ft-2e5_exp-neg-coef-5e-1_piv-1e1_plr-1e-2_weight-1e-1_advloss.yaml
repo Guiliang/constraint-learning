@@ -34,7 +34,7 @@ running:
   init_density: False
 
 PPO:
-  policy_name: 'TwoCriticsMlpPolicy'
+  policy_name: 'ThreeCriticsMlpPolicy'
   learning_rate: 0.00005
   n_steps: 2048
   n_epochs: 10
@@ -54,6 +54,7 @@ PPO:
   policy_layers: [64, 64]
   reward_vf_layers: [64, 64]
   cost_vf_layers: [64, 64]
+  diversity_vf_layers: [64, 64]
   batch_size: 64
   eval_every: 2048
   use_curiosity_driven_exploration: False
@@ -72,7 +73,7 @@ PPO:
   proportional_cost_ema_alpha: 0.5
   derivative_cost_ema_alpha: 0.5
   log_cost: True
-  contrastive_augment_type: 'reward augmentation'
+  contrastive_augment_type: 'calculate advantages'
 
 CN:
   cn_learning_rate: 0.0005
@@ -97,4 +98,4 @@ CN:
   sample_probing_points: False
   n_probings: 10
   reverse_probing: False
-  contrastive_weight: 1.0
+  contrastive_weight: 0.1

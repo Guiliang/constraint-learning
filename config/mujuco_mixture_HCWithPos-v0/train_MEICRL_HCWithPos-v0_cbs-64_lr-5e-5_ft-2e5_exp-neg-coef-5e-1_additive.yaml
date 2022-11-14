@@ -72,7 +72,7 @@ PPO:
   proportional_cost_ema_alpha: 0.5
   derivative_cost_ema_alpha: 0.5
   log_cost: False
-  contrastive_augment_reward: True
+  contrastive_augment_type: 'reward augmentation'
 
 CN:
   cn_learning_rate: 0.0005

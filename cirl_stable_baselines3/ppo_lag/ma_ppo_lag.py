@@ -106,7 +106,7 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             n_probings: int = 1,
             contrastive_weight: float = 0,
             log_cost: bool = True,
-            contrastive_augment_reward: bool = False
+            contrastive_augment_type: bool = False
     ):
 
         super(MultiAgentPPOLagrangian, self).__init__(
@@ -136,7 +136,7 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             log_cost=log_cost,
             n_probings=n_probings,
             contrastive_weight=contrastive_weight,
-            contrastive_augment_reward=contrastive_augment_reward,
+            contrastive_augment_type=contrastive_augment_type,
         )
 
         self.algo_type = algo_type
@@ -290,7 +290,7 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
                 entropy_losses.append(entropy_loss.item())
 
                 # Contrastive loss favor diversity
-                if not self.contrastive_augment_type:
+                if self.contrastive_augment_type == 'loss augmentation':
                     contrastive_loss = contrastive_loss_function(observations=rollout_data.observations,
                                                                  actions=rollout_data.actions,
                                                                  pos_latent_signals=rollout_data.pos_latent_signals,

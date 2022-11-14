@@ -71,6 +71,7 @@ PPO:
   pid_delay: 1
   proportional_cost_ema_alpha: 0.5
   derivative_cost_ema_alpha: 0.5
+  contrastive_augment_type: 'reward augmentation'
 
 CN:
   cn_learning_rate: 0.0005

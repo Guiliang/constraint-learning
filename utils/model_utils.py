@@ -228,7 +228,7 @@ def load_ppo_config(config, train_env, seed, log_file):
             ppo_parameters.update({"n_probings": config['CN']['n_probings']})
             ppo_parameters.update({"contrastive_weight": config['CN']['contrastive_weight']})
             ppo_parameters.update({"log_cost": config['PPO']['log_cost']})
-            ppo_parameters.update({"contrastive_augment_reward": config['PPO']['contrastive_augment_reward']})
+            ppo_parameters.update({"contrastive_augment_type": config['PPO']['contrastive_augment_type']})
     else:
         raise ValueError("Unknown Group {0}".format(config['group']))
 
