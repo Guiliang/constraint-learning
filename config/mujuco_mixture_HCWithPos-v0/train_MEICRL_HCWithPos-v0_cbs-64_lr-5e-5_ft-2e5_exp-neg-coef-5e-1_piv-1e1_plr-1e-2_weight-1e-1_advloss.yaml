@@ -42,10 +42,13 @@ PPO:
   reward_gae_lambda: 0.95
   cost_gamma: 0.99
   cost_gae_lambda: 0.95
+  diversity_gamma: 0.99
+  diversity_gae_lambda: 0.95
   clip_range: 0.2
   ent_coef: 0.0
   reward_vf_coef: 0.5
   cost_vf_coef: 0.5
+  diversity_vf_coef: 0.5
   max_grad_norm: 0.5
   use_sde: False
   sde_sample_freq: -1
@@ -63,6 +66,7 @@ PPO:
   forward_timesteps: 200000
   clip_range_reward_vf: null
   clip_range_cost_vf: null
+  clip_range_diversity_vf: null
   penalty_initial_value: 10
   penalty_learning_rate: 0.01
   budget: 0

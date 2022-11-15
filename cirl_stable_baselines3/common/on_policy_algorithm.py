@@ -19,7 +19,7 @@ from cirl_stable_baselines3.common.utils import safe_mean
 from cirl_stable_baselines3.common.vec_env import VecEnv, VecNormalize, VecNormalizeWithCost
 
 # from cirl_stable_baselines3.common.dual_variable import DualVariable
-from utils.model_utils import build_code, contrastive_loss_function
+from utils.model_utils import build_code, diversity_return_function
 
 
 class OnPolicyAlgorithm(BaseAlgorithm):
@@ -527,9 +527,12 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             reward_gae_lambda: float,
             cost_gamma: float,
             cost_gae_lambda: float,
+            diversity_gamma: float,
+            diversity_gae_lambda: float,
             ent_coef: float,
             reward_vf_coef: float,
             cost_vf_coef: float,
+            diversity_vf_coef: float,
             max_grad_norm: float,
             use_sde: bool,
             sde_sample_freq: int,
@@ -570,9 +573,12 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
         self.reward_gae_lambda = reward_gae_lambda
         self.cost_gamma = cost_gamma
         self.cost_gae_lambda = cost_gae_lambda
+        self.diversity_gamma = diversity_gamma
+        self.diversity_gae_lambda = diversity_gae_lambda
         self.ent_coef = ent_coef
         self.reward_vf_coef = reward_vf_coef
         self.cost_vf_coef = cost_vf_coef
+        self.diversity_vf_coef = diversity_vf_coef
         self.max_grad_norm = max_grad_norm
         self.rollout_buffer = None
         self.code_dim = latent_dim
@@ -608,6 +614,8 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             reward_gae_lambda=self.reward_gae_lambda,
             cost_gamma=self.cost_gamma,
             cost_gae_lambda=self.cost_gae_lambda,
+            diversity_gamma=self.diversity_gamma,
+            diversity_gae_lambda=self.diversity_gae_lambda,
             n_envs=self.n_envs,
             n_probings=self.n_probings
         )
@@ -646,7 +654,6 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             self.policy.reset_noise(env.num_envs)
 
         callback.on_rollout_start()
-
         while n_steps < n_rollout_steps:
             if self.use_sde and self.sde_sample_freq > 0 and n_steps % self.sde_sample_freq == 0:
                 # Sample a new noise matrix
@@ -657,7 +664,11 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
                 obs_tensor = th.as_tensor(self._last_obs).to(self.device)
                 codes_tensor = th.as_tensor(self._last_latent_codes, dtype=torch.float64).to(self.device)
                 input_tensor = th.cat([obs_tensor, codes_tensor], dim=1)
-                actions, reward_values, cost_values, log_probs = self.policy.forward(input_tensor)
+                if self.contrastive_augment_type == 'calculate advantages':  # directly augment contrastive loss to rewards
+                    actions, reward_values, cost_values, diversity_values, log_probs = self.policy.forward(input_tensor)
+                else:
+                    actions, reward_values, cost_values, log_probs = self.policy.forward(input_tensor)
+                    diversity_values = torch.zeros_like(cost_values)
             actions = actions.cpu().numpy()
 
             # Rescale and perform action
@@ -687,12 +698,17 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
                 raise ValueError("This part is not yet done.")
                 # costs = cost_function(orig_obs.copy(), clipped_actions)
                 # orig_costs = costs
-            if self.contrastive_augment_type == 'reward augmentation':  # directly augment contrastive loss to rewards
-                contrastive_loss = contrastive_loss_function(observations=self._last_original_obs,
+            diversity_score = np.zeros_like(rewards)  # dummy score
+            if self.contrastive_augment_type == 'calculate advantages' \
+                    or self.contrastive_augment_type == 'reward augmentation':
+                contrastive_loss = diversity_return_function(observations=self._last_original_obs,
                                                              actions=actions,
                                                              pos_latent_signals=pos_latent_signals,
                                                              neg_latent_signals=neg_latent_signals)
-                rewards = rewards-self.contrastive_weight * contrastive_loss
+                if self.contrastive_augment_type == 'reward augmentation':  # directly augment contrastive loss to rewards
+                    rewards = rewards - self.contrastive_weight * contrastive_loss
+                if self.contrastive_augment_type == 'calculate advantages':
+                    diversity_score = contrastive_loss
             self.num_timesteps += env.num_envs
 
             # Give access to local variables
@@ -719,6 +735,8 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
                                cost_value=cost_values,
                                reward=rewards,
                                reward_value=reward_values,
+                               diversity_score=diversity_score,
+                               diversity_value=diversity_values,
                                done=self._last_dones,
                                log_prob=log_probs)
             self._last_obs = new_obs
@@ -727,7 +745,7 @@ class OnPolicyWithCostAndCodeAlgorithm(BaseAlgorithm):
             self._last_latent_codes = new_latent_codes
             # print(self._last_latent_codes)
 
-        rollout_buffer.compute_returns_and_advantage(reward_values, cost_values, dones=dones)
+        rollout_buffer.compute_returns_and_advantage(reward_values, cost_values, diversity_values, dones=dones)
 
         callback.on_rollout_end()
 

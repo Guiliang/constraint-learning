@@ -212,7 +212,7 @@ class MixtureConstraintNet(ConstraintNet):
                 if nid == cid:
                     continue
                 negative_samples.append(self.pivot_vectors_by_cid[nid])
-            negative_samples = np.concatenate(negative_samples, axis=0)
+            negative_samples = np.stack(negative_samples, axis=0)
             latent_signals.append({'pos': positive_samples, 'neg': negative_samples})
         return latent_signals
 

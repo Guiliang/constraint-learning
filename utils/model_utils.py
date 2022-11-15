@@ -31,8 +31,12 @@ def get_net_arch(config, log_file):
     Returns a dictionary with sizes of layers in policy network,
     value network and cost value network.
     """
-
-    if 'cost_vf_layers' in config['PPO'].keys():
+    if 'diversity_vf_layers' in config['PPO'].keys():
+        separate_layers = dict(pi=config['PPO']['policy_layers'],  # Policy Layers
+                               vf=config['PPO']['reward_vf_layers'],  # Value Function Layers
+                               cvf=config['PPO']['cost_vf_layers'],  # Cost Value Function Layers
+                               dvf=config['PPO']['diversity_vf_layers'])  # Diversity Value Function Layers
+    elif 'cost_vf_layers' in config['PPO'].keys():
         separate_layers = dict(pi=config['PPO']['policy_layers'],  # Policy Layers
                                vf=config['PPO']['reward_vf_layers'],  # Value Function Layers
                                cvf=config['PPO']['cost_vf_layers'])  # Cost Value Function Layers
@@ -229,6 +233,11 @@ def load_ppo_config(config, train_env, seed, log_file):
             ppo_parameters.update({"contrastive_weight": config['CN']['contrastive_weight']})
             ppo_parameters.update({"log_cost": config['PPO']['log_cost']})
             ppo_parameters.update({"contrastive_augment_type": config['PPO']['contrastive_augment_type']})
+            if config['PPO']['contrastive_augment_type'] == 'calculate advantages':
+                ppo_parameters.update({"diversity_vf_coef": config['PPO']['diversity_vf_coef']})
+                ppo_parameters.update({"diversity_gamma": config['PPO']['diversity_gamma']})
+                ppo_parameters.update({"diversity_gae_lambda": config['PPO']['diversity_gae_lambda']})
+                ppo_parameters.update({"clip_range_cost_vf": config['PPO']['clip_range_cost_vf']})
     else:
         raise ValueError("Unknown Group {0}".format(config['group']))
 
@@ -247,27 +256,26 @@ def update_code(code_axis, code_dim):
     return code_axis
 
 
-def contrastive_loss_function(observations, actions, pos_latent_signals, neg_latent_signals):
+def diversity_return_function(observations, actions, pos_latent_signals, neg_latent_signals):
     pos_sample_size = pos_latent_signals.shape[1]
-    neg_sample_size = neg_latent_signals.shape[1]
+    neg_sample_size = neg_latent_signals.shape[1] * neg_latent_signals.shape[2]
     observations = to_np(observations)
     actions = to_np(actions)
     pos_latent_signals = to_np(pos_latent_signals)
     neg_latent_signals = to_np(neg_latent_signals)
     obs_act = np.concatenate([observations, actions], axis=1)
-    tmp = np.expand_dims(obs_act, axis=1)
     obs_act_repeat = np.expand_dims(obs_act, axis=1).repeat(repeats=neg_sample_size, axis=1)
     act_obs_dim = obs_act_repeat.shape[-1]
-    contrastive_loss = []
+    c_log_probs = []
     for pos_id in range(pos_sample_size):
         pos_similarity = cosine_similarity(pos_latent_signals[:, pos_id, :], obs_act)
-        neg_similarity = cosine_similarity(
-            neg_latent_signals.reshape(-1, act_obs_dim),
-            obs_act_repeat.reshape(-1, act_obs_dim)).reshape([-1, neg_sample_size]).sum(axis=1)
-        c_prob_pid = np.exp(pos_similarity) / (np.exp(neg_similarity) + np.exp(pos_similarity))
-        c_log_prob_pid = np.log(c_prob_pid)
-        contrastive_loss.append(-c_log_prob_pid)
-    contrastive_loss = np.stack(contrastive_loss, axis=1).mean(axis=1)
+        neg_similarity_all = cosine_similarity(neg_latent_signals.reshape(-1, act_obs_dim),
+                                               obs_act_repeat.reshape(-1, act_obs_dim)).reshape([-1, neg_sample_size])
+        neg_similarity_sum_exp = np.exp(neg_similarity_all).sum(axis=1)
+        c_prob_pid = np.exp(pos_similarity) / (neg_similarity_sum_exp + np.exp(pos_similarity))
+        c_log_probs.append(c_prob_pid)
+    contrastive_loss = np.stack(c_log_probs, axis=1).mean(axis=1)
+    contrastive_loss = -(np.log(contrastive_loss) - np.log(1/(neg_sample_size+1)))
     return contrastive_loss
 
 

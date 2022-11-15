@@ -11,7 +11,7 @@ from cirl_stable_baselines3.common.on_policy_algorithm import OnPolicyWithCostAn
 from cirl_stable_baselines3.common.policies import ActorCriticPolicy
 from cirl_stable_baselines3.common.type_aliases import GymEnv, MaybeCallback
 from cirl_stable_baselines3.common.utils import explained_variance, get_schedule_fn
-from utils.model_utils import contrastive_loss_function
+from utils.model_utils import diversity_return_function
 
 
 class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
@@ -80,12 +80,16 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             reward_gae_lambda: float = 0.95,
             cost_gamma: float = 0.99,
             cost_gae_lambda: float = 0.95,
+            diversity_gamma: float = 0.99,
+            diversity_gae_lambda: float = 0.95,
             clip_range: float = 0.2,
             clip_range_reward_vf: Optional[float] = None,
             clip_range_cost_vf: Optional[float] = None,
+            clip_range_diversity_vf: Optional[float] = None,
             ent_coef: float = 0.0,
             reward_vf_coef: float = 0.5,
             cost_vf_coef: float = 0.5,
+            diversity_vf_coef: float = 0,
             max_grad_norm: float = 0.5,
             use_sde: bool = False,
             sde_sample_freq: int = -1,
@@ -118,6 +122,9 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             reward_gae_lambda=reward_gae_lambda,
             cost_gamma=cost_gamma,
             cost_gae_lambda=cost_gae_lambda,
+            diversity_gamma=diversity_gamma,
+            diversity_gae_lambda=diversity_gae_lambda,
+            diversity_vf_coef=diversity_vf_coef,
             ent_coef=ent_coef,
             reward_vf_coef=reward_vf_coef,
             cost_vf_coef=cost_vf_coef,
@@ -145,6 +152,7 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
         self.clip_range = clip_range
         self.clip_range_reward_vf = clip_range_reward_vf
         self.clip_range_cost_vf = clip_range_cost_vf
+        self.clip_range_diversity_vf = clip_range_diversity_vf
         self.target_kl = target_kl
 
         self.penalty_initial_value = penalty_initial_value
@@ -179,14 +187,17 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
         if self.clip_range_reward_vf is not None:
             if isinstance(self.clip_range_reward_vf, (float, int)):
                 assert self.clip_range_reward_vf > 0, "`clip_range_vf` must be positive, " "pass `None` to deactivate vf clipping"
-
             self.clip_range_reward_vf = get_schedule_fn(self.clip_range_reward_vf)
 
         if self.clip_range_cost_vf is not None:
             if isinstance(self.clip_range_cost_vf, (float, int)):
                 assert self.clip_range_cost_vf > 0, "`clip_range_vf` must be positive, " "pass `None` to deactivate vf clipping"
-
             self.clip_range_cost_vf = get_schedule_fn(self.clip_range_cost_vf)
+
+        if self.clip_range_diversity_vf is not None:
+            if isinstance(self.clip_range_diversity_vf, (float, int)):
+                assert self.clip_range_diversity_vf > 0, "`clip_range_vf` must be positive, " "pass `None` to deactivate vf clipping"
+            self.clip_range_diversity_vf = get_schedule_fn(self.clip_range_diversity_vf)
 
     def train(self) -> None:
         """
@@ -202,9 +213,11 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             clip_range_reward_vf = self.clip_range_reward_vf(self._current_progress_remaining)
         if self.clip_range_cost_vf is not None:
             clip_range_cost_vf = self.clip_range_cost_vf(self._current_progress_remaining)
+        if self.clip_range_diversity_vf is not None:
+            clip_range_diversity_vf = self.clip_range_diversity_vf(self._current_progress_remaining)
 
-        entropy_losses, contrastive_losses, all_kl_divs = [], [], []
-        pg_losses, reward_value_losses, cost_value_losses = [], [], []
+        entropy_losses, diversity_policy_losses, all_kl_divs = [], [], []
+        pg_losses, reward_value_losses, cost_value_losses, diversity_value_losses = [], [], [], []
         clip_fractions = []
 
         # Train for gradient_steps epochs
@@ -223,9 +236,47 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
                 if self.use_sde:
                     self.policy.reset_noise(self.batch_size)
 
-                reward_values, cost_values, log_prob, entropy = \
-                    self.policy.evaluate_actions(obs=torch.cat([rollout_data.observations, rollout_data.codes], dim=1),
-                                                 actions=actions)
+                outputs = self.policy.evaluate_actions(
+                    obs=torch.cat([rollout_data.observations, rollout_data.codes], dim=1),
+                    actions=actions)
+                if self.contrastive_augment_type == 'calculate advantages':
+                    reward_values, cost_values, diversity_values, log_prob, entropy = outputs
+                    # Normalize diversity advantages
+                    diversity_advantages = rollout_data.diversity_advantages - rollout_data.diversity_advantages.mean()
+                    diversity_advantages /= (rollout_data.diversity_advantages.std() + 1e-8)
+
+                    # Clipped surrogate diversity loss
+                    ratio = torch.exp(log_prob - rollout_data.old_log_prob)
+                    diversity_loss_1 = diversity_advantages * ratio
+                    diversity_loss_2 = diversity_advantages * torch.clamp(ratio, 1 - clip_range, 1 + clip_range)
+                    diversity_policy_loss = -torch.min(diversity_loss_1, diversity_loss_2).mean()
+
+                    if self.clip_range_diversity_vf is None:
+                        # No clipping
+                        diversity_values_pred = diversity_values
+                    else:
+                        # Clip the difference between old and new value
+                        # NOTE: this depends on the diversity scaling
+                        diversity_values_pred = rollout_data.old_cost_values + torch.clamp(
+                            diversity_values - rollout_data.old_diversity_values, -clip_range_diversity_vf,
+                            clip_range_diversity_vf)
+
+                    diversity_value_loss = F.mse_loss(rollout_data.diversity_returns, diversity_values_pred)
+                elif self.contrastive_augment_type == 'loss augmentation':
+                    reward_values, cost_values, log_prob, entropy = outputs
+                    # Contrastive loss favor diversity
+                    diversity_policy_loss = diversity_return_function(observations=rollout_data.observations,
+                                                                      actions=rollout_data.actions,
+                                                                      pos_latent_signals=rollout_data.pos_latent_signals,
+                                                                      neg_latent_signals=rollout_data.neg_latent_signals).mean()
+                    diversity_value_loss = torch.tensor(0).to(self.device)
+                else:
+                    diversity_policy_loss = torch.tensor(0, dtype=torch.float32).to(self.device)
+                    diversity_value_loss = torch.tensor(0, dtype=torch.float32).to(self.device)
+                    reward_values, cost_values, log_prob, entropy = outputs
+                diversity_policy_losses.append(diversity_policy_loss.item())
+                diversity_value_losses.append(diversity_value_loss.item())
+
                 reward_values = reward_values.flatten()
                 cost_values = cost_values.flatten()
 
@@ -240,10 +291,13 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
                 # Ratio between old and new policy, should be one at the first iteration
                 ratio = torch.exp(log_prob - rollout_data.old_log_prob)
 
-                # Clipped surrogate loss
+                # Clipped surrogate reward loss
                 policy_loss_1 = reward_advantages * ratio
                 policy_loss_2 = reward_advantages * torch.clamp(ratio, 1 - clip_range, 1 + clip_range)
                 policy_loss = -torch.min(policy_loss_1, policy_loss_2).mean()
+
+                # Add diversity to loss
+                policy_loss += self.contrastive_weight * diversity_policy_loss
 
                 # Add cost to loss
                 current_penalty = self.dual.nu().item()
@@ -278,7 +332,6 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
                 cost_value_loss = F.mse_loss(rollout_data.cost_returns, cost_values_pred)
                 reward_value_losses.append(reward_value_loss.item())
                 cost_value_losses.append(cost_value_loss.item())
-                # latent_losses.append(contrastive_loss.item())
 
                 # Entropy loss favor exploration
                 if entropy is None:
@@ -289,20 +342,9 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
 
                 entropy_losses.append(entropy_loss.item())
 
-                # Contrastive loss favor diversity
-                if self.contrastive_augment_type == 'loss augmentation':
-                    contrastive_loss = contrastive_loss_function(observations=rollout_data.observations,
-                                                                 actions=rollout_data.actions,
-                                                                 pos_latent_signals=rollout_data.pos_latent_signals,
-                                                                 neg_latent_signals=rollout_data.neg_latent_signals).mean()
-
-                else:
-                    contrastive_loss = torch.tensor(0).to(self.device)
-                contrastive_losses.append(contrastive_loss.item())
-
                 loss = (policy_loss
                         + self.ent_coef * entropy_loss
-                        + self.contrastive_weight * contrastive_loss
+                        + self.diversity_vf_coef * diversity_value_loss
                         + self.reward_vf_coef * reward_value_loss
                         + self.cost_vf_coef * cost_value_loss)
 
@@ -330,28 +372,33 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
         total_cost = np.sum(self.rollout_buffer.orig_costs)
         if self.update_penalty_after is None or ((self._n_updates / self.n_epochs) % self.update_penalty_after == 0):
             self.dual.update_parameter(average_cost)
-        tmp = self.dual.nu().item()
 
         mean_reward_advantages = np.mean(self.rollout_buffer.reward_advantages.flatten())
         mean_cost_advantages = np.mean(self.rollout_buffer.cost_advantages.flatten())
+        mean_diversity_advantages = np.mean(self.rollout_buffer.diversity_advantages.flatten())
 
         explained_reward_var = explained_variance(self.rollout_buffer.reward_returns.flatten(),
                                                   self.rollout_buffer.reward_values.flatten())
         explained_cost_var = explained_variance(self.rollout_buffer.cost_returns.flatten(),
                                                 self.rollout_buffer.cost_values.flatten())
+        explained_diversity_var = explained_variance(self.rollout_buffer.diversity_returns.flatten(),
+                                                     self.rollout_buffer.diversity_values.flatten())
 
         # Logs
         logger.record("train/entropy_loss", np.mean(entropy_losses))
         logger.record("train/policy_gradient_loss", np.mean(pg_losses))
         logger.record("train/reward_value_loss", np.mean(reward_value_losses))
         logger.record("train/cost_value_loss", np.mean(cost_value_losses))
+        logger.record("train/diversity_value_loss", np.mean(diversity_value_losses))
         logger.record("train/approx_kl", np.mean(approx_kl_divs))
         logger.record("train/clip_fraction", np.mean(clip_fractions))
         logger.record("train/loss", loss.item())
         logger.record("train/mean_reward_advantages", mean_reward_advantages)
         logger.record("train/mean_cost_advantages", mean_cost_advantages)
+        logger.record("train/mean_diversity_advantages", mean_diversity_advantages)
         logger.record("train/reward_explained_variance", explained_reward_var)
         logger.record("train/cost_explained_variance", explained_cost_var)
+        logger.record("train/diversity_explained_variance", explained_diversity_var)
         logger.record("train/nu", self.dual.nu().item())
         logger.record("train/nu_loss", self.dual.loss.item())
         logger.record("train/average_cost", average_cost)
@@ -365,6 +412,8 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             logger.record("train/clip_range_reward_vf", clip_range_reward_vf)
         if self.clip_range_cost_vf is not None:
             logger.record("train/clip_range_cost_vf", clip_range_cost_vf)
+        if self.clip_range_diversity_vf is not None:
+            logger.record("train/clip_range_diversity_vf", clip_range_diversity_vf)
 
     def learn(
             self,

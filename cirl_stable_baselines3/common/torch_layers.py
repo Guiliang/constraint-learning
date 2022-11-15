@@ -1,5 +1,5 @@
 from itertools import zip_longest
-from typing import Dict, List, Tuple, Type, Union
+from typing import Dict, List, Tuple, Type, Union, Any
 
 import gym
 import torch
@@ -161,7 +161,8 @@ class MlpExtractor(nn.Module):
         net_arch: List[Union[int, Dict[str, List[int]]]],
         activation_fn: Type[nn.Module],
         device: Union[torch.device, str] = "auto",
-        create_cvf: bool = False
+        create_cvf: bool = False,
+        create_dvf: bool = False,
     ):
         super(MlpExtractor, self).__init__()
         device = get_device(device)
@@ -169,13 +170,23 @@ class MlpExtractor(nn.Module):
         policy_only_layers = []  # Layer sizes of the network that only belongs to the policy network
         value_only_layers = []  # Layer sizes of the network that only belongs to the value network
         cost_value_only_layers = []  # Layer sizes of the network that only belongs to the cost value network
+        diversity_value_only_layers = []  # Layer sizes of the network that only belongs to the diversity value network
         last_layer_dim_shared = feature_dim
 
         self.create_cvf = create_cvf
+        self.create_dvf = create_dvf
 
         # If we also need to create a value function for cost
         if create_cvf:
             cost_value_net = []
+        else:
+            cost_value_net = None
+
+        # If we also need to create a value function for diversity
+        if create_dvf:
+            diversity_value_net = []
+        else:
+            diversity_value_net = None
 
         # Iterate through the shared layers and build the shared parts of the network
         for idx, layer in enumerate(net_arch):
@@ -199,16 +210,21 @@ class MlpExtractor(nn.Module):
                     assert isinstance(layer["cvf"], list), "Error: net_arch[-1]['cvf'] must contain a list of integers."
                     cost_value_only_layers = layer["cvf"]
 
+                if create_dvf and "dvf" in layer:
+                    assert isinstance(layer["dvf"], list), "Error: net_arch[-1]['cvf'] must contain a list of integers."
+                    diversity_value_only_layers = layer["dvf"]
+
                 break  # From here on the network splits up in policy and value network
 
         last_layer_dim_pi = last_layer_dim_shared
         last_layer_dim_vf = last_layer_dim_shared
         if create_cvf:
             last_layer_dim_cvf = last_layer_dim_shared
-
+        if create_dvf:
+            last_layer_dim_dvf = last_layer_dim_shared
         # Build the non-shared part of the network
-        for idx, (pi_layer_size, vf_layer_size, cvf_layer_size) in enumerate(
-                zip_longest(policy_only_layers, value_only_layers, cost_value_only_layers
+        for idx, (pi_layer_size, vf_layer_size, cvf_layer_size, dvf_layer_size) in enumerate(
+                zip_longest(policy_only_layers, value_only_layers, cost_value_only_layers, diversity_value_only_layers
             )):
             if pi_layer_size is not None:
                 assert isinstance(pi_layer_size, int), "Error: net_arch[-1]['pi'] must only contain integers."
@@ -228,12 +244,19 @@ class MlpExtractor(nn.Module):
                 cost_value_net.append(activation_fn())
                 last_layer_dim_cvf = cvf_layer_size
 
+            if dvf_layer_size is not None:  # Will be none if diversity_vf is False
+                assert isinstance(dvf_layer_size, int), "Error: net_arch[-1]['dvf'] must only contain integers."
+                diversity_value_net.append(nn.Linear(last_layer_dim_dvf, dvf_layer_size))
+                diversity_value_net.append(activation_fn())
+                last_layer_dim_dvf = dvf_layer_size
+
         # Save dim, used to create the distributions
         self.latent_dim_pi = last_layer_dim_pi
         self.latent_dim_vf = last_layer_dim_vf
         if create_cvf:
             self.latent_dim_cvf = last_layer_dim_cvf
-
+        if create_dvf:
+            self.latent_dim_dvf = last_layer_dim_dvf
         # Create networks
         # If the list of layers is empty, the network will just act as an Identity module
         self.shared_net = nn.Sequential(*shared_net).to(device)
@@ -241,14 +264,23 @@ class MlpExtractor(nn.Module):
         self.value_net = nn.Sequential(*value_net).to(device)
         if create_cvf:
             self.cost_value_net = nn.Sequential(*cost_value_net).to(device)
+        if create_dvf:
+            self.diversity_value_net = nn.Sequential(*diversity_value_net).to(device)
 
-    def forward(self, features: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, features: torch.Tensor) -> Union[
+        Tuple[Any, Any, Any, Any], Tuple[Any, Any, Any], Tuple[Any, Any]]:
         """
         :return: latent_policy, latent_value of the specified network.
             If all layers are shared, then ``latent_policy == latent_value``
         """
         shared_latent = self.shared_net(features)
-        if self.create_cvf:
+        if self.create_cvf and self.create_dvf:
+            return self.policy_net(shared_latent), self.value_net(shared_latent), \
+                   self.cost_value_net(shared_latent), self.diversity_value_net(shared_latent)
+        elif self.create_dvf:
+            return self.policy_net(shared_latent), self.value_net(shared_latent), \
+                   self.diversity_value_net(shared_latent)
+        elif self.create_cvf:
             return self.policy_net(shared_latent), self.value_net(shared_latent), self.cost_value_net(shared_latent)
         else:
             return self.policy_net(shared_latent), self.value_net(shared_latent)

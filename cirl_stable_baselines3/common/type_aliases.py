@@ -52,6 +52,9 @@ class RolloutBufferWithCostCodeSamples(NamedTuple):
     old_cost_values: th.Tensor
     cost_advantages: th.Tensor
     cost_returns: th.Tensor
+    diversity_values: th.Tensor
+    diversity_advantages: th.Tensor
+    diversity_returns: th.Tensor
     old_log_prob: th.Tensor
 
 

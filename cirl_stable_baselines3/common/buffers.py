@@ -653,6 +653,8 @@ class RolloutBufferWithCostCode(BaseBuffer):
             reward_gae_lambda: float = 1,
             cost_gamma: float = 0.99,
             cost_gae_lambda: float = 1,
+            diversity_gamma: float = 0.99,
+            diversity_gae_lambda: float = 1,
             n_envs: int = 1,
             n_probings: int = 1,
     ):
@@ -663,6 +665,8 @@ class RolloutBufferWithCostCode(BaseBuffer):
         self.reward_gae_lambda = reward_gae_lambda
         self.cost_gamma = cost_gamma
         self.cost_gae_lambda = cost_gae_lambda
+        self.diversity_gamma = diversity_gamma
+        self.diversity_gae_lambda = diversity_gae_lambda
         self.observations, self.orig_observations, self.actions, self.rewards, self.advantages = \
             None, None, None, None, None
         self.pos_latent_signals, self.neg_latent_signals, self.codes = None, None, None
@@ -685,7 +689,8 @@ class RolloutBufferWithCostCode(BaseBuffer):
                                             self.action_dim + self.obs_shape[0]), dtype=np.float32)
         self.neg_latent_signals = np.zeros((self.buffer_size,
                                             self.n_envs,
-                                            (self.latent_dim - 1)*self.n_probings,
+                                            self.latent_dim - 1,
+                                            self.n_probings,
                                             self.action_dim + self.obs_shape[0]), dtype=np.float32)
         self.dones = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
         self.log_probs = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
@@ -702,6 +707,12 @@ class RolloutBufferWithCostCode(BaseBuffer):
         self.cost_returns = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
         self.cost_values = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
         self.cost_advantages = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+
+        # Costs
+        self.diversities = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.diversity_returns = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.diversity_values = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
+        self.diversity_advantages = np.zeros((self.buffer_size, self.n_envs), dtype=np.float32)
 
         self.generator_ready = False
         super(RolloutBufferWithCostCode, self).reset()
@@ -757,7 +768,7 @@ class RolloutBufferWithCostCode(BaseBuffer):
         return returns, advantages
 
     def compute_returns_and_advantage(self, reward_last_value: th.Tensor, cost_last_value: th.Tensor,
-                                      dones: np.ndarray) -> None:
+                                      diversity_last_value: th.Tensor, dones: np.ndarray) -> None:
         self.reward_returns, self.reward_advantages = self._compute_returns_and_advantage(
                 self.rewards, self.reward_values, self.dones, self.reward_gamma, self.reward_gae_lambda,
                 reward_last_value, dones, self.reward_advantages
@@ -766,10 +777,15 @@ class RolloutBufferWithCostCode(BaseBuffer):
                 self.costs, self.cost_values, self.dones, self.cost_gamma, self.cost_gae_lambda,
                 cost_last_value, dones, self.cost_advantages
         )
+        self.diversity_returns, self.diversity_advantages = self._compute_returns_and_advantage(
+                self.diversities, self.diversity_values, self.dones, self.diversity_gamma, self.diversity_gae_lambda,
+                diversity_last_value, dones, self.diversity_advantages
+        )
 
     def add(self, obs: np.ndarray, orig_obs: np.ndarray, new_obs: np.ndarray, new_orig_obs: np.ndarray,
             action: np.ndarray, code: np.ndarray, pos_posterior_signal: np.ndarray, neg_posterior_signal: np.ndarray,
             reward: np.ndarray, reward_value: th.Tensor, cost: np.ndarray, orig_cost: np.ndarray, cost_value: th.Tensor,
+            diversity_score: np.ndarray, diversity_value: th.Tensor,
             done: np.ndarray, log_prob: th.Tensor) -> None:
         """
         :param obs: Observation
@@ -788,6 +804,8 @@ class RolloutBufferWithCostCode(BaseBuffer):
             following the current policy.
         :param cost_value: estimated cost value of the current state
             following the current policy.
+        :param diversity_score: diversity_score
+        :param diversity_score: diversity_score
         :param log_prob: log probability of the action
             following the current policy.
         """
@@ -810,6 +828,8 @@ class RolloutBufferWithCostCode(BaseBuffer):
         self.costs[self.pos] = np.array(cost).copy()
         self.orig_costs[self.pos] = np.array(orig_cost).copy()
         self.cost_values[self.pos] = cost_value.clone().cpu().numpy().flatten()
+        self.diversities[self.pos] = np.array(diversity_score).copy()
+        self.diversity_values[self.pos] = diversity_value.clone().cpu().numpy().flatten()
         self.pos += 1
         if self.pos == self.buffer_size:
             self.full = True
@@ -822,7 +842,9 @@ class RolloutBufferWithCostCode(BaseBuffer):
             for tensor in ["orig_observations", "observations", "actions",
                            "codes", "pos_latent_signals", "neg_latent_signals",
                            "reward_values", "reward_advantages", "reward_returns",
-                           "cost_values", "cost_advantages", "cost_returns", "log_probs"]:
+                           "cost_values", "cost_advantages", "cost_returns",
+                           "diversity_values", "diversity_advantages", "diversity_returns",
+                           "log_probs"]:
                 self.__dict__[tensor] = self.swap_and_flatten(self.__dict__[tensor])
             self.generator_ready = True
 
@@ -835,7 +857,7 @@ class RolloutBufferWithCostCode(BaseBuffer):
             yield self._get_samples(indices[start_idx : start_idx + batch_size])
             start_idx += batch_size
 
-    def _get_samples(self, batch_inds: np.ndarray, env: Optional[VecNormalize] = None) -> RolloutBufferSamples:
+    def _get_samples(self, batch_inds: np.ndarray, env: Optional[VecNormalize] = None) -> RolloutBufferWithCostCodeSamples:
         data = (
             self.orig_observations[batch_inds],
             self.observations[batch_inds],
@@ -849,6 +871,9 @@ class RolloutBufferWithCostCode(BaseBuffer):
             self.cost_values[batch_inds].flatten(),
             self.cost_advantages[batch_inds].flatten(),
             self.cost_returns[batch_inds].flatten(),
+            self.diversity_values[batch_inds].flatten(),
+            self.diversity_advantages[batch_inds].flatten(),
+            self.diversity_returns[batch_inds].flatten(),
             self.log_probs[batch_inds].flatten(),
         )
         return RolloutBufferWithCostCodeSamples(*tuple(map(self.to_torch, data)))

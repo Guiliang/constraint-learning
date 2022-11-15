@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 import gym
 import numpy as np
 import torch as th
-from torch import nn
+from torch import nn, Tensor
 
 from cirl_stable_baselines3.common.distributions import (
     BernoulliDistribution, CategoricalDistribution, DiagGaussianDistribution,
@@ -821,7 +821,7 @@ class ActorThreeCriticsPolicy(ActorCriticPolicy):
         # Default network architecture, from stable-baselines
         if net_arch is None:
             if features_extractor_class == FlattenExtractor:
-                net_arch = [dict(pi=[64, 64], vf=[64, 64], cvf=[64, 64])]
+                net_arch = [dict(pi=[64, 64], vf=[64, 64], cvf=[64, 64], dvf=[64, 64])]
             else:
                 net_arch = []
 
@@ -855,7 +855,7 @@ class ActorThreeCriticsPolicy(ActorCriticPolicy):
         #       net_arch here is an empty list and mlp_extractor does not
         #       really contain any layers (acts like an identity module).
         self.mlp_extractor = MlpExtractor(self.features_dim, net_arch=self.net_arch, activation_fn=self.activation_fn,
-                                          create_cvf=True)
+                                          create_cvf=True, create_dvf=True, )
 
     def _build(self, lr_schedule: Callable[[float], float]) -> None:
         """
@@ -894,6 +894,7 @@ class ActorThreeCriticsPolicy(ActorCriticPolicy):
 
         self.value_net = nn.Linear(self.mlp_extractor.latent_dim_vf, 1)
         self.cost_value_net = nn.Linear(self.mlp_extractor.latent_dim_cvf, 1)
+        self.diversity_value_net = nn.Linear(self.mlp_extractor.latent_dim_dvf, 1)
         # Init weights: use orthogonal initialization
         # with small initial weight for the output
         if self.ortho_init:
@@ -907,6 +908,7 @@ class ActorThreeCriticsPolicy(ActorCriticPolicy):
                 self.action_net: 0.01,
                 self.value_net: 1,
                 self.cost_value_net: 1,
+                self.diversity_value_net: 1,
             }
             for module, gain in module_gains.items():
                 module.apply(partial(self.init_weights, gain=gain))
@@ -914,7 +916,7 @@ class ActorThreeCriticsPolicy(ActorCriticPolicy):
         # Setup optimizer with initial learning rate
         self.optimizer = self.optimizer_class(self.parameters(), lr=lr_schedule(1), **self.optimizer_kwargs)
 
-    def forward(self, obs: th.Tensor, deterministic: bool = False) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+    def forward(self, obs: th.Tensor, deterministic: bool = False) -> Tuple[Tensor, Any, Any, Any, Tensor]:
         """
         Forward pass in all the networks (actor and critic)
 
@@ -922,16 +924,17 @@ class ActorThreeCriticsPolicy(ActorCriticPolicy):
         :param deterministic: Whether to sample or use deterministic actions
         :return: action, value and log probability of the action
         """
-        latent_pi, latent_vf, latent_cvf, latent_sde = self._get_latent(obs)
+        latent_pi, latent_vf, latent_cvf, latent_dvf, latent_sde = self._get_latent(obs)
         # Evaluate the values for the given observations
         values = self.value_net(latent_vf)
         cost_values = self.cost_value_net(latent_cvf)
+        diversity_values = self.diversity_value_net(latent_dvf)
         distribution = self._get_action_dist_from_latent(latent_pi, latent_sde=latent_sde)
         actions = distribution.get_actions(deterministic=deterministic)
         log_prob = distribution.log_prob(actions)
-        return actions, values, cost_values, log_prob
+        return actions, values, cost_values, diversity_values, log_prob
 
-    def _get_latent(self, obs: th.Tensor) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+    def _get_latent(self, obs: th.Tensor) -> Tuple[Any, Any, Any, Any, Any]:
         """
         Get the latent code (i.e., activations of the last layer of each network)
         for the different networks.
@@ -942,15 +945,16 @@ class ActorThreeCriticsPolicy(ActorCriticPolicy):
         """
         # Preprocess the observation if needed
         features = self.extract_features(obs)
-        latent_pi, latent_vf, latent_cvf = self.mlp_extractor(features)
+        latent_pi, latent_vf, latent_cvf, latent_dvf = self.mlp_extractor(features)
 
         # Features for sde
         latent_sde = latent_pi
         if self.sde_features_extractor is not None:
             latent_sde = self.sde_features_extractor(features)
-        return latent_pi, latent_vf, latent_cvf, latent_sde
+        return latent_pi, latent_vf, latent_cvf, latent_dvf, latent_sde
 
-    def evaluate_actions(self, obs: th.Tensor, actions: th.Tensor) -> Tuple[th.Tensor, th.Tensor, th.Tensor]:
+    def evaluate_actions(self, obs: th.Tensor, actions: th.Tensor) -> Tuple[
+        Any, Any, Any, Any, Optional[Tensor]]:
         """
         Evaluate actions according to the current policy,
         given the observations.
@@ -960,12 +964,13 @@ class ActorThreeCriticsPolicy(ActorCriticPolicy):
         :return: estimated value, cost value, log likelihood of taking those actions
             and entropy of the action distribution.
         """
-        latent_pi, latent_vf, latent_cvf, latent_sde = self._get_latent(obs)
+        latent_pi, latent_vf, latent_cvf, latent_dvf, latent_sde = self._get_latent(obs)
         distribution = self._get_action_dist_from_latent(latent_pi, latent_sde)
         log_prob = distribution.log_prob(actions)
         values = self.value_net(latent_vf)
         cost_values = self.cost_value_net(latent_cvf)
-        return values, cost_values, log_prob, distribution.entropy()
+        diversity_values = self.diversity_value_net(latent_dvf)
+        return values, cost_values, diversity_values, log_prob, distribution.entropy()
 
     def _predict(self, observation: th.Tensor, deterministic: bool = False) -> th.Tensor:
         """
@@ -975,7 +980,7 @@ class ActorThreeCriticsPolicy(ActorCriticPolicy):
         :param deterministic: Whether to use stochastic or deterministic actions
         :return: Taken action according to the policy
         """
-        latent_pi, _, _, latent_sde = self._get_latent(observation)
+        latent_pi, _, _, _, latent_sde = self._get_latent(observation)
         distribution = self._get_action_dist_from_latent(latent_pi, latent_sde)
         return distribution.get_actions(deterministic=deterministic)
 
