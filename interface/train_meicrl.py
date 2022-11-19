@@ -50,7 +50,7 @@ def train(config):
     else:
         log_file = None
     # debug_msg = ''
-    debug_msg = 'robust_check_'  # 'sanity_check-', 'semi_check-'
+    debug_msg = 'sanity_check-'  # 'robust_check_', 'sanity_check-', 'semi_check-'
     if 'robust_check' in debug_msg:
         debug_msg += str(config['running']['robust_weight']) + '_'
     # config['CN']['latent_dim'] = 1
