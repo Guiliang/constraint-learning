@@ -328,6 +328,17 @@ class MixtureConstraintNet(ConstraintNet):
                     ground_truth_id = np.argmax(other_parameters['expert_codes'][i][0])
                     if ground_truth_id == expert_aid:
                         top_ids.append(i)
+            elif 'robust_check' in debug_msg:
+                robust_weight = float(debug_msg.split('_')[2])
+                top_ids = []
+                for i in range(len(expert_data_games)):
+                    ground_truth_id = np.argmax(other_parameters['expert_codes'][i][0])
+                    if ground_truth_id == expert_aid:
+                        if random.random() > robust_weight:  # add the right ids for 90% of times
+                            top_ids.append(i)
+                    else:
+                        if random.random() < robust_weight:  # add the wrong ids for 10% of times
+                            top_ids.append(i)
             else:
                 other_dims = list(range(self.latent_dim))
                 other_dims.remove(expert_aid)
