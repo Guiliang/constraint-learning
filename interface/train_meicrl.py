@@ -49,8 +49,8 @@ def train(config):
         log_file = open(log_file_path, 'w')
     else:
         log_file = None
-    # debug_msg = ''
-    debug_msg = 'robust_check_'  # 'robust_check_', 'sanity_check-', 'semi_check-'
+    debug_msg = ''
+    # debug_msg = 'robust_check_'  # 'robust_check_', 'sanity_check-', 'semi_check-'
     if 'robust_check' in debug_msg:
         debug_msg += str(config['running']['robust_weight']) + '_'
     # config['CN']['latent_dim'] = 1
