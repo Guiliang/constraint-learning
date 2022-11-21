@@ -272,7 +272,8 @@ def train(config):
         if config['PPO']['reset_policy'] and itr != 0:
             print("\nResetting agent", file=log_file, flush=True)
             for aid in range(config['CN']['latent_dim']):
-                nominal_agents[aid] = create_nominal_agent_functions[aid]
+                nominal_agent = create_nominal_agent_functions[aid]()
+                nominal_agents.update({aid: nominal_agent})
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
         # Pass constraint net cost function to cost wrapper
