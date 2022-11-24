@@ -40,21 +40,22 @@ def plot_results(mean_results_moving_avg_dict,
 def generate_plots():
     env_id = 'HCWithPos-v0'
     method_names_labels_dict = {
-        # "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5": 'MEICRL_cbs-64_lr-1e-4_ft-2e5',
-        # "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5": 'MEICRL_cbs-64_lr-3e-4_ft-2e5',
-        # "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5": 'MEICRL_cbs-64_lr-5e-4_ft-2e5',
-        # "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg": 'MEICRL_cbs-64_lr-5e-5_ft-2e5_exp-neg',
-        # 'sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-5_ft-2e5_exp-neg': 'MEICRL_cbs-64_lr-1e-5_ft-2e5_exp-neg',
-        # 'sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-5_ft-2e5_exp-neg': 'MEICRL_cbs-64_lr-3e-5_ft-2e5_exp-neg',
-        # 'sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5': 'MEICRL_cbs-64_lr-5e-5_ft-2e5',
-        # 'sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_additive': 'MEICRL_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_additive',
-        'sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1': 'MEICRL_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1',
-        'semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-1e-1': 'MEICRL_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-1e-1',
-        'semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-3e-1': 'MEICRL_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-3e-1',
-        'semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-5e-1': 'MEICRL_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-5e-1',
-        'semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-8e-1': 'MEICRL_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-8e-1',
-        'semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-8e-1_reprob': 'MEICRL_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-8e-1_reprob',
-
+        "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2-multi_env": 'sanity_MEICRL',
+        "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_advloss-multi_env": 'semi_MEICRL_weight-1e-1_advloss',
+        "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_closs-multi_env": 'semi_MEICRL_weight-1e-1_closs',
+        "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1-multi_env": 'semi_MEICRL_weight-1e-1',
+        # "robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-0_robust-3e-1_advloss-multi_env": 'robust_MEICRL_weight-0_robust-3e-1_advloss',
+        # "robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_robust-3e-1_advloss-multi_env": 'robust_MEICRL_weight-1e-1_robust-3e-1_advloss',
+        # "robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-3e-1_robust-3e-1_advloss-multi_env": 'robust_MEICRL_weight-3e-1_robust-3e-1_advloss',
+        # "robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-5e-1_robust-3e-1_advloss-multi_env": 'robust_MEICRL_weight-5e-1_robust-3e-1_advloss',
+        # "robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-0_robust-2e-1_advloss-multi_env": 'robust_MEICRL_weight-0_robust-2e-1_advloss',
+        # "robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_robust-2e-1_advloss-multi_env": 'robust_MEICRL_weight-1e-1_robust-2e-1_advloss',
+        # "robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-3e-1_robust-2e-1_advloss-multi_env": 'robust_MEICRL_weight-3e-1_robust-2e-1_advloss',
+        # "robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-5e-1_robust-2e-1_advloss-multi_env": 'robust_MEICRL_weight-5e-1_robust-2e-1_advloss',
+        "robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-0_robust-1e-1_advloss-multi_env": 'robust_MEICRL_weight-0_robust-1e-1_advloss',
+        "robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_robust-1e-1_advloss-multi_env": 'robust_MEICRL_weight-1e-1_robust-1e-1_advloss',
+        "robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-3e-1_robust-1e-1_advloss-multi_env": 'robust_MEICRL_weight-3e-1_robust-1e-1_advloss',
+        "robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-5e-1_robust-1e-1_advloss-multi_env": 'robust_MEICRL_weight-5e-1_robust-1e-1_advloss',
     }
 
     modes = ['train']
@@ -81,67 +82,54 @@ def generate_plots():
                                'constraint': None}
             title = 'Blocked Half-Cheetah'
             log_path_dict = {
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5_exp-neg": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:01-seed_123/',
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5_exp-neg-multi_env-Oct-27-2022-23:16-seed_321/',
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:44-seed_666/',
+                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2-multi_env-Nov-04-2022-17:05-seed_123/',
                 ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5_exp-neg": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:01-seed_123/',
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-4_ft-2e5_exp-neg-multi_env-Oct-27-2022-23:16-seed_666/',
+                "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_advloss-multi_env-Nov-15-2022-20:29-seed_123/',
                 ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg-multi_env-Oct-28-2022-11:01-seed_123/',
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg-multi_env-Oct-27-2022-09:57-seed_321/',
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-4_ft-2e5_exp-neg-multi_env-Oct-27-2022-23:16-seed_666/',
+                "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_closs-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_closs-multi_env-Nov-08-2022-19:50-seed_123/',
                 ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-multi_env-Oct-28-2022-17:39-seed_123/',
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-multi_env-Oct-27-2022-23:16-seed_321/',
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-multi_env-Oct-28-2022-12:13-seed_666/',
+                "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1-multi_env-Nov-07-2022-12:18-seed_123/',
                 ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-5_ft-2e5_exp-neg": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-1e-5_ft-2e5_exp-neg-multi_env-Oct-31-2022-20:29-seed_123/',
+                "robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-0_robust-3e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-0_robust-3e-1_advloss-multi_env-Nov-18-2022-16:51-seed_123/',
                 ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-5_ft-2e5_exp-neg": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-3e-5_ft-2e5_exp-neg-multi_env-Oct-31-2022-20:29-seed_123/',
+                "robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_robust-3e-1_advloss-multi_env":[
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_robust-3e-1_advloss-multi_env-Nov-18-2022-16:46-seed_123/',
                 ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5": [
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5-multi_env-Oct-31-2022-20:33-seed_123/',
+                "robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-3e-1_robust-3e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-3e-1_robust-3e-1_advloss-multi_env-Nov-18-2022-16:49-seed_123/',
                 ],
-                "sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1": [
-                    # '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1-multi_env-Oct-31-2022-20:29-seed_123/',
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1-multi_env-Nov-01-2022-11:33-seed_321/',
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1-multi_env-Nov-01-2022-11:33-seed_666/',
+                "robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-5e-1_robust-3e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.3_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-5e-1_robust-3e-1_advloss-multi_env-Nov-18-2022-16:49-seed_123/',
                 ],
-                'sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_additive':[
-                    '../save_model/MEICRL_HCWithPos-v0/sanity_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_additive-multi_env-Nov-01-2022-19:36-seed_123/',
+                "robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-0_robust-2e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-0_robust-2e-1_advloss-multi_env-Nov-18-2022-16:51-seed_123/',
                 ],
-                "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-1e-1": [
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-1e-1-multi_env-Nov-01-2022-12:03-seed_123/',
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-1e-1-multi_env-Nov-01-2022-00:02-seed_123/',
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-1e-1-multi_env-Nov-01-2022-13:20-seed_321/',
-                    # '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-1e-1-multi_env-Nov-02-2022-02:19-seed_666/',
+                "robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_robust-2e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_robust-2e-1_advloss-multi_env-Nov-18-2022-16:46-seed_123/',
                 ],
-                "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-3e-1": [
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-3e-1-multi_env-Nov-01-2022-00:02-seed_123/',
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-3e-1-multi_env-Nov-01-2022-13:02-seed_321/',
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-3e-1-multi_env-Nov-02-2022-02:06-seed_666/',
+                "robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-3e-1_robust-2e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-3e-1_robust-2e-1_advloss-multi_env-Nov-19-2022-21:04-seed_123/',
                 ],
-                "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-5e-1": [
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-5e-1-multi_env-Nov-01-2022-00:02-seed_123/',
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-5e-1-multi_env-Nov-01-2022-12:52-seed_321/',
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-5e-1-multi_env-Nov-02-2022-02:38-seed_666/',
+                "robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-5e-1_robust-2e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.2_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-5e-1_robust-2e-1_advloss-multi_env-Nov-19-2022-21:04-seed_123/',
                 ],
-                "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-8e-1_reprob":[
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-8e-1_reprob-multi_env-Nov-01-2022-17:25-seed_123/',
+                "robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-0_robust-1e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-0_robust-1e-1_advloss-multi_env-Nov-16-2022-17:52-seed_123/',
                 ],
-                "semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-8e-1": [
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-8e-1-multi_env-Nov-01-2022-00:02-seed_123/',
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-8e-1-multi_env-Nov-01-2022-13:46-seed_321/',
-                    '../save_model/MEICRL_HCWithPos-v0/semi_check-train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_weight-8e-1-multi_env-Nov-02-2022-02:41-seed_666/',
+                "robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_robust-1e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-1e-1_robust-1e-1_advloss-multi_env-Nov-16-2022-17:52-seed_123/',
                 ],
-
+                "robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-3e-1_robust-1e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-3e-1_robust-1e-1_advloss-multi_env-Nov-19-2022-21:04-seed_123/',
+                ],
+                "robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-5e-1_robust-1e-1_advloss-multi_env": [
+                    '../save_model/MEICRL_HCWithPos-v0/robust_check_0.1_train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-5e-1_robust-1e-1_advloss-multi_env-Nov-19-2022-21:04-seed_123/',
+                ],
             }
         else:
             raise ValueError("Unknown env id {0}".format(env_id))

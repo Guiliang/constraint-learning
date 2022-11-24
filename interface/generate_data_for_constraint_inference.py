@@ -9,6 +9,10 @@ from typing import Union, Callable
 import numpy as np
 import yaml
 
+from cirl_stable_baselines3 import PPOLagrangian
+from cirl_stable_baselines3.ppo_lag.ma_ppo_lag import MultiAgentPPOLagrangian
+from utils.model_utils import load_ppo_config
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from gym import Env
@@ -64,7 +68,7 @@ LOGGER = logging.getLogger(__name__)
 
 def create_environments(env_id: str, viz_path: str, test_path: str, model_path: str, group: str, num_threads: int = 1,
                         normalize=True, env_kwargs=None, testing_env=False, part_data=False,
-                        constraint_id=0, max_seq_len=None, ) -> CommonRoadVecEnv:
+                        constraint_id=0, latent_dim=2, max_seq_len=None, ) -> CommonRoadVecEnv:
     """
     Create CommonRoad vectorized environment
     """
@@ -83,6 +87,7 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
             env_kwargs['meta_scenario_path'] += '_debug'
 
     env_kwargs['constraint_id'] = constraint_id  # the environments contain a mixture of constraints
+    env_kwargs['latent_dim'] = latent_dim
 
     # Create environment
     envs = [make_env(env_id=env_id,
@@ -136,12 +141,16 @@ def run():
     parser.add_argument("-ld", "--latent_code_dimension", help="the dimension of latent codes.",
                         dest="LATENT_DIMENSION",
                         default=1, required=True)
+    parser.add_argument("-nsy", "--noisy_demonstration", help="generate the noisy demonstration data.",
+                        dest="NOISY_DEMO",
+                        default=0, required=True)
     args = parser.parse_args()
     debug_mode = args.DEBUG_MODE
     num_threads = int(args.NUM_THREADS)
     load_model_name = args.MODEL_NAME
     task_name = args.TASK_NAME
     data_generate_type = args.CONSTRAINT_TYPE
+    noisy_demonstration = bool(int(args.NOISY_DEMO))
     log_file = None
     # load_model_name = 'train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:29-seed_123'
     # task_name = 'PPO-highD'
@@ -158,7 +167,14 @@ def run():
 
     constraint_id = config['env']['constraint_id']
     code = np.zeros((int(args.LATENT_DIMENSION)), dtype=np.int)
-    code[constraint_id] = 1
+    if noisy_demonstration:
+        for i in range(int(args.LATENT_DIMENSION)):
+            if i == constraint_id:
+                continue
+            else:
+                code[i] = 1
+    else:
+        code[constraint_id] = 1
 
     evaluation_path = os.path.join('../evaluate_model', config['task'], load_model_name)
     if not os.path.exists(os.path.join('../evaluate_model', config['task'])):
@@ -166,10 +182,11 @@ def run():
     if not os.path.exists(evaluation_path):
         os.mkdir(evaluation_path)
 
-    save_expert_data_path = os.path.join('../data/expert_data/', '{0}{1}_{2}'.format(
+    save_expert_data_path = os.path.join('../data/expert_data/', '{3}{0}{1}_{2}'.format(
         'debug_' if debug_mode else '',
         data_generate_type,
         load_model_name,
+        'noisy_' if noisy_demonstration else '',
     ))
     if not os.path.exists(save_expert_data_path):
         os.mkdir(save_expert_data_path)
@@ -194,11 +211,21 @@ def run():
                               testing_env=if_testing_env,
                               part_data=debug_mode,
                               constraint_id=config['env']['constraint_id'],
-                              # max_seq_len=config['running']['max_seq_length'],
+                              latent_dim=int(args.LATENT_DIMENSION),
                               )
+
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
-    model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
+    if not noisy_demonstration:
+        model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
+    else:
+        ppo_parameters = load_ppo_config(config=config,
+                                         train_env=env,
+                                         seed=int(model_loading_path.split('_')[-1]),
+                                         log_file=log_file)
+        create_ppo_agent = lambda: PPOLagrangian(**ppo_parameters)
+        model = create_ppo_agent()
+        print("Skip model loading for noisy demonstration.", file=log_file)
     total_scenarios, benchmark_idx = 0, 0
     if is_commonroad(env_id=config['env']['train_env_id']):
         max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)
@@ -309,22 +336,26 @@ def run():
                     'observations': np.asarray(obs_all[i]),
                     'actions': np.asarray(action_all[i]),
                     'original_observations': np.asarray(original_obs_all[i]),
-                    'codes': np.asarray([code]*len(obs_all[i])),
+                    'codes': np.asarray([code] * len(obs_all[i])),
                     'reward': np.asarray(reward_all[i]),
                     'reward_sum': reward_sums[i]
                 }
                 if is_commonroad(env_id=config['env']['train_env_id']):
                     with open(os.path.join(save_expert_data_path,
-                                           'scene-{0}_code-{1}_len-{2}.pkl'.format(benchmark_ids[i],
-                                                                                   list(code),
-                                                                                   running_steps[i])), 'wb') as file:
+                                           '{3}scene-{0}_code-{1}_len-{2}{3}.pkl'.format(benchmark_ids[i],
+                                                                                         list(code),
+                                                                                         running_steps[i],
+                                                                                         '-noisy' if noisy_demonstration else '', ),
+                                           ), 'wb') as file:
                         # A new file will be created
                         pickle.dump(saving_expert_data, file)
                 elif is_mujoco(env_id=config['env']['train_env_id']):
                     with open(os.path.join(save_expert_data_path,
-                                           'scene-{0}_code-{1}_len-{2}.pkl'.format(success,
-                                                                                   list(code),
-                                                                                   running_steps[i])), 'wb') as file:
+                                           'scene-{0}_code-{1}_len-{2}{3}.pkl'.format(success,
+                                                                                      list(code),
+                                                                                      running_steps[i],
+                                                                                      '-noisy' if noisy_demonstration else '', )
+                                           ), 'wb') as file:
                         # A new file will be created
                         pickle.dump(saving_expert_data, file)
                 else:

@@ -32,6 +32,8 @@ def get_cns_config(config, train_env, expert_obs, expert_acs, log_file):
         action_low, action_high = train_env.action_space.low, train_env.action_space.high
     cn_lr_schedule = lambda x: (config['CN']['anneal_clr_by_factor'] ** (config['running']['n_iters'] * (1 - x))) \
                                * config['CN']['cn_learning_rate']
+    density_lr_schedule = lambda x: (config['CN']['anneal_clr_by_factor'] ** (config['running']['n_iters'] * (1 - x))) \
+                               * config['CN']['density_learning_rate']
 
     cn_obs_select_name = config['CN']['cn_obs_select_name']
     print("Selecting obs features are : {0}".format(cn_obs_select_name if cn_obs_select_name is not None else 'all'),
@@ -50,7 +52,8 @@ def get_cns_config(config, train_env, expert_obs, expert_acs, log_file):
         'acs_dim': acs_dim,
         'hidden_sizes': config['CN']['cn_layers'],
         'batch_size': config['CN']['cn_batch_size'],
-        'lr_schedule': cn_lr_schedule,
+        'cn_lr_schedule': cn_lr_schedule,
+        'density_lr_schedule': density_lr_schedule,
         'expert_obs': expert_obs,  # select obs at a time step t
         'expert_acs': expert_acs,  # select acs at a time step t
         'is_discrete': is_discrete,

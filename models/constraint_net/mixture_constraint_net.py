@@ -22,7 +22,8 @@ class MixtureConstraintNet(ConstraintNet):
             latent_dim: int,
             hidden_sizes: Tuple[int, ...],
             batch_size: int,
-            lr_schedule: Callable[[float], float],
+            cn_lr_schedule: Callable[[float], float],
+            density_lr_schedule: Callable[[float], float],
             expert_obs: np.ndarray,
             expert_acs: np.ndarray,
             is_discrete: bool,
@@ -59,7 +60,7 @@ class MixtureConstraintNet(ConstraintNet):
                                                    acs_dim=acs_dim,
                                                    hidden_sizes=hidden_sizes,
                                                    batch_size=batch_size,
-                                                   lr_schedule=lr_schedule,
+                                                   lr_schedule=cn_lr_schedule,
                                                    expert_obs=expert_obs,
                                                    expert_acs=expert_acs,
                                                    is_discrete=is_discrete,
@@ -94,6 +95,8 @@ class MixtureConstraintNet(ConstraintNet):
         self.n_probings = n_probings
         self.reverse_probing = reverse_probing
         self.log_cost = log_cost
+        self.density_lr_schedule = density_lr_schedule
+        self.cn_lr_schedule = cn_lr_schedule
         for aid in range(self.latent_dim):
             self.pivot_vectors_by_cid.update({aid: np.ones([self.n_probings, self.obs_dim + self.acs_dim])})
         self._build()
@@ -141,7 +144,7 @@ class MixtureConstraintNet(ConstraintNet):
             self.cns_optimizers = []
             for i in range(self.latent_dim):
                 self.cns_optimizers.append(self.optimizer_class(params=self.constraint_functions[i].parameters(),
-                                                                lr=self.lr_schedule(1),
+                                                                lr=self.cn_lr_schedule(1),
                                                                 **self.optimizer_kwargs))
         else:
             self.cns_optimizers = None
@@ -170,7 +173,7 @@ class MixtureConstraintNet(ConstraintNet):
 
         if self.optimizer_class is not None:
             self.density_optimizer = self.optimizer_class(params=self.density_model.parameters(),
-                                                          lr=self.lr_schedule(1),
+                                                          lr=self.density_lr_schedule(1),
                                                           **self.optimizer_kwargs)
         else:
             self.density_optimizer = None
@@ -315,7 +318,7 @@ class MixtureConstraintNet(ConstraintNet):
                 inputs=expert_data_game_repeat.reshape([-1, self.input_dim]),
                 cond_inputs=expert_code_game.reshape(
                     [-1, self.latent_dim]))
-            # sum up the log-prob for datapoints to determine the cid of entire trajectory.
+            # sum up the log-prob for datapoints to determine the aid of entire trajectory.
             expert_log_sum_game = expert_log_prob.reshape([-1, self.latent_dim, 1]).sum(dim=0).squeeze(dim=-1)
             expert_sum_log_prob_by_games.append(to_np(expert_log_sum_game))
         expert_sum_log_prob_by_games = np.asarray(expert_sum_log_prob_by_games)
@@ -410,7 +413,7 @@ class MixtureConstraintNet(ConstraintNet):
                 _, topk = reverse_log_prob_cid.squeeze(dim=-1).topk(self.n_probings, dim=0, largest=True, sorted=False)
                 pivot_points = nominal_data_by_cids[aid][topk]
             self.pivot_vectors_by_cid.update({aid: to_np(pivot_points)})
-            print('cid: {0}, pivot_vectors is {1}'.format(aid, self.pivot_vectors_by_cid[aid].mean(axis=0)),
+            print('aid: {0}, pivot_vectors is {1}'.format(aid, self.pivot_vectors_by_cid[aid].mean(axis=0)),
                   flush=True, file=self.log_file)
             if expert_data_by_cid[aid] is None:
                 continue

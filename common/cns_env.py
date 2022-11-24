@@ -34,6 +34,8 @@ def make_env(env_id, env_configs, rank, log_dir, group, multi_env=False, seed=0)
             del env_configs_copy['constraint_id']  # this info is for the external wrapper.
         if 'latent_dim' in env_configs:
             del env_configs_copy['latent_dim']  # this info is for the external wrapper.
+        if 'games_by_cids' in env_configs:
+            del env_configs_copy['games_by_cids']  # this info is for the external wrapper.
         env = gym.make(id=env_id,
                        **env_configs_copy)
         env.seed(seed + rank)
@@ -76,8 +78,10 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     if 'constraint_id' in kwargs:  # the environments contain a mixture of constraints
         env_configs['constraint_id'] = kwargs['constraint_id']
         env_configs['latent_dim'] = kwargs['latent_dim']
-    else:
-        env_configs['constraint_id'] = 0
+    if 'games_by_cids' in kwargs:
+        env_configs['games_by_cids'] = kwargs['games_by_cids']
+    # else:
+    #     env_configs['constraint_id'] = 0
     env = [make_env(env_id=env_id,
                     env_configs=env_configs,
                     rank=i,
@@ -141,8 +145,8 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
     if 'constraint_id' in kwargs:  # the environments contain a mixture of constraints
         env_configs['constraint_id'] = kwargs['constraint_id']
         env_configs['latent_dim'] = kwargs['latent_dim']
-    else:
-        env_configs['constraint_id'] = 0
+    if 'games_by_cids' in kwargs:
+        env_configs['games_by_cids'] = kwargs['games_by_cids']
     env = [make_env(env_id=env_id,
                     env_configs=env_configs,
                     rank=i,
@@ -314,7 +318,7 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         super(MujocoExternalSignalWrapper, self).__init__(env=env)
         self.wrapper_config = wrapper_config
         self.group = group
-        self.latent_dim = wrapper_config['latent_dim']
+        # self.latent_dim = wrapper_config['latent_dim']
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
         obs, reward, done, info = self.env.step(action)
@@ -336,7 +340,6 @@ class MujocoExternalSignalWrapper(gym.Wrapper):
         #     action = action[:-self.wrapper_config['latent_dim']]
         # else:
         #     constraint_id = self.wrapper_config['constraint_id']  # fix constraint
-
         aid = np.argmax(agent_code)
 
         obs, reward, done, info = self.env.step(action)

@@ -110,6 +110,22 @@ def train(config):
     mem_prev = process_memory()
     time_prev = start_time = time.time()
 
+    # Load expert data
+    expert_path = config['running']['expert_path']
+    if debug_mode:
+        expert_path = expert_path.replace('expert_data/', 'expert_data/debug_')
+    expert_rollouts = config['running']['expert_rollouts']
+    (expert_obs, expert_acs, expert_rs, expert_codes), expert_mean_reward = load_expert_data(
+        expert_path=expert_path,
+        num_rollouts=expert_rollouts,
+        store_by_game=config['running']['store_by_game'],
+        add_latent_code=True,
+        log_file=log_file
+    )
+    games_by_cids = {}
+    for i in range(len(expert_codes)):
+        games_by_cids.update({i: np.argmax(expert_codes[i][0])})
+
     # Create the vectorized environments
     train_env, env_configs = \
         make_train_env(env_id=config['env']['train_env_id'],
@@ -131,6 +147,7 @@ def train(config):
                        part_data=partial_data,
                        constraint_id=config['env']['constraint_id'],
                        max_seq_len=config['running']['max_seq_length'],
+                       games_by_cids=games_by_cids,
                        log_file=log_file,
                        )
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
@@ -157,6 +174,7 @@ def train(config):
                       multi_env=sample_multi_env,
                       constraint_id=config['env']['constraint_id'],
                       max_seq_len=config['running']['max_seq_length'],
+                      games_by_cids=games_by_cids,
                       log_file=log_file)
 
     save_test_mother_dir = os.path.join(save_model_mother_dir, "test/")
@@ -178,25 +196,13 @@ def train(config):
                       multi_env=False,
                       constraint_id=config['env']['constraint_id'],
                       max_seq_len=config['running']['max_seq_length'],
+                      games_by_cids=games_by_cids,
                       log_file=log_file)
 
     mem_prev, time_prev = print_resource(mem_prev=mem_prev,
                                          time_prev=time_prev,
                                          process_name='Loading environment',
                                          log_file=log_file)
-
-    # Load expert data
-    expert_path = config['running']['expert_path']
-    if debug_mode:
-        expert_path = expert_path.replace('expert_data/', 'expert_data/debug_')
-    expert_rollouts = config['running']['expert_rollouts']
-    (expert_obs, expert_acs, expert_rs, expert_codes), expert_mean_reward = load_expert_data(
-        expert_path=expert_path,
-        num_rollouts=expert_rollouts,
-        store_by_game=config['running']['store_by_game'],
-        add_latent_code=True,
-        log_file=log_file
-    )
 
     # plot expert traj
     plt.figure(figsize=(6, 6))
