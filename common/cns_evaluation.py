@@ -1,5 +1,6 @@
 import os
 import warnings
+from abc import ABC
 from typing import Callable, List, Optional, Tuple, Union, Dict, Any
 import torch
 import torch.nn.functional as F
@@ -10,10 +11,10 @@ from matplotlib import pyplot as plt
 
 from cirl_stable_baselines3.common.callbacks import EventCallback, BaseCallback
 from cirl_stable_baselines3.common.evaluation import evaluate_policy
-from cirl_stable_baselines3.common.vec_env import VecEnv, DummyVecEnv, sync_envs_normalization, VecNormalize
+from cirl_stable_baselines3.common.vec_env import VecEnv, DummyVecEnv, sync_envs_normalization, VecNormalize, \
+    VecNormalizeWithCost
 from utils.data_utils import process_memory, build_rnn_input
 from utils.model_utils import build_code
-
 
 def evaluate_meicrl_cns(
         cns_model: torch.nn.Module,
@@ -40,6 +41,68 @@ def evaluate_meicrl_cns(
         expert_code_games.append(expert_code_game)
     expert_codes = torch.cat(expert_code_games, dim=0)
     print("still working")
+
+
+def evaluate_iteration_policy(
+        model: ABC,
+        env: Union[gym.Env, VecEnv],
+        cost_function: Union[str, Callable],
+        record_info_names: list,
+        n_eval_episodes: int = 10,
+        deterministic: bool = True,
+        render: bool = False,
+        callback: Optional[Callable] = None,
+        reward_threshold: Optional[float] = None,
+        return_episode_rewards: bool = False,
+):
+    episode_rewards, episode_nc_rewards, episode_lengths = [], [], []
+    episode_costs = []
+    record_infos = {}
+    for record_info_name in record_info_names:
+        record_infos.update({record_info_name: []})
+    for i in range(n_eval_episodes):
+        states = env.reset()
+        cumu_reward, cumu_nc_reward, length = 0, 0, 0
+        actions_game, states_game, costs_game = [], [], []
+        is_constraint = [False for i in range(env.num_envs)]
+        while True:
+            policy_prob = model.pi[states[0][0], states[0][1]]
+            action = np.argmax(policy_prob)
+            actions_game.append(action)
+            s_primes, rewards, dones, infos = env.step([action])
+            done = dones[0]
+            if done:
+                break
+            if type(cost_function) is str:
+                costs = np.array([info.get(cost_function, 0) for info in infos])
+                if isinstance(env, VecNormalizeWithCost):
+                    orig_costs = env.get_original_cost()
+                else:
+                    orig_costs = costs
+            else:
+                costs = cost_function(states, [action])
+                orig_costs = costs
+            episode_costs.append(costs)
+            for i in range(env.num_envs):
+                for record_info_name in record_info_names:
+                    record_infos[record_info_name].append(np.mean(infos[i][record_info_name]))
+                if not is_constraint[i]:
+                    if orig_costs[i]:
+                        is_constraint[i] = True
+                    else:
+                        cumu_nc_reward += rewards[i]
+            states = s_primes
+            states_game.append(states[0])
+            cumu_reward += rewards[0]
+            length += 1
+        episode_rewards.append(cumu_reward)
+        episode_nc_rewards.append(cumu_nc_reward)
+
+    mean_reward = np.mean(episode_rewards)
+    std_reward = np.std(episode_rewards)
+    mean_nc_reward = np.mean(episode_nc_rewards)
+    std_nc_reward = np.std(episode_nc_rewards)
+    return mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, episode_costs
 
 
 def evaluate_icrl_policy(
@@ -88,8 +151,10 @@ def evaluate_icrl_policy(
         episode_nc_reward = np.asarray([0.0] * env.num_envs)
         is_constraint = [False for i in range(env.num_envs)]
         episode_length = 0
+        obs_game = []
         while not done:
             action, state = model.predict(obs, state=state, deterministic=deterministic)
+            obs_game.append(obs[0])
             obs, reward, done, _info = env.step(action)
             for i in range(env.num_envs):
                 if 'cost' in _info[i].keys():
@@ -116,6 +181,8 @@ def evaluate_icrl_policy(
             episode_length += 1
             if render:
                 env.render()
+        obs_game = np.asarray(obs_game)
+        print(obs_game)
         episode_rewards.append(episode_reward)
         episode_nc_rewards.append(episode_nc_reward)
         episode_lengths.append(episode_length)

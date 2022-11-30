@@ -289,6 +289,8 @@ class MixtureConstraintNet(ConstraintNet):
                 density_loss = -m_loss.mean()
                 log_prob = log_prob.mean()
                 density_loss.backward()
+                # for p in self.density_model.parameters():
+                #     print(p.grad.norm())
                 self.density_optimizer.step()
         bw_metrics.update({"backward/density_loss": density_loss.item()})
 
@@ -536,11 +538,13 @@ class MixtureConstraintNet(ConstraintNet):
 
     def _update_learning_rate(self, current_progress_remaining) -> None:
         self.current_progress_remaining = current_progress_remaining
-        print("The updated learning rate is {0}.".format(self.lr_schedule(current_progress_remaining)),
-              file=self.log_file, flush=True)
         for i in range(self.latent_dim):
-            update_learning_rate(self.cns_optimizers[i], self.lr_schedule(current_progress_remaining))
-        update_learning_rate(self.density_optimizer, self.lr_schedule(current_progress_remaining))
+            update_learning_rate(self.cns_optimizers[i], self.cn_lr_schedule(current_progress_remaining))
+        update_learning_rate(self.density_optimizer, self.density_lr_schedule(current_progress_remaining))
+        print("The updated learning rate is density: {0}/ CN: {0}.".format(
+            self.density_lr_schedule(current_progress_remaining),
+            self.cn_lr_schedule(current_progress_remaining),
+        ), file=self.log_file, flush=True)
 
     def _load(self, load_path):
         state_dict = torch.load(load_path)

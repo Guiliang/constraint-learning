@@ -133,7 +133,16 @@ class VecCostCodeWrapper(VecEnvWrapper):
         self.obs_seqs = [[obs[i]] for i in range(self.num_envs)]
         self.codes = build_code(code_axis=self.code_axis, code_dim=self.latent_dim, num_envs=self.num_envs)
         return obs
-
+    def reset_with_values(self, info_dicts):
+        """
+        Reset all environments
+        """
+        obs = self.venv.reset_with_values(info_dicts)
+        self.previous_obs = obs
+        self.action_seqs = [[] for i in range(self.num_envs)]
+        self.obs_seqs = [[obs[i]] for i in range(self.num_envs)]
+        self.codes = build_code(code_axis=self.code_axis, code_dim=self.latent_dim, num_envs=self.num_envs)
+        return obs
     @staticmethod
     def load(load_path: str, venv: VecEnv):
         """

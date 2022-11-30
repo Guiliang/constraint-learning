@@ -72,7 +72,6 @@ class DualVariable:
     def update_parameter(self, cost):
         # Compute loss.
         self.loss = - self.nu() * (cost-self.alpha)
-        tmp = self.nu
         # Update.
         self.optimizer.zero_grad()
         self.loss.backward()

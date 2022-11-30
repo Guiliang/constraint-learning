@@ -10,6 +10,8 @@ import numpy as np
 import yaml
 from matplotlib import pyplot as plt
 
+from cirl_stable_baselines3.iteration import PolicyIterationLagrange
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from common.cns_config import get_cns_config
@@ -24,7 +26,7 @@ from cirl_stable_baselines3.common.vec_env import sync_envs_normalization, VecNo
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
     get_input_features_dim, process_memory, print_resource
 from utils.env_utils import check_if_duplicate_seed
-from utils.model_utils import load_ppo_config, build_code
+from utils.model_utils import load_ppo_config, build_code, load_policy_iteration_config
 from common.cns_sample import sample_from_multi_agents
 import warnings
 
@@ -57,15 +59,13 @@ def train(config):
     if debug_mode:
         # config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 3000  # 2000
-        config['PPO']['n_steps'] = 500
-        config['PPO']['n_epochs'] = 2
+        if 'PPO' in config.keys():
+            config['PPO']['forward_timesteps'] = 3000  # 2000
+            config['PPO']['n_steps'] = 500
+            config['PPO']['n_epochs'] = 2
         config['running']['n_eval_episodes'] = 2
         config['running']['save_every'] = 1
         config['running']['sample_rollouts'] = 2
-        # config['running']['sample_data_num'] = 500
-        # config['running']['store_sample_num'] = 1000
-        # config['CN']['cn_batch_size'] = 3
         config['CN']['backward_iters'] = 2
         debug_msg += 'debug-'
         partial_data = True
@@ -205,15 +205,17 @@ def train(config):
                                          log_file=log_file)
 
     # plot expert traj
-    plt.figure(figsize=(6, 6))
     for record_info_idx in range(len(config['env']["record_info_names"])):
+        # plt.figure(figsize=(6, 6))
+        plt.figure()
         record_info_name = config['env']["record_info_names"][record_info_idx]
         if config['running']['store_by_game']:
             for c_id in range(config['CN']['latent_dim']):
+            # for c_id in range(1):
                 data_indices = np.where(np.concatenate(expert_codes, axis=0)[:, c_id] == 1)[0]
                 # tmp = np.concatenate(expert_obs, axis=0)[:, record_info_idx][data_indices]
                 plt.hist(np.concatenate(expert_obs, axis=0)[:, record_info_idx][data_indices],
-                         bins=40,
+                         bins=20,
                          # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
                          #        config['env']["visualize_info_ranges"][record_info_idx][1]),
                          label=c_id)
@@ -221,7 +223,7 @@ def train(config):
             for c_id in range(config['CN']['latent_dim']):
                 data_indices = np.where(expert_codes[:, c_id] == 1)[0]
                 plt.hist(expert_obs[:, record_info_idx][data_indices],
-                         bins=40,
+                         bins=20,
                          # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
                          #        config['env']["visualize_info_ranges"][record_info_idx][1])
                          )
@@ -248,7 +250,8 @@ def train(config):
         cn_parameters.update({'n_probings': config['CN']['n_probings']})
         cn_parameters.update({'reverse_probing': config['CN']['reverse_probing']})
         cn_parameters.update({'negative_weight': config['CN']['negative_weight']})
-        cn_parameters.update({"log_cost": config['PPO']['log_cost']})
+        if 'PPO' in config:
+            cn_parameters.update({"log_cost": config['PPO']['log_cost']})
         constraint_net = MixtureConstraintNet(**cn_parameters)
     else:
         raise ValueError("Unknown group: {0}".format(config['group']))
@@ -260,9 +263,23 @@ def train(config):
         config['CN']['cid'] = aid
         if 'sanity_check-' in debug_msg:
             config['CN']['contrastive_weight'] = 0.0
-        ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
-        create_nominal_agent = lambda: MultiAgentPPOLagrangian(**ppo_parameters)
-        create_nominal_agent_functions.update({aid: create_nominal_agent})
+        if 'PPO' in config.keys():
+            ppo_parameters = load_ppo_config(config=config,
+                                             train_env=train_env,
+                                             seed=seed,
+                                             log_file=log_file)
+            create_nominal_agent = lambda: MultiAgentPPOLagrangian(**ppo_parameters)
+            create_nominal_agent_functions.update({aid: create_nominal_agent})
+        elif 'PI' in config.keys():
+            iteration_parameters = load_policy_iteration_config(config=config,
+                                                                env_configs=env_configs,
+                                                                train_env=train_env,
+                                                                seed=seed,
+                                                                log_file=log_file)
+            create_nominal_agent = lambda: PolicyIterationLagrange(**iteration_parameters)
+            create_nominal_agent_functions.update({aid: create_nominal_agent})
+        else:
+            raise ValueError("Unknown model {0}.".format(config['group']))
         nominal_agent = create_nominal_agent()
         nominal_agents.update({aid: nominal_agent})
 

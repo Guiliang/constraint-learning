@@ -46,9 +46,9 @@ def get_true_constraint_function(env_id, env_configs={}, agent_id=0, c_id=None, 
         else:
             raise ValueError("Unknown cid {0}.".format(c_id))
     elif env_id in ["WGW-v0"]:
-        if c_id == 0:
+        if c_id is not None:
             unsafe_states = env_configs['unsafe_states']
-            return partial(wall_in, unsafe_states)
+            return partial(wall_in, unsafe_states[c_id])
         else:
             raise ValueError("Unknown cid {0}.".format(c_id))
     elif env_id in ["Circle-v0", ]:

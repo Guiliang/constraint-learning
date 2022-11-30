@@ -78,6 +78,7 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
                 }
             else:
                 raise EnvironmentError("Unknown env_id {0}".format(self.env.spec.id))
+            self.write_log = False
             self.logger.writeheader()
             self.file_handler.flush()
             self.info_saving_file = None
@@ -109,6 +110,22 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
 
         self.track = {key: [] for key in self.track_keywords}
         self.t_start = time.time()
+        self.write_log = False if "states" in kwargs else True  # write log only after reset
+        if is_mujoco(self.env.spec.id):
+            self.event_dict = {
+                'is_constraint_break': 0
+            }
+            # for cid in range(self.env.latent_dim):
+            #     self.event_dict['is_constraint_break_{0}'.format(cid)] = 0
+        elif is_commonroad(self.env.spec.id):
+            self.event_dict = {
+                'is_collision': 0,
+                'is_off_road': 0,
+                'is_goal_reached': 0,
+                'is_time_out': 0,
+                'is_over_speed': 0,
+                'is_too_closed': 0
+            }
         return self.env.reset(**kwargs)
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
@@ -186,7 +203,6 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
             assert len(self.rewards_not_constraint) <= len(self.rewards)
             if is_mujoco(self.env.spec.id):
                 if 'constraint_id' in self.env.wrapper_config.keys():
-                    tmp = np.argmax(action[-2:])
                     ep_info = {"reward": round(ep_rew, 2),
                                "reward_nc": round(ep_rew_nc, 2),
                                "len": ep_len,
@@ -240,24 +256,25 @@ class CNSMonitor(cirl_stable_baselines3.common.monitor.Monitor):
             self.episode_lengths.append(ep_len)
             self.episode_times.append(time.time() - self.t_start)
             ep_info.update(self.current_reset_info)
-            if self.logger:
+            if self.logger and self.write_log:
                 self.logger.writerow(ep_info)
                 self.file_handler.flush()
+            self.write_log = False
             info["episode"] = ep_info
-            if is_mujoco(self.env.spec.id):
-                self.event_dict = {
-                    'is_constraint_break': 0
-                }
-                # for cid in range(self.env.latent_dim):
-                #     self.event_dict['is_constraint_break_{0}'.format(cid)] = 0
-            elif is_commonroad(self.env.spec.id):
-                self.event_dict = {
-                    'is_collision': 0,
-                    'is_off_road': 0,
-                    'is_goal_reached': 0,
-                    'is_time_out': 0,
-                    'is_over_speed': 0,
-                    'is_too_closed': 0
-                }
+            # if is_mujoco(self.env.spec.id):
+            #     self.event_dict = {
+            #         'is_constraint_break': 0
+            #     }
+            #     # for cid in range(self.env.latent_dim):
+            #     #     self.event_dict['is_constraint_break_{0}'.format(cid)] = 0
+            # elif is_commonroad(self.env.spec.id):
+            #     self.event_dict = {
+            #         'is_collision': 0,
+            #         'is_off_road': 0,
+            #         'is_goal_reached': 0,
+            #         'is_time_out': 0,
+            #         'is_over_speed': 0,
+            #         'is_too_closed': 0
+            #     }
         self.total_steps += 1
         return observation, reward, done, info

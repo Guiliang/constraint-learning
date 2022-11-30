@@ -387,7 +387,7 @@ register(
 #                               Wall Grid World                               #
 # =========================================================================== #
 
-WALL_GRID_WORLD_LEN = 50  # depends on the settings in './configs/'
+WALL_GRID_WORLD_LEN = 100  # depends on the settings in './configs/'
 
 register(
     id="WGW-v0",

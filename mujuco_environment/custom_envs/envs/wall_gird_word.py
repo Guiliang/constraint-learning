@@ -128,7 +128,7 @@ class WallGridworld(gym.Env):
     def __init__(self, map_height, map_width, reward_states, terminal_states,
                  visualization_path='./',
                  transition_prob=1.,
-                 stay_action=True,
+                 n_actions=True,
                  unsafe_states=[],
                  start_states=None):
         """
@@ -148,18 +148,26 @@ class WallGridworld(gym.Env):
         # self.h, self.w = len(self.reward_mat), len(self.reward_mat[0])
         self.n = self.h * self.w
         self.terminals = terminal_states
-        if stay_action:
-            self.neighbors = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1), (0, 0)]
+        if n_actions == 9:
+            self.neighbors = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1), (0, 0)]  # effect of each movement
             self.actions = [0, 1, 2, 3, 4, 5, 6, 7, 8]
             self.n_actions = len(self.actions)
             self.dirs = {0: 'r', 1: 'l', 2: 'd', 3: 'u', 4: 'rd', 5: 'ru', 6: 'ld', 7: 'lu', 8: 's'}
             self.action_space = gym.spaces.Discrete(9)
-        else:
-            self.neighbors = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]
+        elif n_actions == 8:
+            self.neighbors = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]  # effect of each movement
             self.actions = [0, 1, 2, 3, 4, 5, 6, 7]
             self.n_actions = len(self.actions)
             self.dirs = {0: 'r', 1: 'l', 2: 'd', 3: 'u', 4: 'rd', 5: 'ru', 6: 'ld', 7: 'lu'}
             self.action_space = gym.spaces.Discrete(8)
+        elif n_actions == 4:
+            self.neighbors = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # effect of each movement
+            self.actions = [0, 1, 2, 3]
+            self.n_actions = len(self.actions)
+            self.dirs = {0: 'r', 1: 'l', 2: 'd', 3: 'u'}
+            self.action_space = gym.spaces.Discrete(4)
+        else:
+            raise EnvironmentError("Unknown number of actions {0}.".format(n_actions))
         self.transition_prob = transition_prob
         self.terminated = True
         self.observation_space = gym.spaces.Box(low=np.array([0, 0]),
@@ -261,26 +269,40 @@ class WallGridworld(gym.Env):
         """
         return (idx % self.h, idx // self.h)
 
+    def reset_with_values(self, info_dict):
+        self.curr_state = info_dict['states']
+        assert self.curr_state not in self.terminals
+        self.terminated = False
+        self.steps = 0
+        return self.state
+
     def reset(self, **kwargs):
         """
         Reset the environment.
         """
-        if self.start_states != None:
-            random_state = random.choice(self.start_states)
-            self.curr_state = random_state
+        if 'states' in kwargs.keys():
+            self.curr_state = kwargs['states']
+            assert self.curr_state not in self.terminals
+            self.terminated = False
+            self.steps = 0
+            return self.state
         else:
-            random_state = np.random.randint(self.h * self.w)
-            self.curr_state = self.idx2pos(random_state)
-        while self.curr_state in self.terminals or self.curr_state in self.unsafe_states:
             if self.start_states != None:
                 random_state = random.choice(self.start_states)
                 self.curr_state = random_state
             else:
                 random_state = np.random.randint(self.h * self.w)
                 self.curr_state = self.idx2pos(random_state)
-        self.terminated = False
-        self.steps = 0
-        return self.state
+            while self.curr_state in self.terminals or self.curr_state in self.unsafe_states:
+                if self.start_states != None:
+                    random_state = random.choice(self.start_states)
+                    self.curr_state = random_state
+                else:
+                    random_state = np.random.randint(self.h * self.w)
+                    self.curr_state = self.idx2pos(random_state)
+            self.terminated = False
+            self.steps = 0
+            return self.state
 
     def step(self, action):
         """
@@ -289,15 +311,9 @@ class WallGridworld(gym.Env):
         action = int(action)
         if self.terminal(self.state):
             self.terminated = True
-            # return {
-            #     "next_state": list(self.state),
-            #     "reward": self.reward_mat[self.state[0], self.state[1]],
-            #     "done": True,
-            #     "info": {}
-            # }
             self.steps += 1
             return (list(self.state),
-                    self.reward_mat[self.state[0], self.state[1]],
+                    0,
                     True,
                     {'x_position': self.state[0],
                      'y_position': self.state[1]},
@@ -307,7 +323,7 @@ class WallGridworld(gym.Env):
         sampled_idx = np.random.choice(np.arange(0, len(st_prob)), p=[prob for st, prob in st_prob])
         last_state = self.state
         next_state = st_prob[sampled_idx][0]
-        reward = self.reward_mat[last_state[0]][last_state[1]]
+        reward = self.reward_mat[next_state[0]][next_state[1]]
         self.curr_state = next_state
         # return {
         #     "next_state": list(self.state),
@@ -319,8 +335,8 @@ class WallGridworld(gym.Env):
         return (list(self.state),
                 reward,
                 False,
-                {'x_position': self.state[0],
-                 'y_position': self.state[1]},
+                {'y_position': self.state[0],
+                 'x_position': self.state[1]},
                 )
 
     def seed(self, s=None):

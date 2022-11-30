@@ -94,7 +94,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     env = vec_env.SubprocVecEnv(env)
 
     if use_cost:
-        if group == 'PPO-Lag':
+        if group == 'PPO-Lag' or group == 'PI-Lag':
             env = InternalVecCostWrapper(venv=env, cost_info_str=kwargs['cost_info_str'])  # internal cost
         elif group == 'MEICRL' or group == 'InfoICRL':
             env = vec_env.VecCostCodeWrapper(venv=env,
@@ -160,7 +160,7 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
     #     env = vec_env.SubprocVecEnv(env)
 
     if use_cost:
-        if group == 'PPO-Lag':
+        if group == 'PPO-Lag' or group == 'PI-Lag':
             env = InternalVecCostWrapper(venv=env, cost_info_str=kwargs['cost_info_str'])  # internal cost
         elif group == 'MEICRL' or group == 'InfoICRL':
             env = vec_env.VecCostCodeWrapper(venv=env,
@@ -250,6 +250,14 @@ class InternalVecCostWrapper(VecEnvWrapper):
         Reset all environments
         """
         obs = self.venv.reset()
+        self.previous_obs = obs
+        return obs
+
+    def reset_with_values(self, info_dicts):
+        """
+        Reset all environments
+        """
+        obs = self.venv.reset_with_values(info_dicts)
         self.previous_obs = obs
         return obs
 

@@ -175,6 +175,24 @@ def torch_kron_prod(a, b):
     return res
 
 
+def load_policy_iteration_config(config, env_configs, train_env, seed, log_file):
+    pi_parameters = {
+        "env": train_env,
+        "seed": seed,
+        "stopping_threshold": config["interation"]["stopping_threshold"],
+        "max_iter": config["interation"]["max_iter"],
+        "gamma": config["interation"]["gamma"],
+        "n_actions": env_configs['n_actions'],
+        "height": env_configs['map_height'],
+        "width": env_configs['map_width'],
+        "terminal_states": env_configs['terminal_states'],
+        "penalty_initial_value": config['interation']['penalty_initial_value'],
+        "penalty_learning_rate": config['interation']['penalty_learning_rate'],
+
+    }
+    return pi_parameters
+
+
 def load_ppo_config(config, train_env, seed, log_file):
     ppo_parameters = {
         "policy": config['PPO']['policy_name'],

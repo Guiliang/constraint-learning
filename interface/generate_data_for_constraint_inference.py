@@ -10,8 +10,10 @@ import numpy as np
 import yaml
 
 from cirl_stable_baselines3 import PPOLagrangian
+from cirl_stable_baselines3.iteration import PolicyIterationLagrange
+from cirl_stable_baselines3.iteration.policy_interation_lag import load_pi
 from cirl_stable_baselines3.ppo_lag.ma_ppo_lag import MultiAgentPPOLagrangian
-from utils.model_utils import load_ppo_config
+from utils.model_utils import load_ppo_config, load_policy_iteration_config
 
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
@@ -66,12 +68,18 @@ class CommonRoadVecEnv(DummyVecEnv):
 LOGGER = logging.getLogger(__name__)
 
 
-def create_environments(env_id: str, viz_path: str, test_path: str, model_path: str, group: str, num_threads: int = 1,
-                        normalize=True, env_kwargs=None, testing_env=False, part_data=False,
-                        constraint_id=0, latent_dim=2, max_seq_len=None, ) -> CommonRoadVecEnv:
+def create_environments(env_id: str, config_path: str, viz_path: str, test_path: str, model_path: str, group: str,
+                        num_threads: int = 1,
+                        normalize=True, testing_env=False, part_data=False,
+                        constraint_id=0, latent_dim=2, max_seq_len=None, ):
     """
     Create CommonRoad vectorized environment
     """
+    if config_path is not None:
+        with open(config_path, "r") as config_file:
+            env_kwargs = yaml.safe_load(config_file)
+    else:
+        env_kwargs = {}
     if is_commonroad(env_id):
         if viz_path is not None:
             env_kwargs.update({"visualization_path": viz_path})
@@ -118,7 +126,7 @@ def create_environments(env_id: str, viz_path: str, test_path: str, model_path: 
         else:
             raise FileNotFoundError("vecnormalize.pkl not found in {0}".format(model_path))
 
-    return env
+    return env, env_kwargs
 
 
 def run():
@@ -195,36 +203,47 @@ def run():
     else:
         env_stats_loading_path = os.path.join(model_loading_path, 'model_{0}_itrs'.format(iteration_msg))
 
-    if is_commonroad(config['env']['train_env_id']):
-        with open(config['env']['config_path'], "r") as config_file:
-            env_configs = yaml.safe_load(config_file)
-    else:
-        env_configs = {}
-    env = create_environments(env_id=config['env']['train_env_id'],
-                              viz_path=None,
-                              test_path=evaluation_path,
-                              model_path=env_stats_loading_path,
-                              group=config['group'],
-                              num_threads=num_threads,
-                              normalize=not config['env']['dont_normalize_obs'],
-                              env_kwargs=env_configs,
-                              testing_env=if_testing_env,
-                              part_data=debug_mode,
-                              constraint_id=config['env']['constraint_id'],
-                              latent_dim=int(args.LATENT_DIMENSION),
-                              )
+    env, env_configs = create_environments(env_id=config['env']['train_env_id'],
+                                           config_path=config['env']['config_path'],
+                                           viz_path=None,
+                                           test_path=evaluation_path,
+                                           model_path=env_stats_loading_path,
+                                           group=config['group'],
+                                           num_threads=num_threads,
+                                           normalize=not config['env']['dont_normalize_obs'],
+                                           testing_env=if_testing_env,
+                                           part_data=debug_mode,
+                                           constraint_id=config['env']['constraint_id'],
+                                           latent_dim=int(args.LATENT_DIMENSION),
+                                           )
 
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
     if not noisy_demonstration:
-        model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
+        if "PPO" in config['group']:
+            model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
+        elif "PI" in config['group']:
+            model = load_pi(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
+        else:
+            raise ValueError("Unknown model {0}.".format(config['group']))
     else:
-        ppo_parameters = load_ppo_config(config=config,
-                                         train_env=env,
-                                         seed=int(model_loading_path.split('_')[-1]),
-                                         log_file=log_file)
-        create_ppo_agent = lambda: PPOLagrangian(**ppo_parameters)
-        model = create_ppo_agent()
+        if "PPO" in config['group']:
+            ppo_parameters = load_ppo_config(config=config,
+                                             train_env=env,
+                                             seed=int(model_loading_path.split('_')[-1]),
+                                             log_file=log_file)
+            create_ppo_agent = lambda: PPOLagrangian(**ppo_parameters)
+            model = create_ppo_agent()
+        elif "PI" in config['group']:
+            iteration_parameters = load_policy_iteration_config(config=config,
+                                                                env_configs=env_configs,
+                                                                train_env=env,
+                                                                seed=int(model_loading_path.split('_')[-1]),
+                                                                log_file=log_file)
+            create_iteration_agent = lambda: PolicyIterationLagrange(**iteration_parameters)
+            model = create_iteration_agent()
+        else:
+            raise ValueError("Unknown model {0}.".format(config['group']))
         print("Skip model loading for noisy demonstration.", file=log_file)
     total_scenarios, benchmark_idx = 0, 0
     if is_commonroad(env_id=config['env']['train_env_id']):
@@ -340,6 +359,7 @@ def run():
                     'reward': np.asarray(reward_all[i]),
                     'reward_sum': reward_sums[i]
                 }
+                print(np.asarray(obs_all[i]))
                 if is_commonroad(env_id=config['env']['train_env_id']):
                     with open(os.path.join(save_expert_data_path,
                                            '{3}scene-{0}_code-{1}_len-{2}{3}.pkl'.format(benchmark_ids[i],

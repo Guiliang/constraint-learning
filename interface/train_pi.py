@@ -8,20 +8,19 @@ import gym
 import numpy as np
 import datetime
 import yaml
+
 warnings.filterwarnings("ignore")
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
-from utils.env_utils import check_if_duplicate_seed
+from cirl_stable_baselines3.iteration import PolicyIterationLagrange
 from common.cns_env import make_train_env, make_eval_env, sync_envs_normalization_ppo
 from utils.plot_utils import plot_curve
 from exploration.exploration import ExplorationRewardCallback
-from cirl_stable_baselines3 import PPO, PPOLagrangian
 from cirl_stable_baselines3.common import logger
-from common.cns_evaluation import evaluate_icrl_policy
+from common.cns_evaluation import evaluate_icrl_policy, evaluate_iteration_policy
 from cirl_stable_baselines3.common.vec_env import VecNormalize
-
 from utils.data_utils import ProgressBarManager, del_and_make, read_args, load_config, process_memory
-from utils.model_utils import load_ppo_config
+from utils.model_utils import load_policy_iteration_config
 
 
 def train(args):
@@ -40,13 +39,9 @@ def train(args):
         log_file = None
     debug_msg = ''
     if debug_mode:
-        config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 2000  # 2000
-        config['PPO']['n_steps'] = 200
-        config['running']['n_eval_episodes'] = 10
-        config['running']['save_every'] = 1
         debug_msg = 'debug-'
         partial_data = True
+        config['interation']['stopping_threshold'] = 0.01
     if partial_data:
         debug_msg += 'part-'
 
@@ -66,14 +61,6 @@ def train(args):
         debug_msg,
         seed
     )
-
-    skip_running = check_if_duplicate_seed(seed=seed,
-                                           config=config,
-                                           current_time_date=current_time_date,
-                                           save_model_mother_dir=save_model_mother_dir,
-                                           log_file=log_file)
-    if skip_running:
-        return
 
     if not os.path.exists('{0}/{1}/'.format(config['env']['save_dir'], config['task'])):
         os.mkdir('{0}/{1}/'.format(config['env']['save_dir'], config['task']))
@@ -142,24 +129,21 @@ def train(args):
 
     # Logger
     if log_file is None:
-        ppo_logger = logger.HumanOutputFormat(sys.stdout)
+        running_log = logger.HumanOutputFormat(sys.stdout)
     else:
-        ppo_logger = logger.HumanOutputFormat(log_file)
+        running_log = logger.HumanOutputFormat(log_file)
 
-    ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
-    if config['group'] == 'PPO':
-        create_ppo_agent = lambda: PPO(**ppo_parameters)
-    elif config['group'] == 'PPO-Lag':
-        create_ppo_agent = lambda: PPOLagrangian(**ppo_parameters)
+    iteration_parameters = load_policy_iteration_config(config=config,
+                                                        env_configs=env_configs,
+                                                        train_env=train_env,
+                                                        seed=seed,
+                                                        log_file=log_file)
+
+    if config['group'] == 'PI-Lag':
+        create_iteration_agent = lambda: PolicyIterationLagrange(**iteration_parameters)
     else:
         raise ValueError("Unknown ppo group: {0}".format(config['group']))
-    ppo_agent = create_ppo_agent()
-
-    # Callbacks
-    all_callbacks = []
-    if config['PPO']['use_curiosity_driven_exploration']:
-        explorationCallback = ExplorationRewardCallback(obs_dim, acs_dim, device=config.device)
-        all_callbacks.append(explorationCallback)
+    iteration_agent = create_iteration_agent()
 
     timesteps = 0.
     mem_before_training = process_memory()
@@ -174,28 +158,13 @@ def train(args):
 
     # Train
     start_time = time.time()
-    # print(colorize("\nBeginning training", color="green", bold=True), file=log_file, flush=True)
     print("\nBeginning training", file=log_file, flush=True)
     best_true_reward = -np.inf
     for itr in range(config['running']['n_iters']):
-        if config['PPO']['reset_policy'] and itr != 0:
-            # print(colorize("Resetting agent", color="green", bold=True), file=log_file, flush=True)
-            print("Resetting agent", file=log_file, flush=True)
-            ppo_agent = create_ppo_agent()
-
         # Update agent
-        with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
-            if config['group'] == 'PPO':
-                ppo_agent.learn(total_timesteps=config['PPO']['forward_timesteps'],
-                                callback=callback)
-            elif config['group'] == 'PPO-Lag':
-                ppo_agent.learn(
-                    total_timesteps=config['PPO']['forward_timesteps'],
-                    cost_function=config['env']['cost_info_str'],  # Cost should come from cost wrapper
-                    callback=[callback] + all_callbacks
-                )
-            forward_metrics = logger.Logger.CURRENT.name_to_value
-            timesteps += ppo_agent.num_timesteps
+        iteration_agent.learn(cost_info_str=config['env']['cost_info_str'])
+        iter_metrics = logger.Logger.CURRENT.name_to_value
+        timesteps += iteration_agent.num_timesteps
 
         mem_during_training = process_memory()
         time_during_training = time.time()
@@ -211,18 +180,19 @@ def train(args):
         # reward on true environment
         sync_envs_normalization_ppo(train_env, eval_env)
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
-            evaluate_icrl_policy(model=ppo_agent,
-                                 env=eval_env,
-                                 render=config['running']['render'],
-                                 record_info_names=config['env']["record_info_names"],
-                                 n_eval_episodes=config['running']['n_eval_episodes'],
-                                 deterministic=False)
+            evaluate_iteration_policy(model=iteration_agent,
+                                      env=eval_env,
+                                      render=config['running']['render'],
+                                      cost_function=config['env']['cost_info_str'],
+                                      record_info_names=config['env']["record_info_names"],
+                                      n_eval_episodes=config['running']['n_eval_episodes'],
+                                      deterministic=False)
 
         # Save
         if itr % config['running']['save_every'] == 0:
             path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
             del_and_make(path)
-            ppo_agent.save(os.path.join(path, "nominal_agent"))
+            iteration_agent.save(os.path.join(path, "nominal_agent"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(path, "train_env_stats.pkl"))
             if costs is not None:
@@ -236,20 +206,12 @@ def train(args):
                                save_name=os.path.join(path, "{0}".format(record_info_name)),
                                apply_scatter=True
                                )
-            # env_tmp = train_env
-            # while isinstance(env_tmp, VecEnvWrapper):
-            #     env_tmp = env_tmp.venv
-            #     if isinstance(env_tmp, VecCostWrapper) or isinstance(env_tmp, InternalVecCostWrapper):
-            #         env_tmp = env_tmp.venv
-            # for i in len(env_tmp.envs):
-            #     env_tmp.envs[i].info_saving_file = open(os.path.join(path, 'info_saving_{0}.txt'.format(i)), 'w')
-            #     env_tmp.envs[i].info_saving_items = ['ego_velocity', 'cost']
 
         # (2) best
         if mean_nc_reward > best_true_reward:
             # print(colorize("Saving new best model", color="green", bold=True), flush=True, file=log_file)
             print("Saving new best model", flush=True, file=log_file)
-            ppo_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
+            iteration_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))
 
@@ -269,11 +231,11 @@ def train(args):
             "best_true/best_reward": best_true_reward
         }
 
-        metrics.update({k.replace("train/", "forward/"): v for k, v in forward_metrics.items()})
+        metrics.update({k.replace("train/", "forward/"): v for k, v in iter_metrics.items()})
 
         # Log
         if config['verbose'] > 0:
-            ppo_logger.write(metrics, {k: None for k in metrics.keys()}, step=itr)
+            running_log.write(metrics, {k: None for k in metrics.keys()}, step=itr)
 
         mem_during_testing = process_memory()
         time_during_testing = time.time()

@@ -21,12 +21,6 @@ running:
   n_iters: 30
   n_eval_episodes: 10
   save_every: 5
-  expert_rollouts: 10
-  sample_rollouts: 10
-  store_sample_rollouts: 500
-  expert_path: '../data/expert_data/HCWithPos-New/'
-  use_buffer: False
-  store_by_game: False
   latent_dim: 2
 
 PPO:
