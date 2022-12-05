@@ -1022,6 +1022,11 @@ def get_plot_results_dir(env_id):
                 '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-1-multi_env-Nov-12-2022-01:25-seed_321/',
                 '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-1-multi_env-Nov-12-2022-04:12-seed_666/',
             ],
+            "Binary_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": [
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_piv-1e1_noise-1e-1-multi_env-Nov-12-2022-21:53-seed_123/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_piv-1e1_noise-1e-1-multi_env-Nov-12-2022-23:05-seed_321/',
+                '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_piv-1e1_noise-1e-1-multi_env-Nov-13-2022-00:18-seed_666/',
+            ],
             "Binary_HCWithPos-v0_with-action_noise-1e-2": [
                 '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-2-multi_env-Nov-11-2022-21:11-seed_123/',
                 '../save_model/Binary-HC/train_Binary_HCWithPos-v0_with-action_noise-1e-2-multi_env-Nov-11-2022-23:40-seed_321/',
@@ -1141,14 +1146,46 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-1-multi_env-Nov-12-2022-16:49-seed_666/',
             ],
             "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2": [
-                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2-multi_env-Nov-11-2022-16:44-seed_123/',
+                # '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2-multi_env-Nov-11-2022-16:44-seed_123/',
                 '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2-multi_env-Nov-11-2022-18:34-seed_321/',
                 '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2-multi_env-Nov-11-2022-20:21-seed_666/',
+            ],
+            "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-2": [
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-2-multi_env-Nov-12-2022-11:16-seed_123/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-2-multi_env-Nov-12-2022-12:45-seed_321/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-2-multi_env-Nov-12-2022-14:15-seed_666/',
+            ],
+            "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-2": [
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-2-multi_env-Nov-13-2022-02:35-seed_123/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-2-multi_env-Nov-13-2022-03:59-seed_321/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-2-multi_env-Nov-13-2022-05:22-seed_666/',
+            ],
+            "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-2": [
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-2-multi_env-Nov-12-2022-22:02-seed_123/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-2-multi_env-Nov-12-2022-23:33-seed_321/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-2-multi_env-Nov-13-2022-01:05-seed_666/',
             ],
             "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3": [
                 '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3-multi_env-Nov-11-2022-16:44-seed_123/',
                 '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3-multi_env-Nov-11-2022-18:33-seed_321/',
                 '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3-multi_env-Nov-11-2022-20:22-seed_666/',
+            ],
+            "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3": [
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-10-2022-14:30-seed_123/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-10-2022-16:38-seed_321/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-12-2022-11:16-seed_123/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-12-2022-12:45-seed_321/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-12-2022-14:14-seed_666/',
+            ],
+            "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3": [
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-13-2022-02:21-seed_123/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-13-2022-03:49-seed_321/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-13-2022-05:19-seed_666/',
+            ],
+            "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3": [
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-13-2022-06:46-seed_123/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-13-2022-08:10-seed_321/',
+                '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3-multi_env-Nov-13-2022-09:32-seed_666/',
             ],
         }
     elif env_id == 'LGW-v0':

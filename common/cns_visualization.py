@@ -10,6 +10,40 @@ from utils.data_utils import del_and_make
 from utils.plot_utils import plot_curve
 
 
+def traj_visualization_2d(config, observations, save_path):
+    # tmp = config['env']["record_info_names"]
+    traj_num = len(observations)
+    plt.figure()
+    colors = ['b', 'r']
+
+    for i in range(traj_num):
+        x = observations[i][:, config['env']["record_info_input_dims"][0]]
+        y = observations[i][:, config['env']["record_info_input_dims"][1]]
+        plt.plot(x, y)
+        plt.scatter(x, y)
+    plt.xlim(config['env']["visualize_info_ranges"][0])
+    plt.xlim(config['env']["visualize_info_ranges"][1])
+    plt.xlabel(config['env']["record_info_names"][0])
+    plt.ylabel(config['env']["record_info_names"][1])
+    plt.legend()
+    plt.savefig(os.path.join(save_path, "2d_traj_visual.png".format()))
+
+
+def traj_visualization_1d(config, observations, save_path):
+    for record_info_idx in range(len(config['env']["record_info_names"])):
+        plt.figure()
+        record_info_name = config['env']["record_info_names"][record_info_idx]
+        record_obs_dim = config['env']["record_info_input_dims"][record_info_idx]
+        if config['running']['store_by_game']:
+            plt.hist(np.concatenate(observations, axis=0)[:, record_obs_dim],
+                     bins=40, )
+        else:
+            plt.hist(observations[:, record_info_idx],
+                     bins=40, )
+        plt.legend()
+        plt.savefig(os.path.join(save_path, "{0}_traj_visual.png".format(record_info_name)))
+
+
 def constraint_visualization_1d(cost_function, feature_range, select_dim, obs_dim, acs_dim,
                                 save_name, device='cpu', feature_data=None, feature_cost=None, feature_name=None,
                                 empirical_input_means=None, num_points=1000, axis_size=24):
@@ -88,6 +122,7 @@ def constraint_visualization_2d(cost_function, feature_range, select_dims,
     cbar.set_label("Constraint")
     plt.savefig(os.path.join(save_path, "constraint_visualization.png".format()))
 
+
 class PlotCallback(callbacks.BaseCallback):
     """
     This callback can be used/modified to fetch something from the buffer and make a
@@ -129,7 +164,8 @@ class PlotCallback(callbacks.BaseCallback):
         obs = obs.reshape(-1, obs.shape[-1])  # flatten the batch size and num_envs dimensions
         rewards = self.model.rollout_buffer.rewards.copy()
         for record_info_name in self.plot_feature_names_dims.keys():
-            plot_record_infos, plot_costs = zip(*sorted(zip(obs[:, self.plot_feature_names_dims[record_info_name]], rewards)))
+            plot_record_infos, plot_costs = zip(
+                *sorted(zip(obs[:, self.plot_feature_names_dims[record_info_name]], rewards)))
             path = os.path.join(self.plot_save_dir, f"{self.name_prefix}_{self.num_timesteps}_steps")
             if not os.path.exists(path):
                 os.mkdir(path)

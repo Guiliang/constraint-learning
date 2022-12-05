@@ -685,8 +685,13 @@ class ConstraintNet(nn.Module):
                 # Get batch data
                 nominal_batch = nominal_data[nom_batch_indices]
                 expert_batch = expert_data[exp_batch_indices]
-                is_batch = is_weights[nom_batch_indices][..., None]
-
+                try:
+                    is_batch = is_weights[nom_batch_indices][..., None]
+                except:
+                    is_weights, kl_old_new, kl_new_old = self.compute_is_weights(start_preds.clone(),
+                                                                                 current_preds.clone(),
+                                                                                 episode_lengths)
+                    raise ValueError('abc')
                 # Make predictions
                 nominal_preds = self.__call__(nominal_batch)
                 expert_preds = self.__call__(expert_batch)

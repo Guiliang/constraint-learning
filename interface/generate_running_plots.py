@@ -53,6 +53,8 @@ def plot_results(mean_results_moving_avg_dict,
 def generate_plots():
     axis_size = None
     save = True
+    modes = ['train']
+    plot_mode = 'all-methods'
 
     # env_id = 'Circle-v0'
     # max_episodes = 8000
@@ -139,27 +141,37 @@ def generate_plots():
                        }
     max_episodes = 6000
     img_size = None
-    save = False
-    title = 'Stochastic Environment'
+    noise = '1e-2'
+    plot_mode = 'Noise-{0}'.format(noise)
+    title = 'Stochastic Noise $\mathcal{N}(0,1E-2)$'
     method_names_labels_dict = {
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL1",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL2",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-1": "VICRL3",
-        "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "MECL",
-        # "ICRL_HCWithPos-v0_with-action_noise-1e-1": "MECL",
-        "Binary_HCWithPos-v0_with-action_noise-1e-1": "BC2L",
-        "GAIL_HCWithPos-v0_with-action_noise-1e-1": "GACL",
+        # "GAIL_HCWithPos-v0_with-action_noise-1e-1": "GACL",
+        # "Binary_HCWithPos-v0_with-action_noise-1e-1": "BC2L",
+        # # "Binary_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "BC2L",
+        # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "MECL",
+        # # "ICRL_HCWithPos-v0_with-action_noise-1e-1": "MECL",
+        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL",
+        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL1",
+        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL2",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-1": "VICRL",
 
+        "GAIL_HCWithPos-v0_with-action_noise-1e-2": "GACL",
+        "Binary_HCWithPos-v0_with-action_noise-1e-2": "BC2L",
+        "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-2": "MECL",
+        # "ICRL_HCWithPos-v0_with-action_noise-1e-2":  "MECL",
         # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2": "VICRL",
-        # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-2": "MECL",
-        # "Binary_HCWithPos-v0_with-action_noise-1e-2": "BC2L",
-        # "GAIL_HCWithPos-v0_with-action_noise-1e-2": "GACL",
-        #
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3": "VICRL",
-        # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-3": "MECL",
-        # "Binary_HCWithPos-v0_with-action_noise-1e-3": "BC2L",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-2":  "VICRL1",
+        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-2":   "VICRL",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-2": "VICRL2",
+
         # "GAIL_HCWithPos-v0_with-action_noise-1e-3": "GACL",
+        # "Binary_HCWithPos-v0_with-action_noise-1e-3": "BC2L",
+        # # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-3": "MECL",
+        # "ICRL_HCWithPos-v0_with-action_noise-1e-3": "MECL",
+        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3": "VICRL",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3": "VICRL",
+        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3": "VICRL2",
+        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3": "VICRL3",
         #
         # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-2": "VICRL",
         # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-5e-2": "MECL",
@@ -632,8 +644,6 @@ def generate_plots():
     #     "ppo_lag_highD_no_slo_distance_dm-60": 'PPO_lag',
     # }
 
-    modes = ['train']
-    plot_mode = 'all-methods'
     if plot_mode == 'part':
         for method_name in method_names_labels_dict.copy().keys():
             if 'PPO' not in method_names_labels_dict[method_name]:

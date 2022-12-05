@@ -96,6 +96,8 @@ class ConstrainedRLSampler:
                     all_obs.append(obs)
                     all_acs.append(action)
                 obs, reward, done, _info = self.env.step(action)
+                if 'admissible_actions' in _info[0].keys():
+                    self.policy_agent.admissible_actions = _info[0]['admissible_actions']
                 rs_game.append(reward)
                 if not self.store_by_game:
                     all_rs.append(reward)

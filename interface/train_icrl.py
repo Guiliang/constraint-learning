@@ -9,11 +9,15 @@ import random
 import gym
 import numpy as np
 import yaml
+from matplotlib import pyplot as plt
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+from stable_baselines3.iteration.policy_interation_lag import PolicyIterationLagrange
 from common.cns_sampler import ConstrainedRLSampler
 from common.cns_evaluation import evaluate_icrl_policy
-from common.cns_visualization import constraint_visualization_1d, constraint_visualization_2d
+from common.cns_visualization import constraint_visualization_1d, constraint_visualization_2d, traj_visualization_2d, \
+    traj_visualization_1d
 from common.cns_env import make_train_env, make_eval_env
 from common.memory_buffer import IRLDataQueue
 from constraint_models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
@@ -28,7 +32,7 @@ from utils.data_utils import read_args, load_config, ProgressBarManager, del_and
     get_input_features_dim, process_memory, print_resource, load_expert_data_tmp
 from utils.env_utils import multi_threads_sample_from_agent, get_obs_feature_names, is_mujoco, \
     check_if_duplicate_seed, is_commonroad
-from utils.model_utils import get_net_arch, load_ppo_config
+from utils.model_utils import get_net_arch, load_ppo_config, load_policy_iteration_config
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -56,14 +60,20 @@ def train(config):
     if debug_mode:  # this is for a fast debugging, use python train_icrl.py -d 1 to enable the debug model
         config['device'] = 'cpu'
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 1030
-        config['PPO']['n_steps'] = 100
-        config['PPO']['n_epochs'] = 2
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
-        config['running']['sample_rollouts'] = 10
-        config['running']['sample_data_num'] = 500
-        config['running']['store_sample_num'] = 1000
+
+        if 'PPO' in config.keys():
+            config['PPO']['forward_timesteps'] = 3000  # 2000
+            config['PPO']['n_steps'] = 500
+            config['PPO']['n_epochs'] = 2
+            config['running']['sample_rollouts'] = 2
+            config['CN']['backward_iters'] = 2
+            config['running']['sample_data_num'] = 500
+            config['running']['store_sample_num'] = 1000
+        elif 'iteration' in config.keys():
+            config['iteration']['max_iter'] = 2
+
         config['CN']['cn_batch_size'] = 1000
         config['CN']['backward_iters'] = 2
         debug_msg = 'debug-'
@@ -77,7 +87,9 @@ def train(config):
     print(json.dumps(config, indent=4), file=log_file, flush=True)
     current_time_date = datetime.datetime.now().strftime('%b-%d-%Y-%H:%M')
     if config['running']['use_buffer']:
-        sample_data_queue = IRLDataQueue(max_rollouts=config['running']['store_sample_rollouts'], seed=seed)
+        sample_data_queue = IRLDataQueue(max_rollouts=config['running']['store_sample_rollouts'],
+                                         store_by_game=config['running']['store_by_game'],
+                                         seed=seed)
     save_model_mother_dir = '{0}/{1}/{5}{2}{3}-{4}-seed_{6}/'.format(
         config['env']['save_dir'],
         config['task'],
@@ -170,7 +182,7 @@ def train(config):
     else:
         planning_config = None
     sampler = ConstrainedRLSampler(rollouts=int(config['running']['sample_rollouts']),
-                                   store_by_game=config['running']['use_buffer'],
+                                   store_by_game=config['running']['store_by_game'] or config['running']['use_buffer'],
                                    cost_info_str=config['env']['cost_info_str'],
                                    sample_multi_env=sample_multi_env,
                                    env_id=config['env']['eval_env_id'],
@@ -310,23 +322,39 @@ def train(config):
     sampling_env.set_cost_function(constraint_net.cost_function)
     # eval_env.set_cost_function(constraint_net.cost_function)
 
-    # Init ppo agent
-    ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
-    create_nominal_agent = lambda: PPOLagrangian(**ppo_parameters)
+    # Init agent
+    if 'PPO' in config.keys():
+        ppo_parameters = load_ppo_config(config=config,
+                                         train_env=train_env,
+                                         seed=seed,
+                                         log_file=log_file)
+        create_nominal_agent = lambda: PPOLagrangian(**ppo_parameters)
+        reset_policy = config['PPO']['reset_policy']
+        forward_timesteps = config['PPO']['forward_timesteps']
+        warmup_timesteps = config['PPO']['warmup_timesteps']
+    elif 'iteration' in config.keys():
+        iteration_parameters = load_policy_iteration_config(config=config,
+                                                            env_configs=env_configs,
+                                                            train_env=train_env,
+                                                            seed=seed,
+                                                            log_file=log_file)
+        create_nominal_agent = lambda: PolicyIterationLagrange(**iteration_parameters)
+        reset_policy = config['iteration']['reset_policy']
+        forward_timesteps = config['iteration']['max_iter']
+        warmup_timesteps = config['iteration']['warmup_timesteps']
+    else:
+        raise ValueError("Unknown model {0}.".format(config['group']))
     nominal_agent = create_nominal_agent()
 
     # Callbacks
     all_callbacks = []
-    if config['PPO']['use_curiosity_driven_exploration']:
-        explorationCallback = ExplorationRewardCallback(obs_dim, acs_dim, device=config['device'])
-        all_callbacks.append(explorationCallback)
 
     # Warmup
     timesteps = 0.
-    if config['PPO']['warmup_timesteps']:
+    if warmup_timesteps:
         print("\nWarming up", file=log_file, flush=True)
-        with ProgressBarManager(config['PPO']['warmup_timesteps']) as callback:
-            nominal_agent.learn(total_timesteps=config['PPO']['warmup_timesteps'],
+        with ProgressBarManager(warmup_timesteps) as callback:
+            nominal_agent.learn(total_timesteps=warmup_timesteps,
                                 cost_function=null_cost,  # During warmup we dont want to incur any cost
                                 callback=callback)
             timesteps += nominal_agent.num_timesteps
@@ -339,16 +367,16 @@ def train(config):
     print("\nBeginning training", file=log_file, flush=True)
     best_true_reward, best_true_cost, best_forward_kl, best_reverse_kl = -np.inf, np.inf, np.inf, np.inf
     for itr in range(config['running']['n_iters']):
-        if config['PPO']['reset_policy'] and itr % config['PPO']['reset_every'] == 0:
+        if reset_policy and itr % config['PPO']['reset_every'] == 0:
             print("\nResetting agent", file=log_file, flush=True)
             nominal_agent = create_nominal_agent()
             train_env.add_reset_marker()
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
         # Update agent
-        with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
+        with ProgressBarManager(forward_timesteps) as callback:
             nominal_agent.learn(
-                total_timesteps=config['PPO']['forward_timesteps'],
+                total_timesteps=forward_timesteps,
                 cost_function=config['env']['cost_info_str'],  # Cost should come from cost wrapper
                 callback=[callback] + all_callbacks
             )
@@ -368,13 +396,15 @@ def train(config):
         if config['running']['use_buffer']:
             sample_data_queue.put(obs=orig_observations,
                                   acs=actions,
-                                  rs=rewards
+                                  rs=rewards,
+                                  ls=lengths,
                                   )
-            sample_obs, sample_acts, sample_rs = \
+            sample_obs, sample_acts, sample_rs, sample_ls = \
                 sample_data_queue.get(sample_num=config['running']['sample_rollouts'], )
         else:
             sample_obs = orig_observations
             sample_acts = actions
+            sample_ls = lengths
 
         mem_prev, time_prev = print_resource(mem_prev=mem_prev,
                                              time_prev=time_prev,
@@ -388,7 +418,7 @@ def train(config):
         backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
                                                    nominal_obs=sample_obs,
                                                    nominal_acs=sample_acts,
-                                                   episode_lengths=lengths,
+                                                   episode_lengths=sample_ls,
                                                    obs_mean=mean,
                                                    obs_var=var,
                                                    current_progress_remaining=current_progress_remaining)
@@ -409,6 +439,17 @@ def train(config):
             del_and_make(save_path)
         else:
             save_path = None
+
+        if 'WGW' in config['env']['train_env_id']:
+            traj_visualization_2d(config=config,
+                                  observations=orig_observations,
+                                  save_path=save_path,
+                                  )
+        # else:
+        #     traj_visualization_1d(config=config,
+        #                           observations=sample_obs,
+        #                           save_path=save_path)
+
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
             evaluate_icrl_policy(nominal_agent, sampling_env,
                                  render=True if 'Circle' in config['env']['train_env_id'] else False,
@@ -416,7 +457,7 @@ def train(config):
                                  n_eval_episodes=config['running']['n_eval_episodes'],
                                  deterministic=False,
                                  cost_info_str=config['env']['cost_info_str'],
-                                 save_path=save_path,)
+                                 save_path=save_path, )
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Evaluation', log_file=log_file)
 
@@ -427,14 +468,17 @@ def train(config):
             constraint_net.save(os.path.join(save_path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
-            if 'Circle' in config['env']['train_env_id']:
-                constraint_visualization_2d(cost_function=constraint_net.cost_function,
-                                            feature_range=config['env']["visualize_info_ranges"],
-                                            select_dims=config['env']["record_info_input_dims"],
-                                            obs_dim=constraint_net.obs_dim,
-                                            acs_dim=1 if is_discrete else constraint_net.acs_dim,
-                                            save_path=save_path
-                                            )
+                plt.figure()
+                plt.matshow(nominal_agent.v_m)
+                plt.colorbar()
+                plt.savefig(os.path.join(save_path, "v_m_aid.png"))
+            constraint_visualization_2d(cost_function=constraint_net.cost_function,
+                                        feature_range=config['env']["visualize_info_ranges"],
+                                        select_dims=config['env']["record_info_input_dims"],
+                                        obs_dim=constraint_net.obs_dim,
+                                        acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                        save_path=save_path
+                                        )
             for record_info_idx in range(len(config['env']["record_info_names"])):
                 record_info_name = config['env']["record_info_names"][record_info_idx]
                 plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
@@ -448,7 +492,8 @@ def train(config):
                                             obs_dim=constraint_net.obs_dim,
                                             acs_dim=1 if is_discrete else constraint_net.acs_dim,
                                             device=constraint_net.device,
-                                            save_name=os.path.join(save_path, "{0}_visual.png".format(record_info_name)),
+                                            save_name=os.path.join(save_path,
+                                                                   "{0}_visual.png".format(record_info_name)),
                                             feature_data=plot_record_infos,
                                             feature_cost=plot_costs,
                                             feature_name=record_info_name,
