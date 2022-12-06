@@ -1,5 +1,5 @@
-task: 'ICRL-WallGrid'
-group: 'ICRL'
+task: 'VICRL-WallGrid'
+group: 'VICRL'
 device: 'cuda'
 verbose: 2
 env:
@@ -25,7 +25,7 @@ running:
   expert_rollouts: 20
   sample_rollouts: 20
   store_sample_num: null
-  expert_path: '../data/expert_data/WallGridWorld/'
+  expert_path: '../data/expert_data/TestWallGridWorld-v1/'
   use_buffer: True
   store_by_game: False
   store_sample_rollouts: 1000
@@ -33,11 +33,12 @@ running:
 iteration:
   warmup_timesteps: 0
   stopping_threshold: 0.001
-  max_iter: 20
-  penalty_initial_value: 0.1
-  penalty_learning_rate: 0.1
+  max_iter: 1
+  penalty_initial_value: 0
+  penalty_learning_rate: 0
   gamma: 0.7
-  reset_policy: False
+  reset_policy: True
+  reset_every: 1
   nu_max_clamp: null
   nu_min_clamp: null
 
@@ -48,7 +49,7 @@ CN:
   cn_layers: [64, 64, 64]
   cn_batch_size: 64
   cn_obs_select_name: null  # null means all
-  cn_acs_select_name: null  # null means all
+  cn_acs_select_name: [-1]  # null means all
   no_importance_sampling: False
   per_step_importance_sampling: False
   clip_obs: 20
@@ -59,3 +60,6 @@ CN:
   cn_eps: 0.00001
   backward_iters: 20
   anneal_clr_by_factor: 1.0
+  di_prior: [ 0.1, 0.9 ]
+  mode: 'sample'
+

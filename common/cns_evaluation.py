@@ -66,6 +66,8 @@ def evaluate_icrl_policy(
         while not done:
             action, state = model.predict(obs, state=state, deterministic=deterministic)
             obs, reward, done, _info = env.step(action)
+            if 'admissible_actions' in _info[0].keys():
+                model.admissible_actions = _info[0]['admissible_actions']
             for i in range(env.num_envs):
                 if 'cost' in _info[i].keys():
                     costs.append(_info[i]['cost'])

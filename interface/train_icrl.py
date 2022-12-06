@@ -230,13 +230,27 @@ def train(config):
     if expert_path.endswith('.pt'):
         expert_obs, expert_acs = load_expert_data_tmp(expert_path)
     else:
-        (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
+        (expert_obs_games, expert_acs_games, expert_rs_games), expert_mean_reward = load_expert_data(
             expert_path=expert_path,
             num_rollouts=expert_rollouts,
-            store_by_game=config['running']['store_by_game'],
             add_next_step=False,
             log_file=log_file
         )
+        if config['running']['store_by_game']:
+            expert_obs = expert_obs_games
+            expert_acs = expert_acs_games
+            expert_rs = expert_rs_games
+        else:
+            expert_obs = np.concatenate(expert_obs_games, axis=0)
+            expert_acs = np.concatenate(expert_acs_games, axis=0)
+            expert_rs = np.concatenate(expert_rs_games, axis=0)
+
+    if 'WGW' in config['env']['train_env_id']:
+        traj_visualization_2d(config=config,
+                              observations=expert_obs_games,
+                              save_path=save_model_mother_dir,
+                              )
+
     if config['running']['store_by_game']:
         expert_obs_mean = np.mean(np.concatenate(expert_obs, axis=0), axis=0).tolist()
     else:
@@ -330,6 +344,7 @@ def train(config):
                                          log_file=log_file)
         create_nominal_agent = lambda: PPOLagrangian(**ppo_parameters)
         reset_policy = config['PPO']['reset_policy']
+        reset_every = config['PPO']['reset_every']
         forward_timesteps = config['PPO']['forward_timesteps']
         warmup_timesteps = config['PPO']['warmup_timesteps']
     elif 'iteration' in config.keys():
@@ -340,6 +355,7 @@ def train(config):
                                                             log_file=log_file)
         create_nominal_agent = lambda: PolicyIterationLagrange(**iteration_parameters)
         reset_policy = config['iteration']['reset_policy']
+        reset_every = config['iteration']['reset_every']
         forward_timesteps = config['iteration']['max_iter']
         warmup_timesteps = config['iteration']['warmup_timesteps']
     else:
@@ -367,10 +383,10 @@ def train(config):
     print("\nBeginning training", file=log_file, flush=True)
     best_true_reward, best_true_cost, best_forward_kl, best_reverse_kl = -np.inf, np.inf, np.inf, np.inf
     for itr in range(config['running']['n_iters']):
-        if reset_policy and itr % config['PPO']['reset_every'] == 0:
+        if reset_policy and itr % reset_every == 0:
             print("\nResetting agent", file=log_file, flush=True)
             nominal_agent = create_nominal_agent()
-            train_env.add_reset_marker()
+            # train_env.add_reset_marker()  #  mark the line in the monitor files
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
         # Update agent

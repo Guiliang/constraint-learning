@@ -314,9 +314,9 @@ def load_expert_data_tmp(expert_acs):
 def load_expert_data(expert_path,
                      num_rollouts=None,
                      use_pickle5=False,
-                     store_by_game=False,
                      add_next_step=True,
                      log_file=None):
+    loaded_as_games = True
     print('Loading expert data from {0}.'.format(expert_path), file=log_file, flush=True)
     file_names = sorted(os.listdir(expert_path))
     # file_names = [i for i in range(29)]
@@ -350,7 +350,7 @@ def load_expert_data(expert_path,
         else:
             total_time_step = data_acs.shape[0]
 
-        if store_by_game:
+        if loaded_as_games:
             expert_obs_game = []
             expert_acs_game = []
             expert_rs_game = []
@@ -378,7 +378,7 @@ def load_expert_data(expert_path,
                 data_obs_t_store = data_obs_t
                 data_acs_t_store = data_ac_t
                 data_r_t_store = data_r_t
-            if store_by_game:
+            if loaded_as_games:
                 expert_obs_game.append(data_obs_t_store)
                 expert_acs_game.append(data_acs_t_store)
                 expert_rs_game.append(data_r_t_store)
@@ -387,7 +387,7 @@ def load_expert_data(expert_path,
                 expert_acs.append(data_acs_t_store)
                 expert_rs.append(data_r_t_store)
 
-        if store_by_game:
+        if loaded_as_games:
             expert_obs.append(np.asarray(expert_obs_game))
             expert_acs.append(np.asarray(expert_acs_game))
             expert_rs.append(np.asarray(expert_rs_game))
@@ -399,7 +399,7 @@ def load_expert_data(expert_path,
     expert_mean_length = num_samples / len(file_names)
     print('Expert_mean_reward: {0} and Expert_mean_length: {1}.'.format(expert_avg_sum_reward, expert_mean_length),
           file=log_file, flush=True)
-    if store_by_game:
+    if loaded_as_games:
         return (expert_obs, expert_acs, expert_rs), expert_avg_sum_reward
     else:
         expert_obs = np.asarray(expert_obs)
