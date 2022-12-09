@@ -70,7 +70,7 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             policy: Union[str, Type[ActorCriticPolicy]],
             env: Union[GymEnv, str],
             latent_dim: int,
-            cid: int,
+            aid: int,
             algo_type: str = 'lagrangian',  # lagrangian or pidlagrangian
             learning_rate: Union[float, Callable] = 3e-4,
             n_steps: int = 2048,
@@ -139,7 +139,7 @@ class MultiAgentPPOLagrangian(OnPolicyWithCostAndCodeAlgorithm):
             seed=seed,
             _init_setup_model=False,
             latent_dim=latent_dim,
-            cid=cid,
+            cid=aid,
             log_cost=log_cost,
             n_probings=n_probings,
             contrastive_weight=contrastive_weight,

@@ -5,111 +5,6 @@ import gym
 import random
 from gym.envs.mujoco import mujoco_env
 
-
-# class Environment(abc.ABC):
-#     """
-#     Abstract environment class. Any subclass must implement `state` (which
-#     gets current state), `reset` and `step`.
-#     """
-#
-#     @abc.abstractmethod
-#     def seed(self, s=None):
-#         """
-#         Seed this environment.
-#         """
-#         pass
-#
-#     @property
-#     @abc.abstractmethod
-#     def state(self):
-#         """
-#         Get the current state.
-#         """
-#         pass
-#
-#     @abc.abstractmethod
-#     def reset(self, **kwargs):
-#         """
-#         Resets the environment.
-#         """
-#         pass
-#
-#     @abc.abstractmethod
-#     def step(self, action=None):
-#         """
-#         Steps the environment with action (or None if no action).
-#         """
-#         pass
-#
-#     @abc.abstractmethod
-#     def render(self, **kwargs):
-#         """
-#         Renders the environment.
-#         """
-#         pass
-#
-#     def play_episode(self, policy, render=False, buf=None, info=False,
-#                      sleep=None, frames=False, cost=None, deterministic=False, novelty=None,
-#                      novelty_add=None):
-#         """
-#         Play an episode using the given policy.
-#         If buffer is given, add data to it.
-#         If info is True, return combined dict info of entire episode.
-#         If sleep is True, sleep by that amount at every step
-#         If frames is True, return rgb_array renderings
-#         Returns S, A, R, {Info}, {Frames}
-#         """
-#         S, A, R = [], [], []
-#         S.append(self.reset())
-#         done = False
-#         Info = {}
-#         Frames = []
-#         Costs = []
-#         Ret = []
-#         kwargs = {"deterministic": True} if deterministic else {}
-#         if render:
-#             if frames:
-#                 Frames += [self.render(mode="rgb_array")]
-#             else:
-#                 self.render()
-#             if sleep != None:
-#                 time.sleep(sleep)
-#         while not done:
-#             action = policy.act(S[-1], **kwargs)
-#             A.append(action)
-#             step_data = self.step(action)
-#             if render:
-#                 if frames:
-#                     Frames += [self.render(mode="rgb_array")]
-#                 else:
-#                     self.render()
-#                 if sleep != None:
-#                     time.sleep(sleep)
-#             if cost is not None:
-#                 Costs += [cost((S[-1], action))]
-#             if novelty_add is not None:
-#                 step_data["reward"] += novelty_add((S[-1], action))
-#             if novelty is not None:
-#                 step_data["reward"] = novelty((S[-1], action))
-#             S.append(step_data["next_state"])
-#             R.append(step_data["reward"])
-#             if "info" in step_data.keys():
-#                 Info = combine_dicts(Info, step_data["info"])
-#             done = step_data["done"]
-#             Info["max_cost_reached"] = 0.
-#             if cost is not None and \
-#                     rewards_to_returns(Costs, cost.discount_factor)[0] >= cost.beta:
-#                 done = True
-#                 Info["max_cost_reached"] = 1.
-#             if buf != None:
-#                 buf.add((S[-2], A[-1], R[-1], S[-1], done))
-#         if info:
-#             Ret += [Info]
-#         if frames:
-#             Ret += [Frames]
-#         if cost is not None:
-#             Ret += [Costs]
-#         return S, A, R, *Ret
 from utils.plot_utils import Plot2D
 
 
@@ -125,10 +20,9 @@ class WallGridworld(gym.Env):
     def reset_model(self):
         pass
 
-    def __init__(self, map_height, map_width, reward_states, terminal_states,
+    def __init__(self, map_height, map_width, reward_states, terminal_states, n_actions,
                  visualization_path='./',
                  transition_prob=1.,
-                 n_actions=True,
                  unsafe_states=[],
                  start_states=None):
         """
@@ -139,6 +33,7 @@ class WallGridworld(gym.Env):
         end up in the right next cell.
         """
         # super(WallGridworld).__init__(model_path, frame_skip)
+        # print("123")
         self.h = map_height
         self.w = map_width
         self.reward_mat = np.zeros((self.h, self.w))
@@ -312,11 +207,13 @@ class WallGridworld(gym.Env):
         if self.terminal(self.state):
             self.terminated = True
             self.steps += 1
+            admissible_actions = self.get_actions(self.curr_state)
             return (list(self.state),
                     0,
                     True,
                     {'x_position': self.state[0],
-                     'y_position': self.state[1]},
+                     'y_position': self.state[1],
+                     'admissible_actions': admissible_actions},
                     )
         self.terminated = False
         st_prob = self.get_next_states_and_probs(self.state, action)
@@ -332,11 +229,13 @@ class WallGridworld(gym.Env):
         #     "info": {}
         # }
         self.steps += 1
+        admissible_actions = self.get_actions(self.curr_state)
         return (list(self.state),
                 reward,
                 False,
                 {'y_position': self.state[0],
-                 'x_position': self.state[1]},
+                 'x_position': self.state[1],
+                 'admissible_actions': admissible_actions},
                 )
 
     def seed(self, s=None):
@@ -370,26 +269,3 @@ class WallGridworld(gym.Env):
             img = img.reshape(self.plot.fig.canvas.get_width_height()[::-1] + (3,))
             return img
 
-
-########
-# Expert data loading
-
-# expert_data = torch.load("data.pt")
-# expert_obs = []
-# expert_acs = []
-# for S, A in expert_data:
-#     for s in S:
-#         expert_obs += [s]
-#     for a in A:
-#         expert_acs += [a]
-# expert_obs = np.array(expert_obs)
-# expert_acs = np.array(expert_acs)
-#
-# if time_limit is not None:
-#     time_limit = 50
-# r = np.zeros((7, 7)); r[6, 0] = 1.
-# t = [(6, 0)]
-# u = [(ui, uj) for ui in [3] for uj in [0,1,2,3]]
-# s = [(ui, uj) for ui in [0,1,2] for uj in [0,1]]
-# ret = GridworldEnvironment(r=r, t=t, stay_action=False, unsafe_states=u,
-#                 start_states=s)

@@ -179,17 +179,23 @@ def load_policy_iteration_config(config, env_configs, train_env, seed, log_file)
     pi_parameters = {
         "env": train_env,
         "seed": seed,
-        "stopping_threshold": config["interation"]["stopping_threshold"],
-        "max_iter": config["interation"]["max_iter"],
-        "gamma": config["interation"]["gamma"],
+        "stopping_threshold": config["iteration"]["stopping_threshold"],
+        "max_iter": config["iteration"]["max_iter"],
+        "gamma": config["iteration"]["gamma"],
         "n_actions": env_configs['n_actions'],
         "height": env_configs['map_height'],
         "width": env_configs['map_width'],
         "terminal_states": env_configs['terminal_states'],
-        "penalty_initial_value": config['interation']['penalty_initial_value'],
-        "penalty_learning_rate": config['interation']['penalty_learning_rate'],
+        "penalty_initial_value": config['iteration']['penalty_initial_value'],
+        "penalty_learning_rate": config['iteration']['penalty_learning_rate'],
+        "log_file": log_file,
 
     }
+    if config["group"] == "MEICRL":
+        pi_parameters.update({"aid": config['CN']['aid']})
+        pi_parameters.update({"latent_dim": config['CN']['latent_dim']})
+        pi_parameters.update({"penalty_min_value": config['iteration']['nu_min_clamp']})
+        pi_parameters.update({"penalty_max_value": config['iteration']['nu_max_clamp']})
     return pi_parameters
 
 
@@ -246,7 +252,7 @@ def load_ppo_config(config, train_env, seed, log_file):
         if config['group'] == "MEICRL" or config['group'] == "InfoICRL":
             ppo_parameters.update({"latent_dim": config['CN']['latent_dim']})
             ppo_parameters["policy_kwargs"].update({"latent_dim": config['CN']['latent_dim']})
-            ppo_parameters.update({"cid": config['CN']['cid']})
+            ppo_parameters.update({"aid": config['CN']['aid']})
             ppo_parameters.update({"n_probings": config['CN']['n_probings']})
             ppo_parameters.update({"contrastive_weight": config['CN']['contrastive_weight']})
             ppo_parameters.update({"log_cost": config['PPO']['log_cost']})

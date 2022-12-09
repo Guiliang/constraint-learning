@@ -11,6 +11,53 @@ from utils.model_utils import build_code, update_code
 from utils.plot_utils import plot_curve
 
 
+def traj_visualization_2d(config, codes, observations, save_path):
+    # tmp = config['env']["record_info_names"]
+    traj_num = len(observations)
+    plt.figure()
+    colors = ['b', 'r']
+    for c_id in range(config['CN']['latent_dim']):
+        for i in range(traj_num):
+            tmp = np.argmax(codes[i][0])
+            if c_id == tmp:
+                x = observations[i][:, config['env']["record_info_input_dims"][0]]
+                y = observations[i][:, config['env']["record_info_input_dims"][1]]
+                plt.plot(x, y, color=colors[c_id], label=c_id)
+                plt.scatter(x, y, color=colors[c_id], label=c_id)
+    plt.xlim(config['env']["visualize_info_ranges"][0])
+    plt.xlim(config['env']["visualize_info_ranges"][1])
+    plt.xlabel(config['env']["record_info_names"][0])
+    plt.ylabel(config['env']["record_info_names"][1])
+    plt.legend()
+    plt.savefig(os.path.join(save_path, "2d_traj_visual.png".format()))
+
+
+def traj_visualization_1d(config, codes, observations, save_path):
+    for record_info_idx in range(len(config['env']["record_info_names"])):
+        plt.figure()
+        record_info_name = config['env']["record_info_names"][record_info_idx]
+        record_obs_dim = config['env']["record_info_input_dims"][record_info_idx]
+        if config['running']['store_by_game']:
+            for c_id in range(config['CN']['latent_dim']):
+                data_indices = np.where(np.concatenate(codes, axis=0)[:, c_id] == 1)[0]
+                # tmp = np.concatenate(expert_obs, axis=0)[:, record_info_idx][data_indices]
+                plt.hist(np.concatenate(observations, axis=0)[:, record_obs_dim][data_indices],
+                         bins=40,
+                         # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
+                         #        config['env']["visualize_info_ranges"][record_info_idx][1]),
+                         label=c_id)
+        else:
+            for c_id in range(config['CN']['latent_dim']):
+                data_indices = np.where(codes[:, c_id] == 1)[0]
+                plt.hist(observations[:, record_info_idx][data_indices],
+                         bins=40,
+                         # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
+                         #        config['env']["visualize_info_ranges"][record_info_idx][1])
+                         )
+        plt.legend()
+        plt.savefig(os.path.join(save_path, "{0}_traj_visual.png".format(record_info_name)))
+
+
 def constraint_visualization_2d(cost_function_with_code, feature_range, select_dims,
                                 obs_dim, acs_dim, latent_dim,
                                 num_points_per_feature=100,
@@ -41,11 +88,13 @@ def constraint_visualization_2d(cost_function_with_code, feature_range, select_d
 
         with torch.no_grad():
             preds = cost_function_with_code(obs=obs, acs=acs, codes=codes)
-        fig, ax = plt.subplots(1, 1, figsize=(6, 6))
-        im = ax.imshow(preds.reshape([num_points_per_feature, num_points_per_feature]).transpose(1, 0),
-                       cmap='gray',  # 'cool',
-                       interpolation="nearest",
-                       extent=[feature_range[0][0], feature_range[0][1], feature_range[1][0], feature_range[1][1]])
+        # fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+        plt.figure()
+        im = plt.matshow(preds.reshape([num_points_per_feature, num_points_per_feature]).transpose(1, 0),
+                         cmap='gray',  # 'cool',
+                         interpolation="nearest",
+                         extent=[feature_range[0][0], feature_range[0][1], feature_range[1][1], feature_range[1][0]],
+                         )
         cbar = plt.colorbar(im)
         cbar.set_label("Constraint")
         plt.savefig(os.path.join(save_path, "constraint_code-{0}.png".format(codes[0])))
@@ -73,14 +122,15 @@ def constraint_visualization_1d(cost_function, feature_range, select_dim, obs_di
         obs = input_all[:, :obs_dim]
         acs = input_all[:, obs_dim:]
         if code_index is not None and latent_dim is not None:
-            codes = build_code(code_axis=[code_index]*len(input_all),
+            codes = build_code(code_axis=[code_index] * len(input_all),
                                code_dim=latent_dim,
                                num_envs=len(input_all))
             preds = cost_function(obs=obs,
                                   acs=acs,
                                   codes=codes)
         else:
-            preds = cost_function(obs=obs, acs=acs, force_mode='mean')  # use the mean of a distribution for visualization
+            preds = cost_function(obs=obs, acs=acs,
+                                  force_mode='mean')  # use the mean of a distribution for visualization
     ax[0].plot(selected_feature_generation, preds, c='r', linewidth=5)
     if feature_data is not None:
         ax[0].scatter(feature_data, feature_cost)

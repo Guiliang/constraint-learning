@@ -1,3 +1,4 @@
+import copy
 import os
 from abc import ABC
 from typing import Any, Callable, Dict, Optional, Type, Union
@@ -31,6 +32,7 @@ class PolicyIterationLagrange(ABC):
                  penalty_initial_value: float = 1,
                  penalty_learning_rate: float = 0.01,
                  penalty_min_value: Optional[float] = None,
+                 penalty_max_value: Optional[float] = None,
                  log_file=None,
                  ):
         super(PolicyIterationLagrange, self).__init__()
@@ -47,16 +49,19 @@ class PolicyIterationLagrange(ABC):
         self.width = width
         self.penalty_initial_value = penalty_initial_value
         self.penalty_min_value = penalty_min_value
+        self.penalty_max_value = penalty_max_value
         self.penalty_learning_rate = penalty_learning_rate
         self.budget = budget
         self.num_timesteps = 0
+        self.admissible_actions = None
         self._setup_model()
 
     def _setup_model(self) -> None:
         self.dual = DualVariable(self.budget,
                                  self.penalty_learning_rate,
                                  self.penalty_initial_value,
-                                 self.penalty_min_value)
+                                 min_clamp=self.penalty_min_value,
+                                 max_clamp=self.penalty_max_value)
         self.v_m = self.get_init_v()
         self.pi = self.get_equiprobable_policy()
 
@@ -71,12 +76,13 @@ class PolicyIterationLagrange(ABC):
         return pi
 
     def learn(self,
+              total_timesteps: int,
               cost_info_str: Union[str, Callable],
-              latent_info_str: Union[str, Callable],
+              latent_info_str: Union[str, Callable] = '',
               callback=None, ):
         policy_stable, dual_stable = False, False
         iter = 0
-        for iter in tqdm(range(self.max_iter)):
+        for iter in tqdm(range(total_timesteps)):
             if policy_stable and dual_stable:
                 print("\nStable at Iteration {0}.".format(iter), file=self.log_file)
                 break
@@ -90,18 +96,18 @@ class PolicyIterationLagrange(ABC):
         logger.record("train/cumulative rewards", cumu_reward)
         logger.record("train/length", length)
 
+    def step(self, action):
+        return self.env.step(np.asarray([action]))
+
     def dual_update(self, cost_function):
         """policy rollout for recording training performance"""
         states = self.env.reset()
         cumu_reward, length = 0, 0
         actions_game, states_game, costs_game = [], [], []
         while True:
-            policy_prob = self.pi[states[0][0], states[0][1]]
-            best_actions = np.argwhere(policy_prob == np.amax(policy_prob)).flatten().tolist()
-            action = random.choice(best_actions)
-            # action = np.argmax(policy_prob)
-            actions_game.append(action)
-            s_primes, rewards, dones, infos = self.env.step([action])
+            actions, _ = self.predict(obs=states, state=None)
+            actions_game.append(actions[0])
+            s_primes, rewards, dones, infos = self.step(actions)
             if type(cost_function) is str:
                 costs = np.array([info.get(cost_function, 0) for info in infos])
                 if isinstance(self.env, VecNormalizeWithCost):
@@ -109,8 +115,9 @@ class PolicyIterationLagrange(ABC):
                 else:
                     orig_costs = costs
             else:
-                costs = cost_function(states, [action])
+                costs = cost_function(states, actions)
                 orig_costs = costs
+            self.admissible_actions = infos[0]['admissible_actions']
             costs_game.append(orig_costs)
             states = s_primes
             states_game.append(states[0])
@@ -169,7 +176,7 @@ class PolicyIterationLagrange(ABC):
                     states = self.env.reset_with_values(info_dicts=[{'states': [x, y]}])
                     assert states[0][0] == x and states[0][1] == y
                     # Compute next state
-                    s_primes, rewards, dones, infos = self.env.step([action])
+                    s_primes, rewards, dones, infos = self.step(action)
                     # Get cost from environment.
                     if type(cost_function) is str:
                         costs = np.array([info.get(cost_function, 0) for info in infos])
@@ -215,12 +222,11 @@ class PolicyIterationLagrange(ABC):
         if [x, y] in self.terminal_states:
             return
         total = 0
-        for a in range(self.n_actions):
+        for action in range(self.n_actions):
             states = self.env.reset_with_values(info_dicts=[{'states': [x, y]}])
             assert states[0][0] == x and states[0][1] == y
             # Get next state
-            actions = np.asarray([a])
-            s_primes, rewards, dones, infos = self.env.step(actions)
+            s_primes, rewards, dones, infos = self.step(action)
             # Get cost from environment.
             if type(cost_function) is str:
                 costs = np.array([info.get(cost_function, 0) for info in infos])
@@ -229,19 +235,24 @@ class PolicyIterationLagrange(ABC):
                 else:
                     orig_costs = costs
             else:
-                costs = cost_function(states, [a])
+                costs = cost_function(states, [action])
                 orig_costs = costs
             gamma_values = self.gamma * old_v[s_primes[0][0], s_primes[0][1]]
             current_penalty = self.dual.nu().item()
             lag_costs = current_penalty * orig_costs[0]
-            total += self.pi[x, y, a] * (rewards[0] - lag_costs + gamma_values)
+            total += self.pi[x, y, action] * (rewards[0] - lag_costs + gamma_values)
+
         self.v_m[x, y] = total
 
     def predict(self, obs, state, deterministic=True):
-        policy_prob = self.pi[obs[0][0], obs[0][1]]
+        policy_prob = copy.copy(self.pi[int(obs[0][0]), int(obs[0][1])])
+        if self.admissible_actions is not None:
+            for c_a in range(self.n_actions):
+                if c_a not in self.admissible_actions:
+                    policy_prob[c_a] = -float('inf')
         best_actions = np.argwhere(policy_prob == np.amax(policy_prob)).flatten().tolist()
         action = random.choice(best_actions)
-        return [action], state
+        return np.asarray([action]), state
 
     def save(self, save_path):
         state_dict = dict(

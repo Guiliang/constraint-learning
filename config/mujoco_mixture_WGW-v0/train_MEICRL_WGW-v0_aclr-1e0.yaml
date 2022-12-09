@@ -60,7 +60,7 @@ CN:
   train_gail_lambda: False
   cn_eps: 0.00001
   backward_iters: 20
-  anneal_clr_by_factor: 0.6
+  anneal_clr_by_factor: 1
   latent_dim: 2
   use_expert_negative: False
   negative_weight: 1

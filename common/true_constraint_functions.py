@@ -46,11 +46,16 @@ def get_true_constraint_function(env_id, env_configs={}, agent_id=0, c_id=None, 
         else:
             raise ValueError("Unknown cid {0}.".format(c_id))
     elif env_id in ["WGW-v0"]:
-        if c_id is not None:
-            unsafe_states = env_configs['unsafe_states']
-            return partial(wall_in, unsafe_states[c_id])
-        else:
-            raise ValueError("Unknown cid {0}.".format(c_id))
+        if c_id is None:
+            games_by_cids = env_configs['games_by_cids']
+            vote = [0 for i in range(len(games_by_aids.keys()))]
+            for game_index in games_by_aids[agent_id]:
+                cid = games_by_cids[game_index]
+                vote[cid] += 1
+            c_id = np.argmax(np.asarray(vote))
+        unsafe_states = env_configs['unsafe_states']
+        return partial(wall_in, unsafe_states[c_id])
+
     elif env_id in ["Circle-v0", ]:
         return null_cost
     else:

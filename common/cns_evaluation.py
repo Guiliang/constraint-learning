@@ -69,12 +69,14 @@ def evaluate_iteration_policy(
             policy_prob = model.pi[states[0][0], states[0][1]]
             action = np.argmax(policy_prob)
             actions_game.append(action)
-            s_primes, rewards, dones, infos = env.step([action])
+            s_primes, rewards, dones, _infos = env.step([action])
+            if 'admissible_actions' in _infos[0].keys():
+                model.admissible_actions = _infos[0]['admissible_actions']
             done = dones[0]
             if done:
                 break
             if type(cost_function) is str:
-                costs = np.array([info.get(cost_function, 0) for info in infos])
+                costs = np.array([info.get(cost_function, 0) for info in _infos])
                 if isinstance(env, VecNormalizeWithCost):
                     orig_costs = env.get_original_cost()
                 else:
@@ -241,6 +243,8 @@ def evaluate_meicrl_policy(
             inputs = np.concatenate([obs, code], axis=1)
             action, state = models[cid].predict(inputs, state=state, deterministic=deterministic)
             obs, reward, dones, _info = env.step_with_code(actions=action, codes=code)
+            if 'admissible_actions' in _info[0].keys():
+                models[cid].admissible_actions = _info[0]['admissible_actions']
             done = dones[0]
             code = []
             for i in range(env.num_envs):

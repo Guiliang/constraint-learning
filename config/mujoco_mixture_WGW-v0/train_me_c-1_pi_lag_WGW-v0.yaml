@@ -26,7 +26,7 @@ running:
   latent_dim: 2
   render: False
 
-interation:
+iteration:
   stopping_threshold: 0.001
   max_iter: 100
   penalty_initial_value: 0.1

@@ -29,7 +29,8 @@ running:
   sample_rollouts: 20
   store_sample_num: null
   expert_path: '../data/expert_data/Mixture-WGW-v0'
-  use_buffer: False
+  use_buffer: True
+  store_sample_rollouts: 1000
   store_by_game: True
   init_density: False
 

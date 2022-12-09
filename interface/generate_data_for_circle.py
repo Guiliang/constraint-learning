@@ -43,7 +43,7 @@ def policy_step(p, r, up=True, clockwise=True):
 import gym
 import mujuco_environment.custom_envs
 
-env = gym.make(id='Circle-v0')
+env = gym.make(id='Circle-v0', **env_configs_copy)
 std = str(5e-3)
 rs = [0.4, 0.2, 0.2]
 cs = [True, True, False]

@@ -162,7 +162,9 @@ def train(args):
     best_true_reward = -np.inf
     for itr in range(config['running']['n_iters']):
         # Update agent
-        iteration_agent.learn(cost_info_str=config['env']['cost_info_str'])
+        iteration_agent.learn(
+            total_timesteps=config['iteration']['max_iter'],
+            cost_info_str=config['env']['cost_info_str'])
         iter_metrics = logger.Logger.CURRENT.name_to_value
         timesteps += iteration_agent.num_timesteps
 

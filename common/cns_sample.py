@@ -32,6 +32,8 @@ def sample_from_multi_agents(agents, latent_dim, env, rollouts, deterministic=Fa
             codes_game.append(code)
             # action_code = np.concatenate([actions, codes], axis=1)
             obs, reward, done, _info = env.step_with_code(action, code)
+            if 'admissible_actions' in _info[0].keys():
+                agent.admissible_actions = _info[0]['admissible_actions']
             rs_game.append(reward)
             episode_sum_reward += reward
             episode_length += 1

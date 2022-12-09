@@ -40,7 +40,7 @@ iteration:
   penalty_learning_rate: 0.1
   gamma: 0.7
   reset_policy: False
-  nu_max_clamp: null
+  nu_max_clamp: 1
   nu_min_clamp: null
 
 CN:

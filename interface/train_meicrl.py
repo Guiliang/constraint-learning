@@ -10,21 +10,22 @@ import numpy as np
 import yaml
 from matplotlib import pyplot as plt
 
-from cirl_stable_baselines3.iteration import PolicyIterationLagrange
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+from common.memory_buffer import IRLDataQueue
 from common.cns_config import get_cns_config
 from models.constraint_net.mixture_constraint_net import MixtureConstraintNet
 from cirl_stable_baselines3.ppo_lag.ma_ppo_lag import MultiAgentPPOLagrangian
-from common.cns_visualization import constraint_visualization_2d, constraint_visualization_1d
+from common.cns_visualization import constraint_visualization_2d, constraint_visualization_1d, traj_visualization_2d, \
+    traj_visualization_1d
 from models.constraint_net.info_constraint_net import InfoConstraintNet
 from common.cns_evaluation import evaluate_meicrl_policy
 from common.cns_env import make_train_env, make_eval_env
 from cirl_stable_baselines3.common import logger
 from cirl_stable_baselines3.common.vec_env import sync_envs_normalization, VecNormalize
+from cirl_stable_baselines3.iteration.me_policy_interation_lag import MixtureExpertPolicyIterationLagrange
 from utils.data_utils import read_args, load_config, ProgressBarManager, del_and_make, load_expert_data, \
-    get_input_features_dim, process_memory, print_resource
+    process_memory, print_resource
 from utils.env_utils import check_if_duplicate_seed
 from utils.model_utils import load_ppo_config, build_code, load_policy_iteration_config
 from common.cns_sample import sample_from_multi_agents
@@ -51,7 +52,7 @@ def train(config):
         log_file = open(log_file_path, 'w')
     else:
         log_file = None
-    debug_msg = ''
+    debug_msg = 'sanity_check-'
     # debug_msg = 'robust_check_'  # 'robust_check_', 'sanity_check-', 'semi_check-'
     if 'robust_check' in debug_msg:
         debug_msg += str(config['running']['robust_weight']) + '_'
@@ -63,10 +64,12 @@ def train(config):
             config['PPO']['forward_timesteps'] = 3000  # 2000
             config['PPO']['n_steps'] = 500
             config['PPO']['n_epochs'] = 2
+            config['running']['sample_rollouts'] = 2
+            config['CN']['backward_iters'] = 2
+        elif 'iteration' in config.keys():
+            config['iteration']['max_iter'] = 2
         config['running']['n_eval_episodes'] = 2
         config['running']['save_every'] = 1
-        config['running']['sample_rollouts'] = 2
-        config['CN']['backward_iters'] = 2
         debug_msg += 'debug-'
         partial_data = True
         # debug_msg += 'part-'
@@ -103,6 +106,10 @@ def train(config):
         os.mkdir(save_model_mother_dir)
     print("Saving to the file: {0}".format(save_model_mother_dir), file=log_file, flush=True)
 
+    if config['running']['use_buffer']:
+        sample_data_queue = IRLDataQueue(max_rollouts=config['running']['store_sample_rollouts'], seed=seed)
+    else:
+        sample_data_queue = None
     with open(os.path.join(save_model_mother_dir, "model_hyperparameters.yaml"), "w") as hyperparam_file:
         yaml.dump(config, hyperparam_file)
 
@@ -203,33 +210,18 @@ def train(config):
                                          time_prev=time_prev,
                                          process_name='Loading environment',
                                          log_file=log_file)
-
     # plot expert traj
-    for record_info_idx in range(len(config['env']["record_info_names"])):
-        # plt.figure(figsize=(6, 6))
-        plt.figure()
-        record_info_name = config['env']["record_info_names"][record_info_idx]
-        if config['running']['store_by_game']:
-            for c_id in range(config['CN']['latent_dim']):
-            # for c_id in range(1):
-                data_indices = np.where(np.concatenate(expert_codes, axis=0)[:, c_id] == 1)[0]
-                # tmp = np.concatenate(expert_obs, axis=0)[:, record_info_idx][data_indices]
-                plt.hist(np.concatenate(expert_obs, axis=0)[:, record_info_idx][data_indices],
-                         bins=20,
-                         # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
-                         #        config['env']["visualize_info_ranges"][record_info_idx][1]),
-                         label=c_id)
-        else:
-            for c_id in range(config['CN']['latent_dim']):
-                data_indices = np.where(expert_codes[:, c_id] == 1)[0]
-                plt.hist(expert_obs[:, record_info_idx][data_indices],
-                         bins=20,
-                         # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
-                         #        config['env']["visualize_info_ranges"][record_info_idx][1])
-                         )
-        plt.legend()
-        plt.savefig(os.path.join(save_model_mother_dir, "{0}_expert_traj_visual.png".format(record_info_name)))
-
+    if 'WGW' in config['env']['train_env_id']:
+        traj_visualization_2d(config=config,
+                              codes=expert_codes,
+                              observations=expert_obs,
+                              save_path=save_model_mother_dir,
+                              )
+    else:
+        traj_visualization_1d(config=config,
+                              codes=expert_codes,
+                              observations=expert_obs,
+                              save_path=save_model_mother_dir)
     # Logger
     if log_file is None:
         icrl_logger = logger.HumanOutputFormat(sys.stdout)
@@ -259,8 +251,10 @@ def train(config):
     # Init ppo agent
     nominal_agents = {}
     create_nominal_agent_functions = {}
+    reset_policy = False
+    forward_timesteps = None
     for aid in range(config['CN']['latent_dim']):
-        config['CN']['cid'] = aid
+        config['CN']['aid'] = aid
         if 'sanity_check-' in debug_msg:
             config['CN']['contrastive_weight'] = 0.0
         if 'PPO' in config.keys():
@@ -270,14 +264,18 @@ def train(config):
                                              log_file=log_file)
             create_nominal_agent = lambda: MultiAgentPPOLagrangian(**ppo_parameters)
             create_nominal_agent_functions.update({aid: create_nominal_agent})
-        elif 'PI' in config.keys():
+            reset_policy = config['PPO']['reset_policy']
+            forward_timesteps = config['PPO']['forward_timesteps']
+        elif 'iteration' in config.keys():
             iteration_parameters = load_policy_iteration_config(config=config,
                                                                 env_configs=env_configs,
                                                                 train_env=train_env,
                                                                 seed=seed,
                                                                 log_file=log_file)
-            create_nominal_agent = lambda: PolicyIterationLagrange(**iteration_parameters)
+            create_nominal_agent = lambda: MixtureExpertPolicyIterationLagrange(**iteration_parameters)
             create_nominal_agent_functions.update({aid: create_nominal_agent})
+            reset_policy = config['iteration']['reset_policy']
+            forward_timesteps = config['iteration']['max_iter']
         else:
             raise ValueError("Unknown model {0}.".format(config['group']))
         nominal_agent = create_nominal_agent()
@@ -292,7 +290,7 @@ def train(config):
     print("\nBeginning training", file=log_file, flush=True)
     best_true_reward, best_true_cost, best_forward_kl, best_reverse_kl = -np.inf, np.inf, np.inf, np.inf
     for itr in range(config['running']['n_iters']):
-        if config['PPO']['reset_policy'] and itr != 0:
+        if reset_policy and itr != 0:
             print("\nResetting agent", file=log_file, flush=True)
             for aid in range(config['CN']['latent_dim']):
                 nominal_agent = create_nominal_agent_functions[aid]()
@@ -312,11 +310,11 @@ def train(config):
 
         # Update agent
         forward_metrics_all = {}
-        with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
+        with ProgressBarManager(forward_timesteps) as callback:
             # for aid in [0]:
             for aid in range(config['CN']['latent_dim']):
                 nominal_agents[aid].learn(
-                    total_timesteps=config['PPO']['forward_timesteps'],
+                    total_timesteps=forward_timesteps,
                     cost_info_str=config['env']['cost_info_str'],
                     latent_info_str=config['env']['latent_info_str'],
                     callback=[callback],
@@ -343,13 +341,26 @@ def train(config):
             **sample_parameters
         )
         orig_observations, observations, actions, rewards, codes, sum_rewards, lengths = sample_data
-        sample_obs = orig_observations
-        sample_acts = actions
-        sample_codes = codes
+
+        if config['running']['use_buffer']:
+            sample_data_queue.put(obs=orig_observations,
+                                  acs=actions,
+                                  rs=rewards,
+                                  codes=codes,
+                                  )
+            sample_obs, sample_acts, sample_rs, sample_codes = \
+                sample_data_queue.get(sample_num=config['running']['sample_rollouts'], )
+        else:
+            sample_obs = orig_observations
+            sample_acts = actions
+            sample_rs = rewards
+            sample_codes = codes
+
         mem_prev, time_prev = print_resource(mem_prev=mem_prev,
                                              time_prev=time_prev,
                                              process_name='Sampling',
                                              log_file=log_file)
+
         # Update constraint net
         mean, var = None, None
         if config['CN']['cn_normalize']:
@@ -382,29 +393,18 @@ def train(config):
         save_path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
         if itr % config['running']['save_every'] == 0:
             del_and_make(save_path)
-            # visualized sampled data
-            plt.figure(figsize=(10, 10))
-            for record_info_idx in range(len(config['env']["record_info_names"])):
-                record_info_name = config['env']["record_info_names"][record_info_idx]
-                if config['running']['store_by_game']:
-                    for c_id in range(config['CN']['latent_dim']):
-                        data_indices = np.where(np.concatenate(sample_codes, axis=0)[:, c_id] == 1)[0]
-                        # tmp = np.concatenate(expert_obs, axis=0)[:, record_info_idx][data_indices]
-                        plt.hist(np.concatenate(sample_obs, axis=0)[:, record_info_idx][data_indices],
-                                 bins=40,
-                                 # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
-                                 #        config['env']["visualize_info_ranges"][record_info_idx][1]),
-                                 label=c_id)
-                else:
-                    for c_id in range(config['CN']['latent_dim']):
-                        data_indices = np.where(sample_codes[:, c_id] == 1)[0]
-                        plt.hist(sample_obs[:, record_info_idx][data_indices],
-                                 bins=40,
-                                 # range=(config['env']["visualize_info_ranges"][record_info_idx][0],
-                                 #        config['env']["visualize_info_ranges"][record_info_idx][1])
-                                 )
-                plt.legend()
-                plt.savefig(os.path.join(save_path, "{0}_sample_traj_visual.png".format(record_info_name)))
+        # plot sample traj
+        if 'WGW' in config['env']['train_env_id']:
+            traj_visualization_2d(config=config,
+                                  codes=sample_codes,
+                                  observations=sample_obs,
+                                  save_path=save_path,
+                                  )
+        else:
+            traj_visualization_1d(config=config,
+                                  codes=sample_codes,
+                                  observations=sample_obs,
+                                  save_path=save_path)
 
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
             evaluate_meicrl_policy(models=nominal_agents,
@@ -438,6 +438,20 @@ def train(config):
             else:
                 empirical_input_means = np.concatenate([np.concatenate(expert_obs, axis=0),
                                                         np.concatenate(expert_acs, axis=0)], axis=1).mean(0)
+            if 'WGW' in config['env']['train_env_id']:
+                for aid in range(config['CN']['latent_dim']):
+                    plt.figure()
+                    plt.matshow(nominal_agents[aid].v_m)
+                    plt.colorbar()
+                    plt.savefig(os.path.join(save_path, "v_m_aid-{0}.png".format(aid)))
+                constraint_visualization_2d(cost_function_with_code=constraint_net.cost_function_with_code,
+                                            feature_range=config['env']["visualize_info_ranges"],
+                                            select_dims=config['env']["record_info_input_dims"],
+                                            obs_dim=constraint_net.obs_dim,
+                                            acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                            save_path=save_path,
+                                            latent_dim=config['CN']['latent_dim']
+                                            )
             for record_info_idx in range(len(config['env']["record_info_names"])):
                 record_info_name = config['env']["record_info_names"][record_info_idx]
                 for i in range(config['CN']['latent_dim']):
@@ -489,7 +503,7 @@ def train(config):
             "best_true/best_reward": best_true_reward
         }
         for c_id in range(config['CN']['latent_dim']):
-        # for c_id in [0, 1]:
+            # for c_id in [0, 1]:
             forward_metrics = forward_metrics_all[c_id]
             metrics.update(
                 {"forward/" + 'aid:{0}/'.format(c_id) + k.replace("train/", ""): v for k, v in forward_metrics.items()})
