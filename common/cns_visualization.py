@@ -10,6 +10,23 @@ from utils.data_utils import del_and_make
 from utils.plot_utils import plot_curve
 
 
+def beta_parameters_visualization(obs_str, constraint_net, alpha_all, beta_all, save_path):
+    obs = np.asarray([[int(obs_str.split('-')[0]), int(obs_str.split('-')[1])]])
+    tmp_data = constraint_net.prepare_data(obs=obs, acs=np.asarray([0]))
+    alpha_beta = constraint_net.network(tmp_data)
+    alpha = alpha_beta[:, 0].item()
+    beta = alpha_beta[:, 1].item()
+    print("alpha: {0}, beta: {1}".format(alpha, beta))
+    alpha_all[obs_str].append(alpha)
+    beta_all[obs_str].append(beta)
+    plt.figure()
+    plt.plot(range(len(alpha_all[obs_str])), alpha_all[obs_str])
+    plt.savefig(save_path + '/alpha_{0}.png'.format(obs_str))
+    plt.figure()
+    plt.plot(range(len(beta_all[obs_str])), beta_all[obs_str])
+    plt.savefig(save_path + '/beta_{0}.png'.format(obs_str))
+
+
 def traj_visualization_2d(config, observations, save_path):
     # tmp = config['env']["record_info_names"]
     traj_num = len(observations)
@@ -26,7 +43,7 @@ def traj_visualization_2d(config, observations, save_path):
     plt.xlabel(config['env']["record_info_names"][0])
     plt.ylabel(config['env']["record_info_names"][1])
     plt.legend()
-    plt.savefig(os.path.join(save_path, "2d_traj_visual.png".format()))
+    plt.savefig(os.path.join(save_path, "2d_traj_visual.png"))
 
 
 def traj_visualization_1d(config, observations, save_path):

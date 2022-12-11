@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
+from common.cns_visualization import traj_visualization_2d
 from stable_baselines3.common.dual_variable import DualVariable
 from stable_baselines3.common.type_aliases import GymEnv
 from stable_baselines3.common import logger
@@ -100,13 +101,13 @@ class PolicyIterationLagrange(ABC):
 
     def dual_update(self, cost_function):
         """policy rollout for recording training performance"""
-        states = self.env.reset()
+        obs = self.env.reset()
         cumu_reward, length = 0, 0
-        actions_game, states_game, costs_game = [], [], []
+        actions_game, obs_game, costs_game = [], [], []
         while True:
-            actions, _ = self.predict(obs=states, state=None)
+            actions, _ = self.predict(obs=obs, state=None)
             actions_game.append(actions[0])
-            s_primes, rewards, dones, infos = self.step(actions)
+            obs_primes, rewards, dones, infos = self.step(actions)
             if type(cost_function) is str:
                 costs = np.array([info.get(cost_function, 0) for info in infos])
                 if isinstance(self.env, VecNormalizeWithCost):
@@ -114,12 +115,12 @@ class PolicyIterationLagrange(ABC):
                 else:
                     orig_costs = costs
             else:
-                costs = cost_function(states, actions)
+                costs = cost_function(obs, actions)
                 orig_costs = costs
             self.admissible_actions = infos[0]['admissible_actions']
             costs_game.append(orig_costs)
-            states = s_primes
-            states_game.append(states[0])
+            obs = obs_primes
+            obs_game.append(obs[0])
             done = dones[0]
             if done:
                 break
@@ -131,7 +132,7 @@ class PolicyIterationLagrange(ABC):
         print("Performance: dual {0}, cost: {1}, states: {2}, "
               "actions: {3}, rewards: {4}.".format(penalty,
                                                    costs_game_mean.tolist(),
-                                                   np.asarray(states_game).tolist(),
+                                                   np.asarray(obs_game).tolist(),
                                                    np.asarray(actions_game).tolist(),
                                                    cumu_reward),
               file=self.log_file,
@@ -244,7 +245,7 @@ class PolicyIterationLagrange(ABC):
 
         self.v_m[x, y] = total
 
-    def predict(self, obs, state, deterministic=True):
+    def predict(self, obs, state, deterministic=None):
         policy_prob = copy.copy(self.pi[int(obs[0][0]), int(obs[0][1])])
         if self.admissible_actions is not None:
             for c_a in range(self.n_actions):
@@ -309,4 +310,3 @@ def load_pi(model_path, iter_msg, log_file):
     iteration_agent.v_m = v_m
 
     return iteration_agent
-

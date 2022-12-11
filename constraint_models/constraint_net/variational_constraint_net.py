@@ -210,7 +210,6 @@ class VariationalConstraintNet(ConstraintNet):
         expert_preds_all = []
 
         for itr in tqdm(range(iterations)):
-            print(itr)
             # Compute IS weights
             if self.importance_sampling:
                 with th.no_grad():

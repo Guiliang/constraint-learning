@@ -29,7 +29,7 @@ class Nu(nn.Module):
     def clamp(self):
         self.log_nu.data.clamp_(
             min=np.log(max(np.exp(self.min_clamp), 1e-8)),
-            max=self.max_clamp
+            max=np.log(np.exp(self.max_clamp)-1)
         )
 
 

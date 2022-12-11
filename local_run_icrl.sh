@@ -1,4 +1,4 @@
-task_name="train-vicrl_1"
+task_name="train-icrl_1"
 launch_time=$(date +"%m-%d-%y-%H:%M:%S")
 log_dir="log-local-${task_name}-${launch_time}.out"
 source /scratch1/miniconda3/bin/activate
@@ -8,10 +8,6 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch1/PycharmProjects/constraint-lea
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 pip install -e ./mujuco_environment/
 cd ./interface/
-#nohup python train_icrl.py ../config/mujoco_Circle-v0/train_ICRL_Circle.yaml -n 5 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
-nohup python train_icrl.py ../config/mujoco_Circle-v0/train_ICRL_Circle_dim2.yaml -n 5 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
-nohup python train_icrl.py ../config/mujoco_Circle-v0/train_ICRL_Circle_dim2.yaml -n 5 -s 321 -l "$log_dir" > nohup_icrl.out 2>&1 &
-nohup python train_icrl.py ../config/mujoco_Circle-v0/train_ICRL_Circle_dim2.yaml -n 5 -s 666 -l "$log_dir" > nohup_icrl.out 2>&1 &
-#nohup python train_icrl.py ../config/mujoco_Circle-v0/train_ICRL_CircleNeg.yaml -n 5 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
-#nohup python train_icrl.py ../config/mujoco_Circle-v0/train_ICRL_CircleNeg_dim2.yaml -n 5 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action.yaml -n 1 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
+nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_with-buffer-setting1.yaml -n 1 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
 cd ../

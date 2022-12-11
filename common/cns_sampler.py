@@ -117,16 +117,16 @@ class ConstrainedRLSampler:
             sum_rewards.append(episode_sum_reward)
             lengths.append(episode_length)
 
-        if self.store_by_game:
-            return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
-        else:
-            all_orig_obs = np.squeeze(np.array(all_orig_obs), axis=1)
-            all_obs = np.squeeze(np.array(all_obs), axis=1)
-            all_acs = np.squeeze(np.array(all_acs), axis=1)
-            all_rs = np.array(all_rs)
-            sum_rewards = np.squeeze(np.array(sum_rewards), axis=1)
-            lengths = np.array(lengths)
-            return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
+        # if self.store_by_game:
+        return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
+        # else:
+        #     all_orig_obs = np.squeeze(np.array(all_orig_obs), axis=1)
+        #     all_obs = np.squeeze(np.array(all_obs), axis=1)
+        #     all_acs = np.squeeze(np.array(all_acs), axis=1)
+        #     all_rs = np.array(all_rs)
+        #     sum_rewards = np.squeeze(np.array(sum_rewards), axis=1)
+        #     lengths = np.array(lengths)
+        #     return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, lengths
 
     def multi_threads_sample_with_policy(self):
         # TODO: the current version is for commonroad RL, add support for mujoco
@@ -178,9 +178,9 @@ class ConstrainedRLSampler:
 
             sum_rewards += episode_sum_rewards
             all_lengths += episode_lengths
-        if not self.store_by_game:
-            all_orig_obs = np.concatenate(all_orig_obs, axis=0)
-            all_obs = np.concatenate(all_obs, axis=0)
-            all_acs = np.concatenate(all_acs, axis=0)
-            all_rs = np.concatenate(all_rs, axis=0)
+        # if not self.store_by_game:
+        #     all_orig_obs = np.concatenate(all_orig_obs, axis=0)
+        #     all_obs = np.concatenate(all_obs, axis=0)
+        #     all_acs = np.concatenate(all_acs, axis=0)
+        #     all_rs = np.concatenate(all_rs, axis=0)
         return all_orig_obs, all_obs, all_acs, all_rs, sum_rewards, all_lengths

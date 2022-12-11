@@ -17,7 +17,7 @@ from stable_baselines3.iteration.policy_interation_lag import PolicyIterationLag
 from common.cns_sampler import ConstrainedRLSampler
 from common.cns_evaluation import evaluate_icrl_policy
 from common.cns_visualization import constraint_visualization_1d, constraint_visualization_2d, traj_visualization_2d, \
-    traj_visualization_1d
+    traj_visualization_1d, beta_parameters_visualization
 from common.cns_env import make_train_env, make_eval_env
 from common.memory_buffer import IRLDataQueue
 from constraint_models.constraint_net.se_variational_constraint_net import SelfExplainableVariationalConstraintNet
@@ -69,13 +69,12 @@ def train(config):
             config['PPO']['n_epochs'] = 2
             config['running']['sample_rollouts'] = 2
             config['CN']['backward_iters'] = 2
-            config['running']['sample_data_num'] = 500
-            config['running']['store_sample_num'] = 1000
+            # config['running']['sample_data_num'] = 500
+            # config['running']['store_sample_num'] = 1000
         elif 'iteration' in config.keys():
             config['iteration']['max_iter'] = 2
 
         config['CN']['cn_batch_size'] = 1000
-        config['CN']['backward_iters'] = 2
         debug_msg = 'debug-'
         partial_data = True
     if partial_data:
@@ -182,7 +181,7 @@ def train(config):
     else:
         planning_config = None
     sampler = ConstrainedRLSampler(rollouts=int(config['running']['sample_rollouts']),
-                                   store_by_game=config['running']['store_by_game'] or config['running']['use_buffer'],
+                                   store_by_game=True,  # I move the step out
                                    cost_info_str=config['env']['cost_info_str'],
                                    sample_multi_env=sample_multi_env,
                                    env_id=config['env']['eval_env_id'],
@@ -378,6 +377,9 @@ def train(config):
     mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                          process_name='Setting model', log_file=log_file)
 
+    if 'Test' in config['running']['expert_path']:
+        alpha_all, beta_all = {'3-5': [], '0-0': []}, {'3-5': [], '0-0': []}
+
     # Train
     start_time = time.time()
     print("\nBeginning training", file=log_file, flush=True)
@@ -418,9 +420,16 @@ def train(config):
             sample_obs, sample_acts, sample_rs, sample_ls = \
                 sample_data_queue.get(sample_num=config['running']['sample_rollouts'], )
         else:
-            sample_obs = orig_observations
-            sample_acts = actions
-            sample_ls = lengths
+            if not config['running']['store_by_game']:
+                sample_obs = np.concatenate(orig_observations, axis=0)
+                sample_acts = np.concatenate(actions)
+                sample_rs = np.concatenate(rewards)
+                sample_ls = np.array(lengths)
+            else:
+                sample_obs = orig_observations
+                sample_acts = actions
+                sample_rs = rewards
+                sample_ls = lengths
 
         mem_prev, time_prev = print_resource(mem_prev=mem_prev,
                                              time_prev=time_prev,
@@ -430,14 +439,22 @@ def train(config):
         mean, var = None, None
         if config['CN']['cn_normalize']:
             mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
-
-        backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
-                                                   nominal_obs=sample_obs,
-                                                   nominal_acs=sample_acts,
-                                                   episode_lengths=sample_ls,
-                                                   obs_mean=mean,
-                                                   obs_var=var,
-                                                   current_progress_remaining=current_progress_remaining)
+        if 'WGW' in config['env']['train_env_id']:
+            backward_metrics = constraint_net.train_gridworld_nn(iterations=config['CN']['backward_iters'],
+                                                                 nominal_obs=sample_obs,
+                                                                 nominal_acs=sample_acts,
+                                                                 episode_lengths=sample_ls,
+                                                                 obs_mean=mean,
+                                                                 obs_var=var,
+                                                                 current_progress_remaining=current_progress_remaining)
+        else:
+            backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
+                                                       nominal_obs=sample_obs,
+                                                       nominal_acs=sample_acts,
+                                                       episode_lengths=sample_ls,
+                                                       obs_mean=mean,
+                                                       obs_var=var,
+                                                       current_progress_remaining=current_progress_remaining)
 
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Training CN model', log_file=log_file)
@@ -456,7 +473,7 @@ def train(config):
         else:
             save_path = None
 
-        if 'WGW' in config['env']['train_env_id']:
+        if 'WGW' in config['env']['train_env_id'] and itr % config['running']['save_every'] == 0:
             traj_visualization_2d(config=config,
                                   observations=orig_observations,
                                   save_path=save_path,
@@ -488,32 +505,49 @@ def train(config):
                 plt.matshow(nominal_agent.v_m)
                 plt.colorbar()
                 plt.savefig(os.path.join(save_path, "v_m_aid.png"))
-            constraint_visualization_2d(cost_function=constraint_net.cost_function,
-                                        feature_range=config['env']["visualize_info_ranges"],
-                                        select_dims=config['env']["record_info_input_dims"],
-                                        obs_dim=constraint_net.obs_dim,
-                                        acs_dim=1 if is_discrete else constraint_net.acs_dim,
-                                        save_path=save_path
-                                        )
-            for record_info_idx in range(len(config['env']["record_info_names"])):
-                record_info_name = config['env']["record_info_names"][record_info_idx]
-                plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
-                if len(expert_acs.shape) == 1:
-                    empirical_input_means = np.concatenate([expert_obs, np.expand_dims(expert_acs, 1)], axis=1).mean(0)
-                else:
-                    empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
-                constraint_visualization_1d(cost_function=constraint_net.cost_function,
-                                            feature_range=config['env']["visualize_info_ranges"][record_info_idx],
-                                            select_dim=config['env']["record_info_input_dims"][record_info_idx],
+            if 'Test' in config['running']['expert_path']:
+                beta_parameters_visualization('3-5',
+                                              constraint_net,
+                                              alpha_all,
+                                              beta_all,
+                                              save_path)
+                beta_parameters_visualization('0-0',
+                                              constraint_net,
+                                              alpha_all,
+                                              beta_all,
+                                              save_path)
+
+            if 'WGW' in config['env']['train_env_id'] and itr % config['running']['save_every'] == 0:
+                constraint_visualization_2d(cost_function=constraint_net.cost_function,
+                                            feature_range=config['env']["visualize_info_ranges"],
+                                            select_dims=config['env']["record_info_input_dims"],
                                             obs_dim=constraint_net.obs_dim,
                                             acs_dim=1 if is_discrete else constraint_net.acs_dim,
-                                            device=constraint_net.device,
-                                            save_name=os.path.join(save_path,
-                                                                   "{0}_visual.png".format(record_info_name)),
-                                            feature_data=plot_record_infos,
-                                            feature_cost=plot_costs,
-                                            feature_name=record_info_name,
-                                            empirical_input_means=empirical_input_means)
+                                            save_path=save_path
+                                            )
+
+            for record_info_idx in range(len(config['env']["record_info_names"])):
+                if not 'WGW' in config['env']['train_env_id']:
+                    record_info_name = config['env']["record_info_names"][record_info_idx]
+                    plot_record_infos, plot_costs = zip(*sorted(zip(record_infos[record_info_name], costs)))
+                    if len(expert_acs.shape) == 1:
+                        empirical_input_means = np.concatenate([expert_obs,
+                                                                np.expand_dims(expert_acs, 1)],
+                                                               axis=1).mean(0)
+                    else:
+                        empirical_input_means = np.concatenate([expert_obs, expert_acs], axis=1).mean(0)
+                    constraint_visualization_1d(cost_function=constraint_net.cost_function,
+                                                feature_range=config['env']["visualize_info_ranges"][record_info_idx],
+                                                select_dim=config['env']["record_info_input_dims"][record_info_idx],
+                                                obs_dim=constraint_net.obs_dim,
+                                                acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                                device=constraint_net.device,
+                                                save_name=os.path.join(save_path,
+                                                                       "{0}_visual.png".format(record_info_name)),
+                                                feature_data=plot_record_infos,
+                                                feature_cost=plot_costs,
+                                                feature_name=record_info_name,
+                                                empirical_input_means=empirical_input_means)
 
         # (2) best
         if mean_nc_reward > best_true_reward:

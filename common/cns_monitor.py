@@ -90,7 +90,8 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
 
     def reset(self, **kwargs) -> np.ndarray:
         self.write_logger = True
-        self.reset_record_info()
+        self.init_record_info()
+        self.init_event_dict()
         for key in self.reset_keywords:
             value = kwargs.get(key)
             if value is None:
@@ -100,10 +101,11 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
 
     def reset_with_info(self, info) -> np.ndarray:
         self.write_logger = info['write_logger']
-        self.reset_record_info()
+        self.init_record_info()
+        self.init_event_dict()
         return self.env.reset_with_info(info)
 
-    def reset_record_info(self):
+    def init_record_info(self):
         if not self.allow_early_resets and not self.needs_reset:
             raise RuntimeError(
                 "Tried to reset an environment before done. If you want to allow early resets, "
@@ -117,6 +119,21 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
             self.lanebase_relative_position_game = []
         self.track = {key: [] for key in self.track_keywords}
         self.t_start = time.time()
+
+    def init_event_dict(self):
+        if is_mujoco(self.env.spec.id):
+            self.event_dict = {
+                'is_constraint_break': 0
+            }
+        elif is_commonroad(self.env.spec.id):
+            self.event_dict = {
+                'is_collision': 0,
+                'is_off_road': 0,
+                'is_goal_reached': 0,
+                'is_time_out': 0,
+                'is_over_speed': 0,
+                'is_too_closed': 0
+            }
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:
 
@@ -235,18 +252,6 @@ class CNSMonitor(stable_baselines3.common.monitor.Monitor):
                 self.logger.writerow(ep_info)
                 self.file_handler.flush()
             info["episode"] = ep_info
-            if is_mujoco(self.env.spec.id):
-                self.event_dict = {
-                    'is_constraint_break': 0
-                }
-            elif is_commonroad(self.env.spec.id):
-                self.event_dict = {
-                    'is_collision': 0,
-                    'is_off_road': 0,
-                    'is_goal_reached': 0,
-                    'is_time_out': 0,
-                    'is_over_speed': 0,
-                    'is_too_closed': 0
-                }
+            self.init_event_dict()
         self.total_steps += 1
         return observation, reward, done, info
