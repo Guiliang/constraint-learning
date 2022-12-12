@@ -16,7 +16,7 @@ env:
   dont_normalize_cost: True  # cost
   record_info_names: ['x_position', 'y_position']
   record_info_input_dims: [ 1, 0 ]  # height, width
-  visualize_info_ranges: [ [ 0, 6 ], [ 0, 6 ]  ]
+  visualize_info_ranges: [ [ 0, 7 ], [ 0, 7 ]  ]
 
 running:
   n_iters: 5

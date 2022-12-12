@@ -27,22 +27,28 @@ def beta_parameters_visualization(obs_str, constraint_net, alpha_all, beta_all, 
     plt.savefig(save_path + '/beta_{0}.png'.format(obs_str))
 
 
-def traj_visualization_2d(config, observations, save_path):
-    # tmp = config['env']["record_info_names"]
+def traj_visualization_2d(config, observations, save_path, axis_size=24):
     traj_num = len(observations)
-    plt.figure()
-    colors = ['b', 'r']
-
-    for i in range(traj_num):
-        x = observations[i][:, config['env']["record_info_input_dims"][0]]
-        y = observations[i][:, config['env']["record_info_input_dims"][1]]
-        plt.plot(x, y)
+    import matplotlib as mpl
+    mpl.rcParams['xtick.labelsize'] = axis_size
+    mpl.rcParams['ytick.labelsize'] = axis_size
+    plt.figure(figsize=(5, 5))
+    for i in range(traj_num)[0: 5]:
+        x = observations[i][:, config['env']["record_info_input_dims"][0]] + 0.5
+        y = observations[i][:, config['env']["record_info_input_dims"][1]] + 0.5
+        plt.plot(x, y, label='{0}th Traj'.format(i))
         plt.scatter(x, y)
-    plt.xlim(config['env']["visualize_info_ranges"][0])
-    plt.xlim(config['env']["visualize_info_ranges"][1])
-    plt.xlabel(config['env']["record_info_names"][0])
-    plt.ylabel(config['env']["record_info_names"][1])
-    plt.legend()
+    xticks = np.arange(config['env']["visualize_info_ranges"][0][0],
+                       config['env']["visualize_info_ranges"][0][1]+1, 1)
+    plt.xticks(xticks)
+    yticks = np.arange(config['env']["visualize_info_ranges"][1][0],
+                       config['env']["visualize_info_ranges"][1][1]+1, 1)
+    plt.yticks(yticks)
+    # plt.yticks(config['env']["visualize_info_ranges"][1])
+    # plt.xlabel(config['env']["record_info_names"][0], fontsize=axis_size)
+    # plt.ylabel(config['env']["record_info_names"][1], fontsize=axis_size)
+    plt.legend(fontsize=15, loc='lower right')
+    plt.grid(linestyle='--')
     plt.savefig(os.path.join(save_path, "2d_traj_visual.png"))
 
 
@@ -134,9 +140,18 @@ def constraint_visualization_2d(cost_function, feature_range, select_dims,
     im = ax.imshow(preds.reshape([num_points_per_feature, num_points_per_feature]).transpose(1, 0),
                    cmap='gray',  # 'cool',
                    interpolation="nearest",
-                   extent=[feature_range[0][0], feature_range[0][1], feature_range[1][0], feature_range[1][1]])
+                   extent=[feature_range[0][0], feature_range[0][1],
+                           feature_range[1][0], feature_range[1][1]])
     cbar = plt.colorbar(im)
     cbar.set_label("Constraint")
+    xticks = np.arange(feature_range[0][0],
+                       feature_range[0][1]+1, 1)
+    plt.xticks(xticks)
+    yticks = np.arange(feature_range[1][0],
+                       feature_range[1][1]+1, 1)
+    plt.yticks(yticks)
+    plt.grid(linestyle='--', color='black', alpha=1)
+    # plt.show()
     plt.savefig(os.path.join(save_path, "constraint_visualization.png".format()))
 
 

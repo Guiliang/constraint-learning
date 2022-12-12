@@ -334,6 +334,14 @@ def train(config):
     train_env.set_cost_function(constraint_net.cost_function)
     sampling_env.set_cost_function(constraint_net.cost_function)
     # eval_env.set_cost_function(constraint_net.cost_function)
+    if 'WGW' in config['env']['train_env_id']:
+        constraint_visualization_2d(cost_function=constraint_net.cost_function,
+                                    feature_range=config['env']["visualize_info_ranges"],
+                                    select_dims=config['env']["record_info_input_dims"],
+                                    obs_dim=constraint_net.obs_dim,
+                                    acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                    save_path=save_model_mother_dir
+                                    )
 
     # Init agent
     if 'PPO' in config.keys():
@@ -476,12 +484,7 @@ def train(config):
         if 'WGW' in config['env']['train_env_id'] and itr % config['running']['save_every'] == 0:
             traj_visualization_2d(config=config,
                                   observations=orig_observations,
-                                  save_path=save_path,
-                                  )
-        # else:
-        #     traj_visualization_1d(config=config,
-        #                           observations=sample_obs,
-        #                           save_path=save_path)
+                                  save_path=save_path, )
 
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
             evaluate_icrl_policy(nominal_agent, sampling_env,
