@@ -356,7 +356,7 @@ def train(config):
                                          log_file=log_file)
         create_nominal_agent = lambda: PPOLagrangian(**ppo_parameters)
         reset_policy = config['PPO']['reset_policy']
-        reset_every = config['PPO']['reset_every']
+        reset_every = config['PPO']['reset_every'] if reset_policy else None
         forward_timesteps = config['PPO']['forward_timesteps']
         warmup_timesteps = config['PPO']['warmup_timesteps']
     elif 'iteration' in config.keys():
@@ -509,10 +509,11 @@ def train(config):
             constraint_net.save(os.path.join(save_path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
-                plt.figure()
-                plt.matshow(nominal_agent.v_m)
-                plt.colorbar()
-                plt.savefig(os.path.join(save_path, "v_m_aid.png"))
+                if 'WGW' in config['env']['train_env_id']:
+                    plt.figure()
+                    plt.matshow(nominal_agent.v_m)
+                    plt.colorbar()
+                    plt.savefig(os.path.join(save_path, "v_m_aid.png"))
             if 'Test' in config['running']['expert_path']:
                 beta_parameters_visualization('3-5',
                                               constraint_net,
