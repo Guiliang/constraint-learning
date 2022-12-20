@@ -733,17 +733,14 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-highD-velocity-distance/train_VICRL_highD_velocity_distance_constraint_p-9-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-3_clay-64-64-64_no-buffer_vm-40_dm-20-multi_env-Sep-15-2022-12:49-seed_321/',
             ],
         }
+    elif env_id == 'WGW-v0':
+        log_path_dict = {
+            "ICRL_without-action_by_games_max-nu-1_with-buffer-setting1": [
+                '../save_model/ICRL-WallGrid/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_with-buffer-setting1-Dec-19-2022-16:36-seed_123/',
+            ],
+        }
+
     elif env_id == 'HCWithPos-v0':
-        gap = 1
-        plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-        label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
-        # plot_key = ['reward', 'constraint']
-        # label_key = ['reward', 'Constraint Violation Rate']
-        plot_y_lim_dict = {'reward': (0, 7000),
-                           'reward_nc': (0, 5000),
-                           'constraint': (0, 1.1),
-                           'reward_valid': (0, 5000),
-                           }
         log_path_dict = {
             "PPO_Pos": [
                 '../save_model/PPO-HC/train_ppo_HCWithPos-v0-multi_env-Apr-06-2022-05:18-seed_123/',

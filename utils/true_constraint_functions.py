@@ -70,7 +70,14 @@ def wall_circle(r, x0, y0, obs, acs):
 
 
 def wall_in(unsafe_states, obs, acs):
-    return (obs in unsafe_states)
+    if isinstance(obs, list):
+        return (obs in unsafe_states)
+    elif isinstance(obs, np.ndarray):
+        costs = []
+        for i in range(len(obs)):
+            tmp = obs[i].tolist()
+            costs.append(float(tmp in unsafe_states))
+        return np.asarray(costs)
 
 
 def wall_behind_and_infront(pos_back, pos_front, obs, acs):

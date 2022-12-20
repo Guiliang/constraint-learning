@@ -34,15 +34,15 @@ def traj_visualization_2d(config, observations, save_path, axis_size=24):
     mpl.rcParams['ytick.labelsize'] = axis_size
     plt.figure(figsize=(5, 5))
     for i in range(traj_num)[0: 5]:
-        x = observations[i][:, config['env']["record_info_input_dims"][0]] + 0.5
-        y = observations[i][:, config['env']["record_info_input_dims"][1]] + 0.5
+        x = observations[i][:, config['env']["record_info_input_dims"][0]]
+        y = observations[i][:, config['env']["record_info_input_dims"][1]]
         plt.plot(x, y, label='{0}th Traj'.format(i))
         plt.scatter(x, y)
     xticks = np.arange(config['env']["visualize_info_ranges"][0][0],
-                       config['env']["visualize_info_ranges"][0][1]+1, 1)
+                       config['env']["visualize_info_ranges"][0][1], 1)
     plt.xticks(xticks)
     yticks = np.arange(config['env']["visualize_info_ranges"][1][0],
-                       config['env']["visualize_info_ranges"][1][1]+1, 1)
+                       config['env']["visualize_info_ranges"][1][1], 1)
     plt.yticks(yticks)
     # plt.yticks(config['env']["visualize_info_ranges"][1])
     # plt.xlabel(config['env']["record_info_names"][0], fontsize=axis_size)
@@ -136,21 +136,21 @@ def constraint_visualization_2d(cost_function, feature_range, select_dims,
 
     with torch.no_grad():
         preds = cost_function(obs=obs, acs=acs)
-    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+    fig, ax = plt.subplots(1, 1, figsize=(5, 5))
     im = ax.imshow(preds.reshape([num_points_per_feature, num_points_per_feature]).transpose(1, 0),
-                   cmap='gray',  # 'cool',
+                   cmap='binary',  # 'cool',
                    interpolation="nearest",
                    extent=[feature_range[0][0], feature_range[0][1],
                            feature_range[1][0], feature_range[1][1]])
     cbar = plt.colorbar(im)
-    cbar.set_label("Constraint")
+    cbar.set_label("Cost", fontsize=axis_size)
     xticks = np.arange(feature_range[0][0],
                        feature_range[0][1]+1, 1)
     plt.xticks(xticks)
     yticks = np.arange(feature_range[1][0],
                        feature_range[1][1]+1, 1)
     plt.yticks(yticks)
-    plt.grid(linestyle='--', color='black', alpha=1)
+    plt.grid(linestyle='--', color='r', alpha=1)
     # plt.show()
     plt.savefig(os.path.join(save_path, "constraint_visualization.png".format()))
 

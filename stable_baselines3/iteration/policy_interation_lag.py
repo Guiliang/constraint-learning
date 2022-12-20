@@ -144,7 +144,7 @@ class PolicyIterationLagrange(ABC):
         iter = 0
 
         delta = self.stopping_threshold + 1
-        while delta >= self.stopping_threshold:
+        while delta >= self.stopping_threshold and iter <= self.max_iter-1:
             old_v = self.v_m.copy()
             delta = 0
 

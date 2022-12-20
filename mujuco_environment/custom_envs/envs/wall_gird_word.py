@@ -5,6 +5,7 @@ import gym
 import random
 from gym.envs.mujoco import mujoco_env
 
+from utils.data_utils import softmax
 from utils.plot_utils import Plot2D
 
 
@@ -125,8 +126,8 @@ class WallGridworld(gym.Env):
                 return [((state[0], state[1]), 1)]  # state invalid
         else:
             mov_probs = np.zeros([self.n_actions])
-            mov_probs[action] = self.trans_prob
-            mov_probs += (1 - self.trans_prob) / self.n_actions
+            mov_probs[action] = self.transition_prob
+            mov_probs += (1 - self.transition_prob) / self.n_actions
             for a in range(self.n_actions):
                 inc = self.neighbors[a]
                 nei_s = (state[0] + inc[0], state[1] + inc[1])
@@ -134,9 +135,13 @@ class WallGridworld(gym.Env):
                         nei_s[1] < 0 or nei_s[1] >= self.w or \
                         self.reward_mat[nei_s[0]][nei_s[1]] in \
                         [-np.inf, float('inf'), np.nan, float('nan')]:
-                    mov_probs[-1] += mov_probs[a]
+                    # mov_probs[-1] += mov_probs[a]
                     mov_probs[a] = 0
+            # sample_action = random.choices([i for i in range(self.n_actions)], weights=mov_probs, k=1)[0]
+            # inc = self.neighbors[sample_action]
+            # return [((state[0] + inc[0], state[1] + inc[1]), 1)]
             res = []
+            mov_probs = mov_probs * 1/np.sum(mov_probs)
             for a in range(self.n_actions):
                 if mov_probs[a] != 0:
                     inc = self.neighbors[a]

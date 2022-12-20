@@ -208,7 +208,8 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
                     for constraint_key in constraint_keys:
                         if results[key_indices[constraint_key]] == '=':
                             valid_flag = False
-                        if int(results[key_indices[constraint_key]]) != 0:  # if constraint is not broken at this episode
+                        if int(results[
+                                   key_indices[constraint_key]]) != 0:  # if constraint is not broken at this episode
                             valid_flag = False
                     if valid_flag:
                         valid_episodes.append(episode)
@@ -466,7 +467,7 @@ def mean_std_test_results(all_results, method_name, testing_times=10):
         key_results_all += tmp
     # key_results_all += [-40]
     print(key_results_all)
-    print(method_name, key, np.mean(key_results_all), np.std(key_results_all)/2)
+    print(method_name, key, np.mean(key_results_all), np.std(key_results_all) / 2)
     print('\n')
 
 
@@ -518,3 +519,7 @@ def print_resource(mem_prev, time_prev, process_name, log_file):
         float(mem_current) / 1000000,
         time_current - time_prev), file=log_file, flush=True)
     return mem_current, time_current
+
+
+def softmax(x):
+    return np.exp(x) / np.exp(x).sum()

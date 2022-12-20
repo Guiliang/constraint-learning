@@ -10,9 +10,9 @@ import gym
 import numpy as np
 import yaml
 from matplotlib import pyplot as plt
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+from utils.true_constraint_functions import get_true_cost_function
 from stable_baselines3.iteration.policy_interation_lag import PolicyIterationLagrange
 from common.cns_sampler import ConstrainedRLSampler
 from common.cns_evaluation import evaluate_icrl_policy
@@ -335,9 +335,14 @@ def train(config):
     sampling_env.set_cost_function(constraint_net.cost_function)
     # eval_env.set_cost_function(constraint_net.cost_function)
     if 'WGW' in config['env']['train_env_id']:
-        constraint_visualization_2d(cost_function=constraint_net.cost_function,
+        with open(config['env']['config_path'], "r") as config_file:
+            env_configs = yaml.safe_load(config_file)
+        ture_cost_function = get_true_cost_function(env_id=config['env']['train_env_id'],
+                                                    env_configs=env_configs)
+        constraint_visualization_2d(cost_function=ture_cost_function,
                                     feature_range=config['env']["visualize_info_ranges"],
                                     select_dims=config['env']["record_info_input_dims"],
+                                    num_points_per_feature=env_configs['map_height'],
                                     obs_dim=constraint_net.obs_dim,
                                     acs_dim=1 if is_discrete else constraint_net.acs_dim,
                                     save_path=save_model_mother_dir

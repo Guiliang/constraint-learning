@@ -56,27 +56,25 @@ def generate_plots():
     modes = ['train']
     plot_mode = 'all-methods'
 
-    # env_id = 'Circle-v0'
-    # max_episodes = 8000
-    # average_num = 100
-    # max_reward = 0
+    # env_id = 'WGW-v0'
+    # max_episodes = 300
+    # average_num = 30
+    # max_reward = 1
     # min_reward = 0
-    # plot_key = ['constraint']
-    # label_key = ['Constraint Violation Rate']
-    # label_key = [None, ]
+    # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
+    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    # label_key = [None, None, None, None]
     # img_size = None
     # save = True
-    # title = '2D Plane'
+    # title = 'Gird World'
     # constraint_keys = ['constraint']
-    # plot_y_lim_dict = {'constraint': (0, 1)}
-    # plot_y_lim_dict = {'reward': (0, 7000),
-    #                    'reward_nc': (0, 5000),
-    #                    'constraint': (0, 1.1),
-    #                    'reward_valid': (0, 5000),
+    # plot_y_lim_dict = {'reward': (0, 1),
+    #                    'reward_nc': (0, 1),
+    #                    'constraint': (0, 1),
+    #                    'reward_valid': (0, 1),
     #                    }
     # method_names_labels_dict = {
-    #     "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
-    #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
+    #     "ICRL_without-action_by_games_max-nu-1_with-buffer-setting1": "VICRL",
     # }
 
     env_id = 'HCWithPos-v0'
@@ -91,11 +89,11 @@ def generate_plots():
     save = True
     title = 'Blocked Half-Cheetah'
     constraint_keys = ['constraint']
-    # plot_y_lim_dict = {'reward': (0, 7000),
-    #                    'reward_nc': (0, 5000),
-    #                    'constraint': (0, 1.1),
-    #                    'reward_valid': (0, 5000),
-    #                    }
+    plot_y_lim_dict = {'reward': (0, 7000),
+                       'reward_nc': (0, 5000),
+                       'constraint': (0, 1.1),
+                       'reward_valid': (0, 5000),
+                       }
     # # method_names_labels_dict = {
     # #     "GAIL_HCWithPos-v0_with-action": 'GACL',  # 'GAIL',
     # #     "Binary_HCWithPos-v0_with-action": 'BC2L',  # 'Binary',
@@ -134,57 +132,57 @@ def generate_plots():
     #     "PPO_lag_Pos": 'PPO_lag',
     # }
     # # ================= rebuttal ====================
-    plot_y_lim_dict = {'reward': None,
-                       'reward_nc': None,
-                       'constraint': None,
-                       'reward_valid': None,
-                       }
-    max_episodes = 6000
-    img_size = None
-    noise = '1e-2'
-    plot_mode = 'Noise-{0}'.format(noise)
-    title = 'Stochastic Noise $\mathcal{N}(0,1E-2)$'
-    method_names_labels_dict = {
-        # "GAIL_HCWithPos-v0_with-action_noise-1e-1": "GACL",
-        # "Binary_HCWithPos-v0_with-action_noise-1e-1": "BC2L",
-        # # "Binary_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "BC2L",
-        # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "MECL",
-        # # "ICRL_HCWithPos-v0_with-action_noise-1e-1": "MECL",
-        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL",
-        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL1",
-        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL2",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-1": "VICRL",
-
-        "GAIL_HCWithPos-v0_with-action_noise-1e-2": "GACL",
-        "Binary_HCWithPos-v0_with-action_noise-1e-2": "BC2L",
-        "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-2": "MECL",
-        # "ICRL_HCWithPos-v0_with-action_noise-1e-2":  "MECL",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2": "VICRL",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-2":  "VICRL1",
-        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-2":   "VICRL",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-2": "VICRL2",
-
-        # "GAIL_HCWithPos-v0_with-action_noise-1e-3": "GACL",
-        # "Binary_HCWithPos-v0_with-action_noise-1e-3": "BC2L",
-        # # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-3": "MECL",
-        # "ICRL_HCWithPos-v0_with-action_noise-1e-3": "MECL",
-        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3": "VICRL",
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3": "VICRL",
-        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3": "VICRL2",
-        # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3": "VICRL3",
-        #
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-2": "VICRL",
-        # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-5e-2": "MECL",
-        # "Binary_HCWithPos-v0_with-action_noise-5e-2": "BC2L",
-        # "GAIL_HCWithPos-v0_with-action_noise-5e-2": "GACL",
-        #
-        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-3": "VICRL",
-        # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-5e-3": "MECL",
-        # "Binary_HCWithPos-v0_with-action_noise-5e-3": "BC2L",
-        # "GAIL_HCWithPos-v0_with-action_noise-5e-3": "GACL",
-
-        "PPO_lag_Pos": 'PPO_lag',
-    }
+    # plot_y_lim_dict = {'reward': None,
+    #                    'reward_nc': None,
+    #                    'constraint': None,
+    #                    'reward_valid': None,
+    #                    }
+    # max_episodes = 6000
+    # img_size = None
+    # noise = '1e-2'
+    # plot_mode = 'Noise-{0}'.format(noise)
+    # title = 'Stochastic Noise $\mathcal{N}(0,1E-2)$'
+    # method_names_labels_dict = {
+    #     # "GAIL_HCWithPos-v0_with-action_noise-1e-1": "GACL",
+    #     # "Binary_HCWithPos-v0_with-action_noise-1e-1": "BC2L",
+    #     # # "Binary_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "BC2L",
+    #     # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "MECL",
+    #     # # "ICRL_HCWithPos-v0_with-action_noise-1e-1": "MECL",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL1",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL2",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-1": "VICRL",
+    #
+    #     "GAIL_HCWithPos-v0_with-action_noise-1e-2": "GACL",
+    #     "Binary_HCWithPos-v0_with-action_noise-1e-2": "BC2L",
+    #     "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-2": "MECL",
+    #     # "ICRL_HCWithPos-v0_with-action_noise-1e-2":  "MECL",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2": "VICRL",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-2":  "VICRL1",
+    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-2":   "VICRL",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-2": "VICRL2",
+    #
+    #     # "GAIL_HCWithPos-v0_with-action_noise-1e-3": "GACL",
+    #     # "Binary_HCWithPos-v0_with-action_noise-1e-3": "BC2L",
+    #     # # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-3": "MECL",
+    #     # "ICRL_HCWithPos-v0_with-action_noise-1e-3": "MECL",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3": "VICRL",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3": "VICRL",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3": "VICRL2",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3": "VICRL3",
+    #     #
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-2": "VICRL",
+    #     # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-5e-2": "MECL",
+    #     # "Binary_HCWithPos-v0_with-action_noise-5e-2": "BC2L",
+    #     # "GAIL_HCWithPos-v0_with-action_noise-5e-2": "GACL",
+    #     #
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-3": "VICRL",
+    #     # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-5e-3": "MECL",
+    #     # "Binary_HCWithPos-v0_with-action_noise-5e-3": "BC2L",
+    #     # "GAIL_HCWithPos-v0_with-action_noise-5e-3": "GACL",
+    #
+    #     "PPO_lag_Pos": 'PPO_lag',
+    # }
 
     # env_id = 'AntWall-V0'
     # max_episodes = 15000
