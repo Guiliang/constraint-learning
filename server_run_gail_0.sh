@@ -1,4 +1,3 @@
-
 #!/bin/bash
 task_name="train-gail_1"
 launch_time=$(date +"%m-%d-%y-%H:%M:%S")

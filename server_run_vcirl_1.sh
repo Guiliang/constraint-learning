@@ -1,3 +1,4 @@
+#!/bin/bash
 task_name="train-vicrl_1"
 launch_time=$(date +"%m-%d-%y-%H:%M:%S")
 log_dir="log-server-${task_name}-${launch_time}.out"
