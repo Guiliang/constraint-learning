@@ -3,8 +3,10 @@ import json
 import os
 import sys
 import time
+import warnings
 
 import gym
+import numpy as np
 import yaml
 
 cwd = os.getcwd()
@@ -25,7 +27,7 @@ from utils.model_utils import load_ppo_config
 from utils.true_constraint_functions import get_true_cost_function
 import stable_baselines3.common.callbacks as callbacks
 
-
+warnings.filterwarnings("ignore")
 def train(args):
     config, debug_mode, log_file_path, partial_data, num_threads, seed = load_config(args)
     if num_threads > 1:
@@ -149,14 +151,21 @@ def train(args):
         expert_rollouts = config['running']['expert_rollouts']
     else:
         expert_rollouts = None
-    (expert_obs, expert_acs, expert_rs), expert_mean_reward = load_expert_data(
+    (expert_obs_games, expert_acs_games, expert_rs_games), expert_mean_reward = load_expert_data(
         expert_path=expert_path,
         # use_pickle5=is_mujoco(config['env']['train_env_id']),  # True for the Mujoco envs
         num_rollouts=expert_rollouts,
-        store_by_game=False,
         add_next_step=False,
         log_file=log_file
     )
+    # if config['running']['store_by_game']:
+    #     expert_obs = expert_obs_games
+    #     expert_acs = expert_acs_games
+    #     expert_rs = expert_rs_games
+    # else:
+    expert_obs = np.concatenate(expert_obs_games, axis=0)
+    expert_acs = np.concatenate(expert_acs_games, axis=0)
+    expert_rs = np.concatenate(expert_rs_games, axis=0)
 
     # Logger
     if log_file is None:
