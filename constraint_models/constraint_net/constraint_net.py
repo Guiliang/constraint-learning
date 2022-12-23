@@ -12,7 +12,7 @@
 # from tqdm import tqdm
 #
 # from utils.model_utils import dirichlet_kl_divergence_loss
-
+import copy
 # class ConstraintNet(nn.Module):
 #     def __init__(
 #             self,
@@ -723,7 +723,7 @@ class ConstraintNet(nn.Module):
                     nominal_loss = th.sum(is_batch * th.log(nominal_preds_all + self.eps))
                     regularizer_loss = self.regularizer_coeff * (th.mean(1 - expert_preds_all)
                                                                  + th.mean(1 - nominal_preds_all))
-                    loss = (-expert_loss + nominal_loss) + 0 * regularizer_loss
+                    loss = (-expert_loss + nominal_loss) + regularizer_loss
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
@@ -879,13 +879,13 @@ class ConstraintNet(nn.Module):
         if self.recon_obs:
             obs = idx2vector(obs, height=self.env_configs['map_height'], width=self.env_configs['map_width'])
         else:
-            obs = obs
+            obs = copy.copy(obs)
 
         obs = self.normalize_obs(obs, self.current_obs_mean, self.current_obs_var, self.clip_obs)
         acs = self.reshape_actions(acs)
         acs = self.clip_actions(acs, self.action_low, self.action_high)
-
         concat = self.select_appropriate_dims(np.concatenate([obs, acs], axis=-1))
+        del obs, acs
 
         return th.tensor(concat, dtype=th.float32).to(self.device)
 

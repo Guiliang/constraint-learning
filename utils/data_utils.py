@@ -533,6 +533,6 @@ def idx2vector(indices, height, width):
         x, y = int(round(idx[0], 0)), int(round(idx[1], 0))
         # if x - idx[0] != 0:
         #     print('debug')
-        map[x, y] = 1 # + idx[0] - x + idx[1] - y
+        map[x, y] = 1  # + idx[0] - x + idx[1] - y
         vector_all.append(map.flatten())
     return np.asarray(vector_all)
