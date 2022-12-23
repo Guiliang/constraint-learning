@@ -27,7 +27,7 @@ def beta_parameters_visualization(obs_str, constraint_net, alpha_all, beta_all, 
     plt.savefig(save_path + '/beta_{0}.png'.format(obs_str))
 
 
-def traj_visualization_2d(config, observations, save_path, axis_size=24):
+def traj_visualization_2d(config, observations, save_path, model_name='', axis_size=24):
     traj_num = len(observations)
     import matplotlib as mpl
     mpl.rcParams['xtick.labelsize'] = axis_size
@@ -39,17 +39,17 @@ def traj_visualization_2d(config, observations, save_path, axis_size=24):
         plt.plot(x, y, label='{0}th Traj'.format(i))
         plt.scatter(x, y)
     xticks = np.arange(config['env']["visualize_info_ranges"][0][0],
-                       config['env']["visualize_info_ranges"][0][1]+1, 1)
+                       config['env']["visualize_info_ranges"][0][1] + 1, 1)
     plt.xticks(xticks)
     yticks = np.arange(config['env']["visualize_info_ranges"][1][0],
-                       config['env']["visualize_info_ranges"][1][1]+1, 1)
+                       config['env']["visualize_info_ranges"][1][1] + 1, 1)
     plt.yticks(yticks)
     # plt.yticks(config['env']["visualize_info_ranges"][1])
     # plt.xlabel(config['env']["record_info_names"][0], fontsize=axis_size)
     # plt.ylabel(config['env']["record_info_names"][1], fontsize=axis_size)
     plt.legend(fontsize=15, loc='lower right')
     plt.grid(linestyle='--')
-    plt.savefig(os.path.join(save_path, "2d_traj_visual.png"))
+    plt.savefig(os.path.join(save_path, "2d_traj_visual_{0}.png".format(model_name)))
 
 
 def traj_visualization_1d(config, observations, save_path):
@@ -113,7 +113,7 @@ def constraint_visualization_1d(cost_function, feature_range, select_dim, obs_di
 def constraint_visualization_2d(cost_function, feature_range, select_dims,
                                 obs_dim, acs_dim,
                                 num_points_per_feature=100,
-                                axis_size=20, save_path=None, empirical_input_means=None):
+                                axis_size=20, save_path=None, empirical_input_means=None, model_name=''):
     import matplotlib as mpl
     mpl.rcParams['xtick.labelsize'] = axis_size
     mpl.rcParams['ytick.labelsize'] = axis_size
@@ -145,14 +145,14 @@ def constraint_visualization_2d(cost_function, feature_range, select_dims,
     cbar = plt.colorbar(im)
     cbar.set_label("Cost", fontsize=axis_size)
     xticks = np.arange(feature_range[0][0],
-                       feature_range[0][1]+1, 1)
+                       feature_range[0][1] + 1, 1)
     plt.xticks(xticks)
     yticks = np.arange(feature_range[1][0],
-                       feature_range[1][1]+1, 1)
+                       feature_range[1][1] + 1, 1)
     plt.yticks(yticks)
     plt.grid(linestyle='--', color='r', alpha=1)
     # plt.show()
-    plt.savefig(os.path.join(save_path, "constraint_visualization.png".format()))
+    plt.savefig(os.path.join(save_path, "constraint_visualization_{0}.png".format(model_name)))
 
 
 class PlotCallback(callbacks.BaseCallback):

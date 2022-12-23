@@ -252,6 +252,7 @@ def train(config):
         traj_visualization_2d(config=config,
                               observations=expert_obs_games,
                               save_path=save_model_mother_dir,
+                              model_name=args.config_file.split('/')[-1].split('.')[0]
                               )
 
     if config['running']['store_by_game']:
@@ -351,7 +352,8 @@ def train(config):
                                     num_points_per_feature=env_configs['map_height'],
                                     obs_dim=train_env.observation_space.shape[0],
                                     acs_dim=1 if is_discrete else train_env.action_space.shape[0],
-                                    save_path=save_model_mother_dir
+                                    save_path=save_model_mother_dir,
+                                    model_name=args.config_file.split('/')[-1].split('.')[0],
                                     )
 
     # Init agent
@@ -520,7 +522,8 @@ def train(config):
                     plt.matshow(nominal_agent.v_m, origin='lower')
                     plt.gca().xaxis.set_ticks_position('bottom')
                     plt.colorbar()
-                    plt.savefig(os.path.join(save_path, "v_m_aid.png"))
+                    plt.savefig(os.path.join(save_path, "v_m_aid_{0}.png".format(
+                        args.config_file.split('/')[-1].split('.')[0])))
             if 'Test' in config['running']['expert_path']:
                 beta_parameters_visualization('3-5',
                                               constraint_net,
@@ -539,7 +542,8 @@ def train(config):
                                             select_dims=config['env']["record_info_input_dims"],
                                             obs_dim=train_env.observation_space.shape[0],
                                             acs_dim=1 if is_discrete else train_env.action_space.shape[0],
-                                            save_path=save_path
+                                            save_path=save_path,
+                                            model_name=args.config_file.split('/')[-1].split('.')[0],
                                             )
                 # nominal_agent.apply_lag = True
 
