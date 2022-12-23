@@ -45,6 +45,8 @@ class VariationalConstraintNet(ConstraintNet):
             target_kl_new_old: float = -1,
             train_gail_lambda: Optional[bool] = False,
             eps: float = 1e-5,
+            recon_obs: bool = False,
+            env_configs: dict = None,
             device: str = "cpu",
             di_prior: list = [1, 1],
             mode: str = 'sample',
@@ -79,6 +81,8 @@ class VariationalConstraintNet(ConstraintNet):
                          eps=eps,
                          device=device,
                          log_file=log_file,
+                         recon_obs=recon_obs,
+                         env_configs=env_configs,
                          )
         self.dir_prior = di_prior
         self.mode = mode

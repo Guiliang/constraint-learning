@@ -11,5 +11,9 @@ cd ./interface/
 #nohup python train_icrl.py ../config/mujoco_WGW-v0/train_Binary_WGW-v0_without-action-setting1.yaml -n 1 -s 123 -l "$log_dir" > nohup_binary.out 2>&1 &
 #nohup python train_icrl.py ../config/mujoco_WGW-v0/train_Binary_WGW-v0_without-action_with-buffer-setting1.yaml -n 1 -s 123 -l "$log_dir" > nohup_binary.out 2>&1 &
 #nohup python train_icrl.py ../config/mujoco_WGW-v0/train_Binary_WGW-v0_without-action_max-nu-1_with-buffer-setting1.yaml -n 1 -s 123 -l "$log_dir" > nohup_binary.out 2>&1 &
-nohup python train_icrl.py ../config/mujoco_WGW-v0/train_Binary_WGW-v0_without-action_by_games_max-nu-1_with-buffer-setting1.yaml -n 1 -s 123 -l "$log_dir" > nohup_binary.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_Binary_WGW-v0_without-action_by_games_max-nu-1_with-buffer-setting2.yaml -n 1 -s 123 -l "$log_dir" > nohup_binary.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_Binary_WGW-v0_without-action_by_games_max-nu-1_with-buffer-setting1-prob-999e-3.yaml -n 1 -s 123 -l "$log_dir" > nohup_binary.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_Binary_WGW-v0_without-action_by_games_max-nu-1_with-buffer-setting1-prob-999e-3.yaml -n 1 -s 321 -l "$log_dir" > nohup_binary.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_Binary_WGW-v0_without-action_by_games_max-nu-1_with-buffer-setting1-prob-999e-3.yaml -n 1 -s 666 -l "$log_dir" > nohup_binary.out 2>&1 &
+nohup python train_icrl.py ../config/mujoco_WGW-v0/train_Binary_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting2.yaml -n 1 -s 123 -l "$log_dir" > nohup_binary.out 2>&1 &
 cd ../

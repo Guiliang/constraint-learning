@@ -93,7 +93,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     #     raise ValueError("Unknown env id {0}".format(env_id))
 
     if use_cost:
-        if group == 'PPO-Lag':
+        if group == 'PPO-Lag' or group == 'PI-Lag':
             env = InternalVecCostWrapper(env, kwargs['cost_info_str'])  # internal cost
         else:
             env = vec_env.VecCostWrapper(env, kwargs['cost_info_str'])  # external cost
@@ -177,7 +177,7 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
     # else:
     #     raise ValueError("Unknown env id {0}".format(env_id))
     if use_cost:
-        if group == 'PPO-Lag':
+        if group == 'PPO-Lag' or group == 'PI-Lag':
             env = InternalVecCostWrapper(env, cost_info_str)  # internal cost, use environment knowledge
         else:
             env = vec_env.VecCostWrapper(env, cost_info_str)  # external cost, must be learned
@@ -196,7 +196,8 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
 
 
 class InternalVecCostWrapper(VecEnvWrapper):
-    def __init__(self, venv, cost_info_str='cost'):
+    def \
+            __init__(self, venv, cost_info_str='cost'):
         super().__init__(venv)
         self.cost_info_str = cost_info_str
 

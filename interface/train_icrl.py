@@ -209,9 +209,13 @@ def train(config):
                                          process_name='Loading environment', log_file=log_file)
 
     # Set specs
+    recon_obs = config['CN']['recon_obs'] if 'recon_obs' in config['CN'].keys() else False
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
     print('is_discrete', is_discrete)
-    obs_dim = train_env.observation_space.shape[0]
+    if recon_obs:
+        obs_dim = env_configs['map_height'] * env_configs['map_width']
+    else:
+        obs_dim = train_env.observation_space.shape[0]
     acs_dim = train_env.action_space.n if is_discrete else train_env.action_space.shape[0]
     action_low, action_high = None, None
     if isinstance(sampling_env.action_space, gym.spaces.Box):
@@ -308,6 +312,8 @@ def train(config):
         'eps': config['CN']['cn_eps'],
         'device': config['device'],
         'task': config['task'],
+        'env_configs': env_configs,
+        'recon_obs': recon_obs,
     }
 
     if 'ICRL' == config['group'] or 'Binary' == config['group']:
@@ -335,16 +341,16 @@ def train(config):
     sampling_env.set_cost_function(constraint_net.cost_function)
     # eval_env.set_cost_function(constraint_net.cost_function)
     if 'WGW' in config['env']['train_env_id']:
-        with open(config['env']['config_path'], "r") as config_file:
-            env_configs = yaml.safe_load(config_file)
+        # with open(config['env']['config_path'], "r") as config_file:
+        #     env_configs = yaml.safe_load(config_file)
         ture_cost_function = get_true_cost_function(env_id=config['env']['train_env_id'],
                                                     env_configs=env_configs)
         constraint_visualization_2d(cost_function=ture_cost_function,
                                     feature_range=config['env']["visualize_info_ranges"],
                                     select_dims=config['env']["record_info_input_dims"],
                                     num_points_per_feature=env_configs['map_height'],
-                                    obs_dim=constraint_net.obs_dim,
-                                    acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                    obs_dim=train_env.observation_space.shape[0],
+                                    acs_dim=1 if is_discrete else train_env.action_space.shape[0],
                                     save_path=save_model_mother_dir
                                     )
 
@@ -401,7 +407,6 @@ def train(config):
         if reset_policy and itr % reset_every == 0:
             print("\nResetting agent", file=log_file, flush=True)
             nominal_agent = create_nominal_agent()
-            # train_env.add_reset_marker()  #  mark the line in the monitor files
         current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
         # Update agent
@@ -459,6 +464,7 @@ def train(config):
                                                                  episode_lengths=sample_ls,
                                                                  obs_mean=mean,
                                                                  obs_var=var,
+                                                                 env_configs=env_configs,
                                                                  current_progress_remaining=current_progress_remaining)
         else:
             backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
@@ -510,8 +516,9 @@ def train(config):
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
                 if 'WGW' in config['env']['train_env_id']:
-                    plt.figure()
-                    plt.matshow(nominal_agent.v_m)
+                    plt.figure(figsize=(5, 5))
+                    plt.matshow(nominal_agent.v_m, origin='lower')
+                    plt.gca().xaxis.set_ticks_position('bottom')
                     plt.colorbar()
                     plt.savefig(os.path.join(save_path, "v_m_aid.png"))
             if 'Test' in config['running']['expert_path']:
@@ -530,10 +537,11 @@ def train(config):
                 constraint_visualization_2d(cost_function=constraint_net.cost_function,
                                             feature_range=config['env']["visualize_info_ranges"],
                                             select_dims=config['env']["record_info_input_dims"],
-                                            obs_dim=constraint_net.obs_dim,
-                                            acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                            obs_dim=train_env.observation_space.shape[0],
+                                            acs_dim=1 if is_discrete else train_env.action_space.shape[0],
                                             save_path=save_path
                                             )
+                # nominal_agent.apply_lag = True
 
             for record_info_idx in range(len(config['env']["record_info_names"])):
                 if not 'WGW' in config['env']['train_env_id']:
@@ -548,8 +556,8 @@ def train(config):
                     constraint_visualization_1d(cost_function=constraint_net.cost_function,
                                                 feature_range=config['env']["visualize_info_ranges"][record_info_idx],
                                                 select_dim=config['env']["record_info_input_dims"][record_info_idx],
-                                                obs_dim=constraint_net.obs_dim,
-                                                acs_dim=1 if is_discrete else constraint_net.acs_dim,
+                                                obs_dim=train_env.observation_space.shape[0],
+                                                acs_dim=1 if is_discrete else train_env.action_space.shape[0],
                                                 device=constraint_net.device,
                                                 save_name=os.path.join(save_path,
                                                                        "{0}_visual.png".format(record_info_name)),

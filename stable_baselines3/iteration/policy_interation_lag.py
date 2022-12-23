@@ -29,6 +29,7 @@ class PolicyIterationLagrange(ABC):
                  gamma: float = 0.99,
                  v0: float = 0.0,
                  budget: float = 0.,
+                 apply_lag: bool = True,
                  penalty_initial_value: float = 1,
                  penalty_learning_rate: float = 0.01,
                  penalty_min_value: Optional[float] = None,
@@ -51,6 +52,7 @@ class PolicyIterationLagrange(ABC):
         self.penalty_min_value = penalty_min_value
         self.penalty_max_value = penalty_max_value
         self.penalty_learning_rate = penalty_learning_rate
+        self.apply_lag = apply_lag
         self.budget = budget
         self.num_timesteps = 0
         self.admissible_actions = None
@@ -188,7 +190,7 @@ class PolicyIterationLagrange(ABC):
                         costs = cost_function(states, [action])
                         orig_costs = costs
                     current_penalty = self.dual.nu().item()
-                    lag_costs = current_penalty * orig_costs[0]
+                    lag_costs = self.apply_lag * current_penalty * orig_costs[0]
                     # Get value
                     curr_val = rewards[0] - lag_costs + self.gamma * self.v_m[s_primes[0][0], s_primes[0][1]]
                     # curr_val = self.v_m[s_primes[0][0], s_primes[0][1]]
@@ -237,11 +239,11 @@ class PolicyIterationLagrange(ABC):
             else:
                 costs = cost_function(states, [action])
                 orig_costs = costs
+            # print(x, y, rewards[0], orig_costs[0])
             gamma_values = self.gamma * old_v[s_primes[0][0], s_primes[0][1]]
             current_penalty = self.dual.nu().item()
-            lag_costs = current_penalty * orig_costs[0]
+            lag_costs = self.apply_lag * current_penalty * orig_costs[0]
             total += self.pi[x, y, action] * (rewards[0] - lag_costs + gamma_values)
-            # print(rewards[0])
 
         self.v_m[x, y] = total
 

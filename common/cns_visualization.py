@@ -39,10 +39,10 @@ def traj_visualization_2d(config, observations, save_path, axis_size=24):
         plt.plot(x, y, label='{0}th Traj'.format(i))
         plt.scatter(x, y)
     xticks = np.arange(config['env']["visualize_info_ranges"][0][0],
-                       config['env']["visualize_info_ranges"][0][1], 1)
+                       config['env']["visualize_info_ranges"][0][1]+1, 1)
     plt.xticks(xticks)
     yticks = np.arange(config['env']["visualize_info_ranges"][1][0],
-                       config['env']["visualize_info_ranges"][1][1], 1)
+                       config['env']["visualize_info_ranges"][1][1]+1, 1)
     plt.yticks(yticks)
     # plt.yticks(config['env']["visualize_info_ranges"][1])
     # plt.xlabel(config['env']["record_info_names"][0], fontsize=axis_size)

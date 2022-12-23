@@ -10,6 +10,7 @@ import torch
 import yaml
 import numpy as np
 from gym.utils.colorize import color2num
+# from numpy import dtype
 from tqdm import tqdm
 import stable_baselines3.common.callbacks as callbacks
 from stable_baselines3 import PPO
@@ -523,3 +524,15 @@ def print_resource(mem_prev, time_prev, process_name, log_file):
 
 def softmax(x):
     return np.exp(x) / np.exp(x).sum()
+
+
+def idx2vector(indices, height, width):
+    vector_all = []
+    for idx in indices:
+        map = np.zeros(shape=[height, width])
+        x, y = int(round(idx[0], 0)), int(round(idx[1], 0))
+        # if x - idx[0] != 0:
+        #     print('debug')
+        map[x, y] = 1 # + idx[0] - x + idx[1] - y
+        vector_all.append(map.flatten())
+    return np.asarray(vector_all)

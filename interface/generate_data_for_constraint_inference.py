@@ -8,6 +8,9 @@ import time
 from typing import Union, Callable
 import numpy as np
 import yaml
+
+from stable_baselines3.iteration.policy_interation_lag import load_pi
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from gym import Env
@@ -17,7 +20,9 @@ from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 # from stable_baselines3 import PPO
 from utils.data_utils import load_config, read_args, save_game_record, load_ppo_model
 from utils.env_utils import get_all_env_ids, get_benchmark_ids, is_mujoco, is_commonroad
+import warnings
 
+warnings.filterwarnings("ignore")
 
 class CommonRoadVecEnv(DummyVecEnv):
     def __init__(self, env_fns):
@@ -175,6 +180,12 @@ def run():
             env_configs = yaml.safe_load(config_file)
     else:
         env_configs = {}
+    config_path = config['env']['config_path']
+    if config_path is not None:
+        with open(config_path, "r") as config_file:
+            env_configs = yaml.safe_load(config_file)
+    else:
+        env_configs = {}
     env = create_environments(env_id=config['env']['train_env_id'],
                               viz_path=None,
                               test_path=evaluation_path,
@@ -187,7 +198,12 @@ def run():
                               part_data=debug_mode)
     # TODO: this is for a quick check, maybe remove it in the future
     env.norm_reward = False
-    model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
+    if "PPO" in config['group']:
+        model = load_ppo_model(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
+    elif "PI" in config['group']:
+        model = load_pi(model_loading_path, iter_msg=iteration_msg, log_file=log_file)
+    else:
+        raise ValueError("Unknown model {0}.".format(config['group']))
     total_scenarios, benchmark_idx = 0, 0
     if is_commonroad(env_id=config['env']['train_env_id']):
         max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)

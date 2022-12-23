@@ -492,6 +492,8 @@ from stable_baselines3.common.utils import update_learning_rate
 from torch import nn
 from tqdm import tqdm
 
+from utils.data_utils import idx2vector
+
 
 class ConstraintNet(nn.Module):
     def __init__(
@@ -521,6 +523,8 @@ class ConstraintNet(nn.Module):
             target_kl_new_old: float = -1,
             train_gail_lambda: Optional[bool] = False,
             eps: float = 1e-5,
+            recon_obs: bool = False,
+            env_configs: dict = None,
             device: str = "cpu",
             log_file=None,
     ):
@@ -531,10 +535,8 @@ class ConstraintNet(nn.Module):
         self.obs_select_dim = obs_select_dim
         self.acs_select_dim = acs_select_dim
         self._define_input_dims()
-
         self.expert_obs = expert_obs
         self.expert_acs = expert_acs
-
         self.hidden_sizes = hidden_sizes
         self.batch_size = batch_size
         self.is_discrete = is_discrete
@@ -544,7 +546,8 @@ class ConstraintNet(nn.Module):
         self.clip_obs = clip_obs
         self.device = device
         self.eps = eps
-
+        self.recon_obs = recon_obs
+        self.env_configs = env_configs
         self.train_gail_lambda = train_gail_lambda
 
         if optimizer_kwargs is None:
@@ -621,7 +624,7 @@ class ConstraintNet(nn.Module):
         return self.network(x)
 
     def cost_function(self, obs: np.ndarray, acs: np.ndarray, force_mode: str = None) -> np.ndarray:
-        assert obs.shape[-1] == self.obs_dim, ""
+        assert self.recon_obs or obs.shape[-1] == self.obs_dim, ""
         if not self.is_discrete:
             assert acs.shape[-1] == self.acs_dim, ""
 
@@ -644,6 +647,7 @@ class ConstraintNet(nn.Module):
             episode_lengths: np.ndarray,
             obs_mean: Optional[np.ndarray] = None,
             obs_var: Optional[np.ndarray] = None,
+            env_configs: Dict = None,
             current_progress_remaining: float = 1,
     ) -> Dict[str, Any]:
         # Update learning rate
@@ -652,7 +656,6 @@ class ConstraintNet(nn.Module):
         # Update normalization stats
         self.current_obs_mean = obs_mean
         self.current_obs_var = obs_var
-
         # Prepare data
         nominal_data_games = [self.prepare_data(nominal_obs[i], nominal_acs[i])
                               for i in range(len(nominal_obs))]
@@ -705,7 +708,8 @@ class ConstraintNet(nn.Module):
                 nominal_preds_all = th.concat(nominal_preds_all)
                 if self.train_gail_lambda:
                     nominal_preds_prod = nominal_preds_all.prod(dim=0)
-                    nominal_loss = self.criterion(nominal_preds_prod, th.zeros(*nominal_preds_prod.size()).to(self.device))
+                    nominal_loss = self.criterion(nominal_preds_prod,
+                                                  th.zeros(*nominal_preds_prod.size()).to(self.device))
                     expert_preds_prod = expert_preds_all.prod(dim=0)
                     expert_loss = self.criterion(expert_preds_prod, th.ones(*expert_preds_prod.size()).to(self.device))
                     regularizer_loss = th.tensor(0)
@@ -745,7 +749,6 @@ class ConstraintNet(nn.Module):
             bw_metrics.update(stop_metrics)
 
         return bw_metrics
-
 
     def train_nn(
             self,
@@ -872,6 +875,11 @@ class ConstraintNet(nn.Module):
             obs: np.ndarray,
             acs: np.ndarray,
     ) -> th.tensor:
+
+        if self.recon_obs:
+            obs = idx2vector(obs, height=self.env_configs['map_height'], width=self.env_configs['map_width'])
+        else:
+            obs = obs
 
         obs = self.normalize_obs(obs, self.current_obs_mean, self.current_obs_var, self.clip_obs)
         acs = self.reshape_actions(acs)

@@ -25,7 +25,7 @@ running:
   expert_rollouts: 20
   sample_rollouts: 20
   store_sample_num: null
-  expert_path: '../data/expert_data/WallGridWorld/'
+  expert_path: '../data/expert_data/WallGridWorld-setting1/'
   use_buffer: True
   store_by_game: False
   store_sample_rollouts: 1000

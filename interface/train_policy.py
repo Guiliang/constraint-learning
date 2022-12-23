@@ -6,9 +6,15 @@ import gym
 import numpy as np
 import datetime
 import yaml
+from matplotlib import pyplot as plt
+
+from common.cns_sampler import ConstrainedRLSampler
+from common.cns_visualization import traj_visualization_2d, constraint_visualization_2d
+from utils.true_constraint_functions import get_true_cost_function
 
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+from stable_baselines3.iteration import PolicyIterationLagrange
 from utils.env_utils import check_if_duplicate_seed
 from common.cns_env import make_train_env, make_eval_env, sync_envs_normalization_ppo
 from utils.plot_utils import plot_curve
@@ -19,7 +25,10 @@ from common.cns_evaluation import evaluate_icrl_policy
 from stable_baselines3.common.vec_env import VecNormalize
 
 from utils.data_utils import ProgressBarManager, del_and_make, read_args, load_config, process_memory
-from utils.model_utils import load_ppo_config
+from utils.model_utils import load_ppo_config, load_policy_iteration_config
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 def train(args):
@@ -39,8 +48,11 @@ def train(args):
     debug_msg = ''
     if debug_mode:
         config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['PPO']['forward_timesteps'] = 2000  # 2000
-        config['PPO']['n_steps'] = 200
+        if 'PPO' in config.keys():
+            config['PPO']['forward_timesteps'] = 2000  # 2000
+            config['PPO']['n_steps'] = 200
+        else:
+            config['iteration']['max_iter'] = 2
         config['running']['n_eval_episodes'] = 10
         config['running']['save_every'] = 1
         debug_msg = 'debug-'
@@ -64,14 +76,6 @@ def train(args):
         debug_msg,
         seed
     )
-
-    skip_running = check_if_duplicate_seed(seed=seed,
-                                           config=config,
-                                           current_time_date=current_time_date,
-                                           save_model_mother_dir=save_model_mother_dir,
-                                           log_file=log_file)
-    if skip_running:
-        return
 
     if not os.path.exists('{0}/{1}/'.format(config['env']['save_dir'], config['task'])):
         os.mkdir('{0}/{1}/'.format(config['env']['save_dir'], config['task']))
@@ -122,6 +126,14 @@ def train(args):
                                               'env']['train_env_id'] else None,
                                           )
 
+    if 'WGW' in config['env']['train_env_id']:
+        sampler = ConstrainedRLSampler(rollouts=10,
+                                       store_by_game=True,  # I move the step out
+                                       cost_info_str=None,
+                                       sample_multi_env=False,
+                                       env_id=config['env']['eval_env_id'],
+                                       env=eval_env)
+
     mem_loading_environment = process_memory()
     time_loading_environment = time.time()
     print("Loading environment consumed memory: {0:.2f}/{1:.2f} and time {2:.2f}:".format(
@@ -144,18 +156,49 @@ def train(args):
     else:
         ppo_logger = logger.HumanOutputFormat(log_file)
 
-    ppo_parameters = load_ppo_config(config, train_env, seed, log_file)
+    if 'WGW' in config['env']['train_env_id']:
+        # with open(config['env']['config_path'], "r") as config_file:
+        #     env_configs = yaml.safe_load(config_file)
+        ture_cost_function = get_true_cost_function(env_id=config['env']['train_env_id'],
+                                                    env_configs=env_configs)
+        constraint_visualization_2d(cost_function=ture_cost_function,
+                                    feature_range=config['env']["visualize_info_ranges"],
+                                    select_dims=config['env']["record_info_input_dims"],
+                                    num_points_per_feature=env_configs['map_height'],
+                                    obs_dim=2,
+                                    acs_dim=1,
+                                    save_path=save_model_mother_dir
+                                    )
+
     if config['group'] == 'PPO':
-        create_ppo_agent = lambda: PPO(**ppo_parameters)
+        ppo_parameters = load_ppo_config(config=config,
+                                         train_env=train_env,
+                                         seed=seed,
+                                         log_file=log_file)
+        forward_timesteps = config['PPO']['forward_timesteps']
+        create_policy_agent = lambda: PPO(**ppo_parameters)
     elif config['group'] == 'PPO-Lag':
-        create_ppo_agent = lambda: PPOLagrangian(**ppo_parameters)
+        ppo_parameters = load_ppo_config(config=config,
+                                         train_env=train_env,
+                                         seed=seed,
+                                         log_file=log_file)
+        forward_timesteps = config['PPO']['forward_timesteps']
+        create_policy_agent = lambda: PPOLagrangian(**ppo_parameters)
+    elif config['group'] == 'PI-Lag':
+        iteration_parameters = load_policy_iteration_config(config=config,
+                                                            env_configs=env_configs,
+                                                            train_env=train_env,
+                                                            seed=seed,
+                                                            log_file=log_file)
+        forward_timesteps = config['iteration']['max_iter']
+        create_policy_agent = lambda: PolicyIterationLagrange(**iteration_parameters)
     else:
         raise ValueError("Unknown ppo group: {0}".format(config['group']))
-    ppo_agent = create_ppo_agent()
+    policy_agent = create_policy_agent()
 
     # Callbacks
     all_callbacks = []
-    if config['PPO']['use_curiosity_driven_exploration']:
+    if 'PPO' in config['group'] and config['PPO']['use_curiosity_driven_exploration']:
         explorationCallback = ExplorationRewardCallback(obs_dim, acs_dim, device=config.device)
         all_callbacks.append(explorationCallback)
 
@@ -172,28 +215,23 @@ def train(args):
 
     # Train
     start_time = time.time()
-    # print(colorize("\nBeginning training", color="green", bold=True), file=log_file, flush=True)
     print("\nBeginning training", file=log_file, flush=True)
     best_true_reward = -np.inf
     for itr in range(config['running']['n_iters']):
-        if config['PPO']['reset_policy'] and itr != 0:
-            # print(colorize("Resetting agent", color="green", bold=True), file=log_file, flush=True)
-            print("Resetting agent", file=log_file, flush=True)
-            ppo_agent = create_ppo_agent()
 
         # Update agent
-        with ProgressBarManager(config['PPO']['forward_timesteps']) as callback:
+        with ProgressBarManager(forward_timesteps) as callback:
             if config['group'] == 'PPO':
-                ppo_agent.learn(total_timesteps=config['PPO']['forward_timesteps'],
-                                callback=callback)
-            elif config['group'] == 'PPO-Lag':
-                ppo_agent.learn(
-                    total_timesteps=config['PPO']['forward_timesteps'],
+                policy_agent.learn(total_timesteps=forward_timesteps,
+                                   callback=callback)
+            else:
+                policy_agent.learn(
+                    total_timesteps=forward_timesteps,
                     cost_function=config['env']['cost_info_str'],  # Cost should come from cost wrapper
                     callback=[callback] + all_callbacks
                 )
             forward_metrics = logger.Logger.CURRENT.name_to_value
-            timesteps += ppo_agent.num_timesteps
+            timesteps += policy_agent.num_timesteps
 
         mem_during_training = process_memory()
         time_during_training = time.time()
@@ -213,20 +251,33 @@ def train(args):
         else:
             save_path = None
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
-            evaluate_icrl_policy(model=ppo_agent,
+            evaluate_icrl_policy(model=policy_agent,
                                  env=eval_env,
                                  render=True if 'Circle' in config['env']['train_env_id'] else False,
                                  record_info_names=config['env']["record_info_names"],
                                  n_eval_episodes=config['running']['n_eval_episodes'],
                                  deterministic=False,
                                  cost_info_str=config['env']['cost_info_str'],
-                                 save_path=save_path,)
+                                 save_path=save_path, )
+        if 'WGW' in config['env']['train_env_id'] and itr % config['running']['save_every'] == 0:
+            orig_observations, observations, actions, rewards, sum_rewards, lengths = sampler.sample_from_agent(
+                policy_agent=policy_agent,
+                new_env=eval_env,
+            )
+            traj_visualization_2d(config=config,
+                                  observations=orig_observations,
+                                  save_path=save_path, )
+            plt.figure(figsize=(5, 5))
+            plt.matshow(policy_agent.v_m, origin='lower')
+            plt.gca().xaxis.set_ticks_position('bottom')
+            plt.colorbar()
+            plt.savefig(os.path.join(save_path, "v_m_aid.png"))
 
         # Save
         if itr % config['running']['save_every'] == 0:
             # path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
             # del_and_make(path)
-            ppo_agent.save(os.path.join(save_path, "nominal_agent"))
+            policy_agent.save(os.path.join(save_path, "nominal_agent"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
             if costs is not None:
@@ -253,7 +304,7 @@ def train(args):
         if mean_nc_reward > best_true_reward:
             # print(colorize("Saving new best model", color="green", bold=True), flush=True, file=log_file)
             print("Saving new best model", flush=True, file=log_file)
-            ppo_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
+            policy_agent.save(os.path.join(save_model_mother_dir, "best_nominal_model"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_model_mother_dir, "train_env_stats.pkl"))
 
