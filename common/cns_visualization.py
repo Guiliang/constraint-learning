@@ -27,7 +27,7 @@ def beta_parameters_visualization(obs_str, constraint_net, alpha_all, beta_all, 
     plt.savefig(save_path + '/beta_{0}.png'.format(obs_str))
 
 
-def traj_visualization_2d(config, observations, save_path, model_name='', axis_size=24):
+def traj_visualization_2d(config, observations, save_path, model_name='', title='', axis_size=24):
     traj_num = len(observations)
     import matplotlib as mpl
     mpl.rcParams['xtick.labelsize'] = axis_size
@@ -49,7 +49,8 @@ def traj_visualization_2d(config, observations, save_path, model_name='', axis_s
     # plt.ylabel(config['env']["record_info_names"][1], fontsize=axis_size)
     plt.legend(fontsize=15, loc='lower right')
     plt.grid(linestyle='--')
-    plt.savefig(os.path.join(save_path, "2d_traj_visual_{0}.png".format(model_name)))
+    plt.title('{0}'.format(title), fontsize=axis_size)
+    plt.savefig(os.path.join(save_path, "2d_traj_visual_{0}_{1}.png".format(model_name, title)))
 
 
 def traj_visualization_1d(config, observations, save_path):
@@ -112,7 +113,7 @@ def constraint_visualization_1d(cost_function, feature_range, select_dim, obs_di
 
 def constraint_visualization_2d(cost_function, feature_range, select_dims,
                                 obs_dim, acs_dim,
-                                num_points_per_feature=100,
+                                title='', num_points_per_feature=100,
                                 axis_size=20, save_path=None, empirical_input_means=None, model_name=''):
     import matplotlib as mpl
     mpl.rcParams['xtick.labelsize'] = axis_size
@@ -151,8 +152,9 @@ def constraint_visualization_2d(cost_function, feature_range, select_dims,
                        feature_range[1][1] + 1, 1)
     plt.yticks(yticks)
     plt.grid(linestyle='--', color='r', alpha=1)
+    plt.title('{0}'.format(title), fontsize=axis_size)
     # plt.show()
-    plt.savefig(os.path.join(save_path, "constraint_visualization_{0}.png".format(model_name)))
+    plt.savefig(os.path.join(save_path, "constraint_visualization_{0}_{1}.png".format(model_name,title)))
 
 
 class PlotCallback(callbacks.BaseCallback):

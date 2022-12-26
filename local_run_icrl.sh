@@ -8,10 +8,13 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch1/PycharmProjects/constraint-lea
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 pip install -e ./mujuco_environment/
 cd ./interface/
-nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting1.yaml -n 1 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
-nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting1.yaml -n 1 -s 321 -l "$log_dir" > nohup_icrl.out 2>&1 &
-nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting1.yaml -n 1 -s 666 -l "$log_dir" > nohup_icrl.out 2>&1 &
-nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting2.yaml -n 1 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
-nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting2.yaml -n 1 -s 321 -l "$log_dir" > nohup_icrl.out 2>&1 &
-nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting2.yaml -n 1 -s 666 -l "$log_dir" > nohup_icrl.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting1.yaml -n 1 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting1.yaml -n 1 -s 321 -l "$log_dir" > nohup_icrl.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting1.yaml -n 1 -s 666 -l "$log_dir" > nohup_icrl.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting2.yaml -n 1 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting2.yaml -n 1 -s 321 -l "$log_dir" > nohup_icrl.out 2>&1 &
+#nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting2.yaml -n 1 -s 666 -l "$log_dir" > nohup_icrl.out 2>&1 &
+nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting3.yaml -n 1 -s 123 -l "$log_dir" > nohup_icrl.out 2>&1 &
+nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting3.yaml -n 1 -s 321 -l "$log_dir" > nohup_icrl.out 2>&1 &
+nohup python train_icrl.py ../config/mujoco_WGW-v0/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting3.yaml -n 1 -s 666 -l "$log_dir" > nohup_icrl.out 2>&1 &
 cd ../

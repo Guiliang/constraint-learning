@@ -10,6 +10,7 @@ import gym
 import numpy as np
 import yaml
 from matplotlib import pyplot as plt
+
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from utils.true_constraint_functions import get_true_cost_function
@@ -252,7 +253,8 @@ def train(config):
         traj_visualization_2d(config=config,
                               observations=expert_obs_games,
                               save_path=save_model_mother_dir,
-                              model_name=args.config_file.split('/')[-1].split('.')[0]
+                              model_name=args.config_file.split('/')[-1].split('.')[0],
+                              title='Ground-Truth',
                               )
 
     if config['running']['store_by_game']:
@@ -354,6 +356,7 @@ def train(config):
                                     acs_dim=1 if is_discrete else train_env.action_space.shape[0],
                                     save_path=save_model_mother_dir,
                                     model_name=args.config_file.split('/')[-1].split('.')[0],
+                                    title='Ground-Truth',
                                     )
 
     # Init agent
@@ -497,7 +500,10 @@ def train(config):
         if 'WGW' in config['env']['train_env_id'] and itr % config['running']['save_every'] == 0:
             traj_visualization_2d(config=config,
                                   observations=orig_observations,
-                                  save_path=save_path, )
+                                  save_path=save_path,
+                                  model_name=args.config_file.split('/')[-1].split('.')[0],
+                                  title='Iteration-{0}'.format(itr),
+                                  )
 
         mean_reward, std_reward, mean_nc_reward, std_nc_reward, record_infos, costs = \
             evaluate_icrl_policy(nominal_agent, sampling_env,
@@ -522,8 +528,9 @@ def train(config):
                     plt.matshow(nominal_agent.v_m, origin='lower')
                     plt.gca().xaxis.set_ticks_position('bottom')
                     plt.colorbar()
-                    plt.savefig(os.path.join(save_path, "v_m_aid_{0}.png".format(
-                        args.config_file.split('/')[-1].split('.')[0])))
+                    plt.title('Iteration {0}'.format(itr), fontsize=24)
+                    plt.savefig(os.path.join(save_path, "v_m_aid_{0}_iteration_{1}.png".format(
+                        args.config_file.split('/')[-1].split('.')[0], itr)))
             if 'Test' in config['running']['expert_path']:
                 beta_parameters_visualization('3-5',
                                               constraint_net,
@@ -544,7 +551,18 @@ def train(config):
                                             acs_dim=1 if is_discrete else train_env.action_space.shape[0],
                                             save_path=save_path,
                                             model_name=args.config_file.split('/')[-1].split('.')[0],
+                                            title='Iteration-{0}'.format(itr),
                                             )
+                if 'WGW' in config['env']['train_env_id'] and itr % config['running']['save_every'] == 0:
+                    constraint_visualization_2d(cost_function=constraint_net.cost_function,
+                                                feature_range=config['env']["visualize_info_ranges"],
+                                                select_dims=config['env']["record_info_input_dims"],
+                                                obs_dim=train_env.observation_space.shape[0],
+                                                acs_dim=1 if is_discrete else train_env.action_space.shape[0],
+                                                save_path=save_model_mother_dir,
+                                                model_name=args.config_file.split('/')[-1].split('.')[0],
+                                                title='{0}'.format(config['task']),
+                                                )
                 # nominal_agent.apply_lag = True
 
             for record_info_idx in range(len(config['env']["record_info_names"])):
