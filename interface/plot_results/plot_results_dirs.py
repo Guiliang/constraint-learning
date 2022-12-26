@@ -856,6 +856,16 @@ def get_plot_results_dir(env_id):
                 '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-1-multi_env-Nov-11-2022-16:34-seed_123/',
                 '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-1-multi_env-Nov-11-2022-18:05-seed_321/',
             ],
+            "ICRL_HCWithPos-v0_with-action_random-1": [
+                '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_random-1-multi_env-Dec-20-2022-17:20-seed_123/',
+                '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_random-1-multi_env-Dec-20-2022-19:16-seed_321/',
+                '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_random-1-multi_env-Dec-20-2022-20:54-seed_456/',
+                '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_random-1-multi_env-Dec-20-2022-22:34-seed_654/',
+                '../save_model/ICRL-HC/train_ICRL_HCWithPos-v0_with-action_random-1-multi_env-Dec-21-2022-00:13-seed_666/',
+            ],
+            "ICRL_HCWithPos-v0_with-action_random-8e-1": [
+                '../save_model/VICRL-HC/train_ICRL_HCWithPos-v0_with-action_random-8e-1-multi_env-Dec-20-2022-17/20-seed_123/',
+            ],
             "VICRL_Pos": [
                 '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_p-1-1_no_is-multi_env-Apr-07-2022-10:23-seed_123/',
                 '../save_model/VICRL-HC/train_VICRL_HCWithPos-v0_p-1-1_no_is-multi_env-Apr-07-2022-10:25-seed_321/',

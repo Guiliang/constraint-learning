@@ -106,31 +106,32 @@ def generate_plots():
     # #     "PPO_lag_Pos": 'PPO_lag',
     # # }
     # # ================= rebuttal ====================
-    # max_episodes = 5000
-    # img_size = None
-    # save = False
-    # title = 'Incomplete Dataset'
-    # method_names_labels_dict = {
-    #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting1": "VICRL1",
-    #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": "VICRL2",
-    #     # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting3": "VICRL3",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1_no_is": "VICRL-Full",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1_no_is": "VICRL-0.3",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1_no_is": "VICRL3",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1-b_no_is": "VICRL1",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1-b_no_is": "VICRL2",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1-b_no_is": "VICRL-0.5",
-    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-1": "Ram-1",
-    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-8e-1": "Ram-0.8",
-    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-5e-1": "Ram-0.5",
-    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1": "Ram-0.2",
-    #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "Ram-0",
-    #     # "VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard": "VICRL1",
-    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard": "VICRL2",
-    #     # 'VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random': 'VICRL_Random',
-    #     # "PPO_Pos": 'PPO',
-    #     "PPO_lag_Pos": 'PPO_lag',
-    # }
+    max_episodes = 5000
+    img_size = None
+    save = False
+    title = 'Incomplete Dataset'
+    method_names_labels_dict = {
+        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting1": "VICRL1",
+        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting2": "VICRL2",
+        # "VICRL_HCWithPos-v0_with_action_p-9e-1-1e-1_no_is_reset-setting3": "VICRL3",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1_no_is": "VICRL-Full",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1_no_is": "VICRL-0.3",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1_no_is": "VICRL3",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-1e-1-b_no_is": "VICRL1",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-3e-1-b_no_is": "VICRL2",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_data-5e-1-b_no_is": "VICRL-0.5",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-1": "Ram-1",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-8e-1": "Ram-0.8",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-5e-1": "Ram-0.5",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1": "Ram-0.2",
+        "ICRL_HCWithPos-v0_with-action_random-1": "Ram-0",
+        # "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "Ram-0",
+        # "VICRL_HCWithPos-v0_with_action_p-1-1_no_is_hard": "VICRL1",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_hard": "VICRL2",
+        # 'VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random': 'VICRL_Random',
+        # "PPO_Pos": 'PPO',
+        # "PPO_lag_Pos": 'PPO_lag',
+    }
     # # ================= rebuttal ====================
     # plot_y_lim_dict = {'reward': None,
     #                    'reward_nc': None,
