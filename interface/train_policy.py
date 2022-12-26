@@ -8,12 +8,11 @@ import datetime
 import yaml
 from matplotlib import pyplot as plt
 
+cwd = os.getcwd()
+sys.path.append(cwd.replace('/interface', ''))
 from common.cns_sampler import ConstrainedRLSampler
 from common.cns_visualization import traj_visualization_2d, constraint_visualization_2d
 from utils.true_constraint_functions import get_true_cost_function
-
-cwd = os.getcwd()
-sys.path.append(cwd.replace('/interface', ''))
 from stable_baselines3.iteration import PolicyIterationLagrange
 from utils.env_utils import check_if_duplicate_seed
 from common.cns_env import make_train_env, make_eval_env, sync_envs_normalization_ppo
