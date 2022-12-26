@@ -9,10 +9,9 @@ from typing import Union, Callable
 import numpy as np
 import yaml
 
-from stable_baselines3.iteration.policy_interation_lag import load_pi
-
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
+from stable_baselines3.iteration.policy_interation_lag import load_pi
 from gym import Env
 from common.cns_env import make_env
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
