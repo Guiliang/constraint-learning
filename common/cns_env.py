@@ -85,10 +85,10 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
            for i in range(num_threads)]
     # monitor_logger = [sub_env.get_logger() for sub_env in env]
     # if 'HC' in env_id:
-    # env = vec_env.SubprocVecEnv(env)
+    env = vec_env.SubprocVecEnv(env)
     # env.set_attr('write_marker', 'True')
     # elif 'commonroad' in env_id:
-    env = vec_env.DummyVecEnv(env)
+    # env = vec_env.DummyVecEnv(env)
     # else:
     #     raise ValueError("Unknown env id {0}".format(env_id))
 
