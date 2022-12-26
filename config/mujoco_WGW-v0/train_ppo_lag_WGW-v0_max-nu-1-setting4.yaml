@@ -3,7 +3,7 @@ group: 'PI-Lag'
 device: 'cuda'
 verbose: 2
 env:
-  config_path: '../mujuco_environment/custom_envs/envs/configs/WGW-setting3.yaml'
+  config_path: '../mujuco_environment/custom_envs/envs/configs/WGW-setting4.yaml'
   train_env_id : 'WGW-v0'
   eval_env_id: 'WGW-v0'
   save_dir: '../save_model'
