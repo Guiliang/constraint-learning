@@ -209,9 +209,12 @@ def read_running_logs(monitor_path_all, read_keys, max_reward, min_reward, max_e
                     for constraint_key in constraint_keys:
                         if results[key_indices[constraint_key]] == '=':
                             valid_flag = False
-                        if int(results[
-                                   key_indices[constraint_key]]) != 0:  # if constraint is not broken at this episode
-                            valid_flag = False
+                        try:
+                            if int(results[
+                                       key_indices[constraint_key]]) != 0:  # if constraint is not broken at this episode
+                                valid_flag = False
+                        except:
+                            print(monitor_path_all)
                     if valid_flag:
                         valid_episodes.append(episode)
                         # valid_rewards.append(float(results[key_indices['reward']]))
