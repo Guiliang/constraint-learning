@@ -27,7 +27,7 @@ running:
   expert_rollouts: 1
   sample_rollouts: 1
   store_sample_num: null
-  expert_path: '../data/expert_data/HCWithPos-New/'
+  expert_path: '../data/expert_data/BlockedHalf-cheetah/'
   use_buffer: False
   store_by_game: False
 
