@@ -136,13 +136,22 @@ def run():
     parser.add_argument("-ct", "--constraint_type", help="the constraint to be followed by the generated data.",
                         dest="CONSTRAINT_TYPE",
                         default=None, required=True)
+    parser.add_argument("-rn", "--random_action_rate", help="if apply random actions.",
+                        dest="RANDOM_ACTION_RATE",
+                        default=0, required=True)
     args = parser.parse_args()
     debug_mode = args.DEBUG_MODE
     num_threads = int(args.NUM_THREADS)
     load_model_name = args.MODEL_NAME
     task_name = args.TASK_NAME
     data_generate_type = args.CONSTRAINT_TYPE
+    random_action_rate = float(args.RANDOM_ACTION_RATE)
     log_file = None
+    if random_action_rate > 0:
+        random_action = True
+        print("Applying random actions.", file=log_file, flush=True)
+    else:
+        random_action = False
     # load_model_name = 'train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:29-seed_123'
     # task_name = 'PPO-highD'
     # data_generate_type = 'no-over_speed'
@@ -162,11 +171,13 @@ def run():
     if not os.path.exists(evaluation_path):
         os.mkdir(evaluation_path)
 
-    save_expert_data_path = os.path.join('../data/expert_data/', '{0}{1}_{2}'.format(
+    save_expert_data_path = os.path.join('../data/expert_data/', '{0}{1}_{2}{3}'.format(
         'debug_' if debug_mode else '',
         data_generate_type,
         load_model_name,
+        '_random-{0}'.format(random_action_rate) if random_action else '',
     ))
+
     if not os.path.exists(save_expert_data_path):
         os.mkdir(save_expert_data_path)
     if iteration_msg == 'best':
@@ -250,6 +261,11 @@ def run():
         infos_done = [None for i in range(num_threads)]
         while not done:
             action, state = model.predict(obs, state=state, deterministic=True)
+            if random_action:
+                if np.random.uniform(0, 1) < random_action_rate:
+                    action = np.random.normal(0, 1, action.shape)
+                else:
+                    action = action
             original_obs = env.get_original_obs() if isinstance(env, VecNormalize) else obs
             new_obs, rewards, dones, infos = env.step(action)
             # lanebase_relative_position = []
@@ -335,13 +351,17 @@ def run():
                 if is_commonroad(env_id=config['env']['train_env_id']):
                     with open(os.path.join(save_expert_data_path,
                                            'scene-{0}_len-{1}.pkl'.format(benchmark_ids[i],
-                                                                          running_steps[i])), 'wb') as file:
+                                                                          running_steps[i],
+                                                                          '_random' if random_action else '')
+                                           ), 'wb') as file:
                         # A new file will be created
                         pickle.dump(saving_expert_data, file)
                 elif is_mujoco(env_id=config['env']['train_env_id']):
                     with open(os.path.join(save_expert_data_path,
                                            'scene-{0}_len-{1}.pkl'.format(success,
-                                                                          running_steps[i])), 'wb') as file:
+                                                                          running_steps[i],
+                                                                          '_random' if random_action else '')
+                                           ), 'wb') as file:
                         # A new file will be created
                         pickle.dump(saving_expert_data, file)
                 else:
