@@ -11,9 +11,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 pip install -e ./mujuco_environment/
 cd ./interface/
 export CUDA_VISIBLE_DEVICES=0
-#python train_icrl.py ../config/mujoco_Circle-v0/train_VICRL_Circle_dim2.yaml -n 5 -s 123 -l "$log_dir"
-#python train_icrl.py ../config/mujoco_Circle-v0/train_VICRL_Circle_dim2_acbf-8e-1.yaml -n 5 -s 123 -l "$log_dir"
-python train_icrl.py ../config/mujoco_Circle-v0/train_VICRL_Circle_dim2_acbf-85e-2.yaml -n 5 -s 123 -l "$log_dir"
-python train_icrl.py ../config/mujoco_Circle-v0/train_VICRL_Circle_dim2_piv-1e1.yaml -n 5 -s 123 -l "$log_dir"
-python train_icrl.py ../config/mujoco_Circle-v0/train_VICRL_Circle_dim2_piv-2e1.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1.yaml -n 5 -s 321 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1.yaml -n 5 -s 456 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1.yaml -n 5 -s 654 -l "$log_dir"
+python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1.yaml -n 5 -s 666 -l "$log_dir"
 cd ../
