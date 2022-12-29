@@ -552,6 +552,7 @@ def train(config):
                                             save_path=save_path,
                                             model_name=args.config_file.split('/')[-1].split('.')[0],
                                             title='Iteration-{0}'.format(itr),
+                                            force_mode='mean',
                                             )
                 if 'WGW' in config['env']['train_env_id'] and itr % config['running']['save_every'] == 0:
                     constraint_visualization_2d(cost_function=constraint_net.cost_function,
@@ -562,6 +563,7 @@ def train(config):
                                                 save_path=save_model_mother_dir,
                                                 model_name=args.config_file.split('/')[-1].split('.')[0],
                                                 title='{0}'.format(config['task']),
+                                                force_mode='mean',
                                                 )
                 # nominal_agent.apply_lag = True
 

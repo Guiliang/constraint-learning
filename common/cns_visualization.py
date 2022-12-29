@@ -114,7 +114,7 @@ def constraint_visualization_1d(cost_function, feature_range, select_dim, obs_di
 def constraint_visualization_2d(cost_function, feature_range, select_dims,
                                 obs_dim, acs_dim,
                                 title='', num_points_per_feature=100,
-                                axis_size=20, save_path=None, empirical_input_means=None, model_name=''):
+                                axis_size=20, force_mode=None, save_path=None, empirical_input_means=None, model_name=''):
     import matplotlib as mpl
     mpl.rcParams['xtick.labelsize'] = axis_size
     mpl.rcParams['ytick.labelsize'] = axis_size
@@ -136,7 +136,10 @@ def constraint_visualization_2d(cost_function, feature_range, select_dims,
     acs = input_all[:, obs_dim:]
 
     with torch.no_grad():
-        preds = cost_function(obs=obs, acs=acs, force_mode='mean')
+        if force_mode is None:
+            preds = cost_function(obs=obs, acs=acs)
+        else:
+            preds = cost_function(obs=obs, acs=acs, force_mode=force_mode)
     fig, ax = plt.subplots(1, 1, figsize=(5, 5))
     im = ax.imshow(preds.reshape([num_points_per_feature, num_points_per_feature]).transpose(1, 0),
                    cmap='binary',  # 'cool',
