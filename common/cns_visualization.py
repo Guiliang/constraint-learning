@@ -136,7 +136,7 @@ def constraint_visualization_2d(cost_function, feature_range, select_dims,
     acs = input_all[:, obs_dim:]
 
     with torch.no_grad():
-        preds = cost_function(obs=obs, acs=acs)
+        preds = cost_function(obs=obs, acs=acs, force_mode='mean')
     fig, ax = plt.subplots(1, 1, figsize=(5, 5))
     im = ax.imshow(preds.reshape([num_points_per_feature, num_points_per_feature]).transpose(1, 0),
                    cmap='binary',  # 'cool',
