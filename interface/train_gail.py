@@ -68,13 +68,13 @@ def train(args):
         seed
     )
 
-    skip_running = check_if_duplicate_seed(seed=seed,
-                                           config=config,
-                                           current_time_date=current_time_date,
-                                           save_model_mother_dir=save_model_mother_dir,
-                                           log_file=log_file)
-    if skip_running:
-        return
+    # skip_running = check_if_duplicate_seed(seed=seed,
+    #                                        config=config,
+    #                                        current_time_date=current_time_date,
+    #                                        save_model_mother_dir=save_model_mother_dir,
+    #                                        log_file=log_file)
+    # if skip_running:
+    #     return
 
     if not os.path.exists('{0}/{1}/'.format(config['env']['save_dir'], config['task'])):
         os.mkdir('{0}/{1}/'.format(config['env']['save_dir'], config['task']))
