@@ -736,7 +736,40 @@ def get_plot_results_dir(env_id):
     elif env_id == 'WGW-v0':
         log_path_dict = {
             "ICRL_without-action_by_games_max-nu-1_with-buffer-setting1": [
-                '../save_model/ICRL-WallGrid/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_with-buffer-setting1-Dec-19-2022-16:36-seed_123/',
+                '../save_model/ICRL-WallGrid/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting1-Dec-23-2022-17:22-seed_123/',
+            ],
+            "ICRL_without-action_by_games_max-nu-1_with-buffer-setting2": [
+                '../save_model/ICRL-WallGrid/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting2-Dec-23-2022-17:22-seed_123/',
+            ],
+            "ICRL_without-action_by_games_max-nu-1_with-buffer-setting3": [
+                '../save_model/ICRL-WallGrid/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting3-Dec-23-2022-17:49-seed_123/',
+            ],
+            "ICRL_without-action_by_games_max-nu-1_with-buffer-setting4": [
+                '../save_model/ICRL-WallGrid/train_ICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting1-Dec-23-2022-17:22-seed_123/',
+            ],
+            "VICRL_without-action_by_games_max-nu-1_with-buffer-setting1": [
+                '../save_model/VICRL-WallGrid/train_VICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_p-9e-2-1e-2_with-buffer-setting1_mean-Dec-29-2022-17:40-seed_123/',
+            ],
+            "VICRL_without-action_by_games_max-nu-1_with-buffer-setting2": [
+                '../save_model/VICRL-WallGrid/train_VICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_p-9e-2-1e-2_with-buffer-setting2_mean-Dec-29-2022-18:05-seed_123/',
+            ],
+            "VICRL_without-action_by_games_max-nu-1_with-buffer-setting3": [
+                '../save_model/VICRL-WallGrid/train_VICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_p-9e-2-1e-2_with-buffer-setting3_mean-Dec-29-2022-18:05-seed_123/',
+            ],
+            "VICRL_without-action_by_games_max-nu-1_with-buffer-setting4": [
+                '../save_model/VICRL-WallGrid/train_VICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_p-9e-2-1e-2_with-buffer-setting4_mean-Dec-29-2022-18:05-seed_123/',
+            ],
+            "Binary_without-action_by_games_max-nu-1_with-buffer-setting1": [
+                '../save_model/Binary-WallGrid/train_Binary_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting1-Dec-23-2022-17:56-seed_123/',
+            ],
+            "Binary_without-action_by_games_max-nu-1_with-buffer-setting2": [
+                '../save_model/Binary-WallGrid/train_Binary_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting2-Dec-23-2022-17:56-seed_123/',
+            ],
+            "Binary_without-action_by_games_max-nu-1_with-buffer-setting3": [
+                '../save_model/Binary-WallGrid/train_Binary_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting3-Dec-23-2022-18:17-seed_123/',
+            ],
+            "Binary_without-action_by_games_max-nu-1_with-buffer-setting4": [
+                '../save_model/Binary-WallGrid/train_Binary_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting4-Dec-26-2022-21:14-seed_123/',
             ],
         }
 
