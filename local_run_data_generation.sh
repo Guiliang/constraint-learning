@@ -8,5 +8,5 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch1/PycharmProjects/constraint-lea
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 pip install -e ./mujuco_environment/
 cd ./interface/
-python generate_data_for_constraint_inference.py -n 5 -mn train_ppo_lag_HCWithPos-v0-multi_env-Apr-21-2022-04:49-seed_123 -tn PPO-Lag-HC -ct all -rn 0.5
+python generate_data_for_constraint_inference.py -n 5 -mn train_ppo_lag_HCWithPos-v0-multi_env-Apr-21-2022-04:49-seed_123 -tn PPO-Lag-HC -ct all -rn 1
 cd ../

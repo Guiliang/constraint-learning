@@ -84,7 +84,7 @@ def generate_plots():
     max_reward = 10000
     min_reward = 0
     plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-    label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
     label_key = [None, None, None, None]
     img_size = None
     save = True
@@ -109,7 +109,7 @@ def generate_plots():
     # # ================= rebuttal ====================
     max_episodes = 5000
     img_size = None
-    save = True
+    save = False
     title = 'Noisy Demo - Randomness 1'
     plot_y_lim_dict = {'reward': None,
                        'reward_nc': None,

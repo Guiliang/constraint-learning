@@ -23,6 +23,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+
 class CommonRoadVecEnv(DummyVecEnv):
     def __init__(self, env_fns):
         super().__init__(env_fns)
@@ -233,7 +234,7 @@ def run():
             benchmark_num_per_step = len(benchmark_ids)
             obs = env.reset_benchmark(benchmark_ids=benchmark_ids)
         elif is_mujoco(env_id=config['env']['train_env_id']):
-            benchmark_ids = [i for i in range((benchmark_idx)*num_threads, (benchmark_idx+1)*num_threads)]
+            benchmark_ids = [i for i in range((benchmark_idx) * num_threads, (benchmark_idx + 1) * num_threads)]
             benchmark_num_per_step = num_threads
             obs = env.reset()
         else:
@@ -350,17 +351,17 @@ def run():
                 }
                 if is_commonroad(env_id=config['env']['train_env_id']):
                     with open(os.path.join(save_expert_data_path,
-                                           'scene-{0}_len-{1}.pkl'.format(benchmark_ids[i],
-                                                                          running_steps[i],
-                                                                          '_random' if random_action else '')
+                                           'scene-{0}_len-{1}_{2}.pkl'.format(benchmark_ids[i],
+                                                                              running_steps[i],
+                                                                              '-'.join(termination_reasons))
                                            ), 'wb') as file:
                         # A new file will be created
                         pickle.dump(saving_expert_data, file)
                 elif is_mujoco(env_id=config['env']['train_env_id']):
                     with open(os.path.join(save_expert_data_path,
-                                           'scene-{0}_len-{1}.pkl'.format(success,
-                                                                          running_steps[i],
-                                                                          '_random' if random_action else '')
+                                           'scene-{0}_len-{1}_{2}.pkl'.format(success,
+                                                                              running_steps[i],
+                                                                              '-'.join(termination_reasons))
                                            ), 'wb') as file:
                         # A new file will be created
                         pickle.dump(saving_expert_data, file)
