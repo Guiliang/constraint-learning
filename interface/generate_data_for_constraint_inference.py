@@ -220,7 +220,7 @@ def run():
         max_benchmark_num, env_ids, benchmark_total_nums = get_all_env_ids(num_threads, env)
         # num_collisions, num_off_road, num_goal_reaching, num_timeout = 0, 0, 0, 0
     elif is_mujoco(env_id=config['env']['train_env_id']):
-        max_benchmark_num = 70 / num_threads  # max number of expert traj is 50 for mujoco
+        max_benchmark_num = 500 / num_threads  # max number of expert traj is 50 for mujoco
     else:
         raise ValueError("Unknown env_id: {0}".format(config['env']['train_env_id']))
 

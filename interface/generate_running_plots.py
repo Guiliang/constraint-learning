@@ -57,100 +57,104 @@ def generate_plots():
     modes = ['train']
     plot_mode = 'all-methods'
 
-    env_id = 'WGW-v0'
-    max_episodes = 100
-    average_num = 10
-    max_reward = 1
+    # env_id = 'WGW-v0'
+    # max_episodes = 200  # 100
+    # average_num = 10
+    # max_reward = 1
+    # min_reward = 0
+    # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
+    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    # label_key = [None, None, None, None]
+    # img_size = None
+    # save = True
+    # save_msg = '_setting-4'
+    # title = 'Gird World - Setting 4'
+    # constraint_keys = ['constraint']
+    # plot_y_lim_dict = {'reward': None,
+    #                    'reward_nc': None,
+    #                    'constraint': None,
+    #                    'reward_valid': None,
+    #                    }
+    #
+    # method_names_labels_dict = {
+    #     # "Binary_without-action_by_games_max-nu-1_with-buffer-setting1": "BC2L",
+    #     # "ICRL_without-action_by_games_max-nu-1_with-buffer-setting1": "MECL",
+    #     # "VICRL_without-action_by_games_max-nu-1_with-buffer-setting1": "VICRL",
+    #     # 'PI-Lag-setting1': 'PI-Lag',
+    #     # "Binary_without-action_by_games_max-nu-1_with-buffer-setting2": "BC2L",
+    #     # "ICRL_without-action_by_games_max-nu-1_with-buffer-setting2": "MECL",
+    #     # "VICRL_without-action_by_games_max-nu-1_with-buffer-setting2": "VICRL",
+    #     # 'PI-Lag-setting2': 'PI-Lag',
+    #     # "Binary_without-action_by_games_max-nu-1_with-buffer-setting3": "BC2L",
+    #     # "ICRL_without-action_by_games_max-nu-1_with-buffer-setting3": "MECL",
+    #     # "VICRL_without-action_by_games_max-nu-1_with-buffer-setting3": "VICRL",
+    #     # 'PI-Lag-setting3': 'PI-Lag',
+    #     "Binary_without-action_by_games_max-nu-1_with-buffer-setting4": "BC2L",
+    #     "ICRL_without-action_by_games_max-nu-1_with-buffer-setting4": "MECL",
+    #     "VICRL_without-action_by_games_max-nu-1_with-buffer-setting4": "VICRL",
+    #     'PI-Lag-setting4': 'PI-Lag',
+    # }
+
+    env_id = 'HCWithPos-v0'
+    max_episodes = 6000
+    average_num = 100
+    max_reward = 10000
     min_reward = 0
     plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-    label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
     label_key = [None, None, None, None]
     img_size = None
     save = True
-    save_msg = '_setting-1'
-    title = 'Gird World - Setting 1'
+    title = 'Blocked Half-Cheetah'
     constraint_keys = ['constraint']
+    # plot_y_lim_dict = {'reward': (0, 7000),
+    #                    'reward_nc': (0, 5000),
+    #                    'constraint': (0, 1.1),
+    #                    'reward_valid': (0, 5000),
+    #                    }
+    # # method_names_labels_dict = {
+    # #     "GAIL_HCWithPos-v0_with-action": 'GACL',  # 'GAIL',
+    # #     "Binary_HCWithPos-v0_with-action": 'BC2L',  # 'Binary',
+    # #     "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
+    # #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
+    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-1e-1": "VICRL2",
+    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-5e-1": "VICRL-VaR",
+    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-9e-1": "VICRL4",
+    # #     # "PPO_Pos": 'PPO',
+    # #     "PPO_lag_Pos": 'PPO_lag',
+    # # }
+    # ================= rebuttal ====================
+    max_episodes = 5000
+    img_size = None
+    save = True
+    title = 'Noisy Demo - Imperfect 1'
     plot_y_lim_dict = {'reward': None,
                        'reward_nc': None,
                        'constraint': None,
                        'reward_valid': None,
                        }
-
+    save_msg = '_noisy-ram-1'
     method_names_labels_dict = {
-        "Binary_without-action_by_games_max-nu-1_with-buffer-setting1": "BC2L",
-        "ICRL_without-action_by_games_max-nu-1_with-buffer-setting1": "MECL",
-        "VICRL_without-action_by_games_max-nu-1_with-buffer-setting1": "VICRL",
-        # "Binary_without-action_by_games_max-nu-1_with-buffer-setting2": "BC2L",
-        # "ICRL_without-action_by_games_max-nu-1_with-buffer-setting2": "MECL",
-        # "VICRL_without-action_by_games_max-nu-1_with-buffer-setting2": "VICRL",
-        # "Binary_without-action_by_games_max-nu-1_with-buffer-setting3": "BC2L",
-        # "ICRL_without-action_by_games_max-nu-1_with-buffer-setting3": "MECL",
-        # "VICRL_without-action_by_games_max-nu-1_with-buffer-setting3": "VICRL",
-        # "Binary_without-action_by_games_max-nu-1_with-buffer-setting4": "BC2L",
-        # "ICRL_without-action_by_games_max-nu-1_with-buffer-setting4": "MECL",
-        # "VICRL_without-action_by_games_max-nu-1_with-buffer-setting4": "VICRL",
+        "GAIL_HCWithPos-v0_with-action_random-1": "GACL",
+        "Binary_HCWithPos-v0_with-action_random-1": "BC2L",
+        "ICRL_HCWithPos-v0_with-action_random-1": "MECL",
+        "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-1": "VICRL",
+        # "GAIL_HCWithPos-v0_with-action_random-8e-1": "GACL",
+        # "Binary_HCWithPos-v0_with-action_random-8e-1": "BC2L",
+        # "ICRL_HCWithPos-v0_with-action_random-8e-1": "MECL",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-8e-1": "VICRL",
+        # "GAIL_HCWithPos-v0_with-action_random-5e-1": "GACL",
+        # "Binary_HCWithPos-v0_with-action_random-5e-1": "BC2L",
+        # "ICRL_HCWithPos-v0_with-action_random-5e-1": "MECL",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-5e-1": "VICRL",
+        # "GAIL_HCWithPos-v0_with-action_random-2e-1": "GACL",
+        # "Binary_HCWithPos-v0_with-action_random-2e-1": "BC2L",
+        # "ICRL_HCWithPos-v0_with-action_random-2e-1": "MECL",
+        # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1": "VICRL",
+        # "PPO_Pos": 'PPO',
+        "PPO_lag_Pos": 'PPO_lag',
     }
-
-    # env_id = 'HCWithPos-v0'
-    # max_episodes = 6000
-    # average_num = 100
-    # max_reward = 10000
-    # min_reward = 0
-    # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-    # # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
-    # label_key = [None, None, None, None]
-    # img_size = None
-    # save = True
-    # title = 'Blocked Half-Cheetah'
-    # constraint_keys = ['constraint']
-    # # plot_y_lim_dict = {'reward': (0, 7000),
-    # #                    'reward_nc': (0, 5000),
-    # #                    'constraint': (0, 1.1),
-    # #                    'reward_valid': (0, 5000),
-    # #                    }
-    # # # method_names_labels_dict = {
-    # # #     "GAIL_HCWithPos-v0_with-action": 'GACL',  # 'GAIL',
-    # # #     "Binary_HCWithPos-v0_with-action": 'BC2L',  # 'Binary',
-    # # #     "ICRL_Pos_with-action": 'MECL',  # 'ICRL',
-    # # #     "VICRL_Pos_with-buffer_with-action_p-9e-1-1e-1_clr-5e-3": "VICRL",
-    # # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-1e-1": "VICRL2",
-    # # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-5e-1": "VICRL-VaR",
-    # # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_VAR-9e-1": "VICRL4",
-    # # #     # "PPO_Pos": 'PPO',
-    # # #     "PPO_lag_Pos": 'PPO_lag',
-    # # # }
-    # # # ================= rebuttal ====================
-    # # max_episodes = 5000
-    # # img_size = None
-    # # save = False
-    # # title = 'Noisy Demo - Randomness 1'
-    # # plot_y_lim_dict = {'reward': None,
-    # #                    'reward_nc': None,
-    # #                    'constraint': None,
-    # #                    'reward_valid': None,
-    # #                    }
-    # # save_msg = '_noisy-ram-1'
-    # # method_names_labels_dict = {
-    # #     "GAIL_HCWithPos-v0_with-action_random-1": "GACL",
-    # #     "Binary_HCWithPos-v0_with-action_random-1": "BC2L",
-    # #     "ICRL_HCWithPos-v0_with-action_random-1": "MECL",
-    # #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-1": "VICRL",
-    # #     # "GAIL_HCWithPos-v0_with-action_random-8e-1": "GACL",
-    # #     # "Binary_HCWithPos-v0_with-action_random-8e-1": "BC2L",
-    # #     # "ICRL_HCWithPos-v0_with-action_random-8e-1": "MECL",
-    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-8e-1": "VICRL",
-    # #     # "GAIL_HCWithPos-v0_with-action_random-5e-1": "GACL",
-    # #     # "Binary_HCWithPos-v0_with-action_random-5e-1": "BC2L",
-    # #     # "ICRL_HCWithPos-v0_with-action_random-5e-1": "MECL",
-    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-5e-1": "VICRL",
-    # #     # "GAIL_HCWithPos-v0_with-action_random-2e-1": "GACL",
-    # #     # "Binary_HCWithPos-v0_with-action_random-2e-1": "BC2L",
-    # #     # "ICRL_HCWithPos-v0_with-action_random-2e-1": "MECL",
-    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_random-2e-1": "VICRL",
-    # #     # "PPO_Pos": 'PPO',
-    # #     "PPO_lag_Pos": 'PPO_lag',
-    # # }
-    # # # ================= rebuttal ====================
+    # # ================= rebuttal ====================
     # max_episodes = 5000
     # img_size = None
     # save = False
@@ -171,58 +175,58 @@ def generate_plots():
     #     # "PPO_Pos": 'PPO',
     #     "PPO_lag_Pos": 'PPO_lag',
     # }
-    # # # ================= rebuttal ====================
-    # # plot_y_lim_dict = {'reward': None,
-    # #                    'reward_nc': None,
-    # #                    'constraint': None,
-    # #                    'reward_valid': None,
-    # #                    }
-    # # max_episodes = 6000
-    # # img_size = None
-    # # noise = '1e-2'
-    # # plot_mode = 'Noise-{0}'.format(noise)
-    # # title = 'Stochastic Noise $\mathcal{N}(0,1E-2)$'
-    # # method_names_labels_dict = {
-    # #     # "GAIL_HCWithPos-v0_with-action_noise-1e-1": "GACL",
-    # #     # "Binary_HCWithPos-v0_with-action_noise-1e-1": "BC2L",
-    # #     # # "Binary_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "BC2L",
-    # #     # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "MECL",
-    # #     # # "ICRL_HCWithPos-v0_with-action_noise-1e-1": "MECL",
-    # #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL",
-    # #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL1",
-    # #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL2",
-    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-1": "VICRL",
-    # #
-    # #     "GAIL_HCWithPos-v0_with-action_noise-1e-2": "GACL",
-    # #     "Binary_HCWithPos-v0_with-action_noise-1e-2": "BC2L",
-    # #     "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-2": "MECL",
-    # #     # "ICRL_HCWithPos-v0_with-action_noise-1e-2":  "MECL",
-    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2": "VICRL",
-    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-2":  "VICRL1",
-    # #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-2":   "VICRL",
-    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-2": "VICRL2",
-    # #
-    # #     # "GAIL_HCWithPos-v0_with-action_noise-1e-3": "GACL",
-    # #     # "Binary_HCWithPos-v0_with-action_noise-1e-3": "BC2L",
-    # #     # # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-3": "MECL",
-    # #     # "ICRL_HCWithPos-v0_with-action_noise-1e-3": "MECL",
-    # #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3": "VICRL",
-    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3": "VICRL",
-    # #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3": "VICRL2",
-    # #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3": "VICRL3",
-    # #     #
-    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-2": "VICRL",
-    # #     # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-5e-2": "MECL",
-    # #     # "Binary_HCWithPos-v0_with-action_noise-5e-2": "BC2L",
-    # #     # "GAIL_HCWithPos-v0_with-action_noise-5e-2": "GACL",
-    # #     #
-    # #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-3": "VICRL",
-    # #     # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-5e-3": "MECL",
-    # #     # "Binary_HCWithPos-v0_with-action_noise-5e-3": "BC2L",
-    # #     # "GAIL_HCWithPos-v0_with-action_noise-5e-3": "GACL",
-    # #
-    # #     "PPO_lag_Pos": 'PPO_lag',
-    # # }
+    # # ================= rebuttal ====================
+    # plot_y_lim_dict = {'reward': None,
+    #                    'reward_nc': None,
+    #                    'constraint': None,
+    #                    'reward_valid': None,
+    #                    }
+    # max_episodes = 6000
+    # img_size = None
+    # noise = '1e-2'
+    # plot_mode = 'Noise-{0}'.format(noise)
+    # title = 'Stochastic Noise $\mathcal{N}(0,1E-2)$'
+    # method_names_labels_dict = {
+    #     # "GAIL_HCWithPos-v0_with-action_noise-1e-1": "GACL",
+    #     # "Binary_HCWithPos-v0_with-action_noise-1e-1": "BC2L",
+    #     # # "Binary_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "BC2L",
+    #     # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-1": "MECL",
+    #     # # "ICRL_HCWithPos-v0_with-action_noise-1e-1": "MECL",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL1",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_piv-1e1_noise-1e-1": "VICRL2",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-1": "VICRL",
+    #
+    #     "GAIL_HCWithPos-v0_with-action_noise-1e-2": "GACL",
+    #     "Binary_HCWithPos-v0_with-action_noise-1e-2": "BC2L",
+    #     "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-2": "MECL",
+    #     # "ICRL_HCWithPos-v0_with-action_noise-1e-2":  "MECL",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-2": "VICRL",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-2":  "VICRL1",
+    #     "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-2":   "VICRL",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-2": "VICRL2",
+    #
+    #     # "GAIL_HCWithPos-v0_with-action_noise-1e-3": "GACL",
+    #     # "Binary_HCWithPos-v0_with-action_noise-1e-3": "BC2L",
+    #     # # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-1e-3": "MECL",
+    #     # "ICRL_HCWithPos-v0_with-action_noise-1e-3": "MECL",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-1e-3": "VICRL",
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-2-1e-2_clr-5e-3_no_is_noise-1e-3": "VICRL",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e0-1e0_clr-5e-3_no_is_noise-1e-3": "VICRL2",
+    #     # # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_noise-1e-3": "VICRL3",
+    #     #
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-2": "VICRL",
+    #     # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-5e-2": "MECL",
+    #     # "Binary_HCWithPos-v0_with-action_noise-5e-2": "BC2L",
+    #     # "GAIL_HCWithPos-v0_with-action_noise-5e-2": "GACL",
+    #     #
+    #     # "VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is_piv-1e1_noise-5e-3": "VICRL",
+    #     # "ICRL_HCWithPos-v0_with-action_piv-1e1_noise-5e-3": "MECL",
+    #     # "Binary_HCWithPos-v0_with-action_noise-5e-3": "BC2L",
+    #     # "GAIL_HCWithPos-v0_with-action_noise-5e-3": "GACL",
+    #
+    #     "PPO_lag_Pos": 'PPO_lag',
+    # }
 
     # env_id = 'AntWall-V0'
     # max_episodes = 15000
@@ -692,6 +696,7 @@ def generate_plots():
     linestyle_all = {
         "PPO": '-' if plot_mode == 'part' else '--',
         "PPO_lag": '-' if plot_mode == 'part' else '--',
+        "PI-Lag": '-' if plot_mode == 'part' else '--',
         'PPO_lag1': '-',
         'PPO_lag2': '-',
         'Bound': '-',
@@ -755,7 +760,8 @@ def generate_plots():
                     else:
                         monitor_path_all.append(log_path + 'test/test.monitor.csv')
                     if (method_names_labels_dict[method_name] == "PPO" or
-                        method_names_labels_dict[method_name] == "PPO_lag") and plot_mode != "part":
+                        method_names_labels_dict[method_name] == "PPO_lag" or
+                        method_names_labels_dict[method_name] == "PI-Lag") and plot_mode != "part":
                         if 'reward_nc' in plot_key:
                             plot_key[plot_key.index('reward_nc')] = 'reward'
                     # rewards, is_collision, is_off_road, is_goal_reached, is_time_out = read_running_logs(log_path=log_path)
@@ -767,7 +773,8 @@ def generate_plots():
                                                                                    max_episodes / 5),
                                                                                constraint_keys=constraint_keys)
                     if (method_names_labels_dict[method_name] == "PPO" or
-                        method_names_labels_dict[method_name] == "PPO_lag") and plot_mode != "part":
+                        method_names_labels_dict[method_name] == "PPO_lag" or
+                        method_names_labels_dict[method_name] == "PI-Lag") and plot_mode != "part":
                         results_copy_ = copy.copy(results)
                         for key in results.keys():
                             fill_value = np.mean(results_copy_[key][-100:])
@@ -846,7 +853,8 @@ def generate_plots():
                       np.mean(mean_results_moving_avg_dict[method_name][-100:]),
                       np.mean(std_results_moving_avg_dict[method_name][-100:]))
             if save:
-                save_label = os.path.join(env_id, plot_key[idx] + '_' + mode + save_msg + '_' + env_id + '_' + plot_mode)
+                save_label = os.path.join(env_id,
+                                          plot_key[idx] + '_' + mode + save_msg + '_' + env_id + '_' + plot_mode)
             else:
                 save_label = None
 
