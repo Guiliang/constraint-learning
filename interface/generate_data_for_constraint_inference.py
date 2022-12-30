@@ -156,7 +156,7 @@ def run():
     # load_model_name = 'train_ppo_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40-multi_env-Apr-06-2022-11:29-seed_123'
     # task_name = 'PPO-highD'
     # data_generate_type = 'no-over_speed'
-    iteration_msg = 'best'
+    iteration_msg = 90
     if_testing_env = False
     if debug_mode:
         pass

@@ -8,5 +8,5 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch1/PycharmProjects/constraint-lea
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 pip install -e ./mujuco_environment/
 cd ./interface/
-python generate_data_for_constraint_inference.py -n 5 -mn train_ppo_lag_AntWall-v0_nit-50-multi_env-Apr-24-2022-12:21-seed_123 -tn PPO-Lag-AntWall -ct all -rn 1
+python generate_data_for_constraint_inference.py -n 5 -mn train_ppo_WalkerWithPos-v0-multi_env-May-06-2022-06:56-seed_123 -tn PPO-Walker -ct all -rn 1
 cd ../
