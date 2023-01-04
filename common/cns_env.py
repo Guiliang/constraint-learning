@@ -59,12 +59,14 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
     if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
-            if is_commonroad(env_id) and multi_env:
-                env_configs['train_reset_config_path'] += '_split'
-            if is_commonroad(env_id) and part_data:
-                env_configs['train_reset_config_path'] += '_debug'
-                env_configs['test_reset_config_path'] += '_debug'
-                env_configs['meta_scenario_path'] += '_debug'
+            if is_commonroad(env_id):
+                env_configs['max_scene_per_env'] = kwargs['max_scene_per_env']
+                if multi_env:
+                    env_configs['train_reset_config_path'] += '_split'
+                if part_data:
+                    env_configs['train_reset_config_path'] += '_debug'
+                    env_configs['test_reset_config_path'] += '_debug'
+                    env_configs['meta_scenario_path'] += '_debug'
     else:
         if 'Noise' in env_id:
             env_configs = {'noise_mean': kwargs['noise_mean'], 'noise_std': kwargs['noise_std']}
@@ -143,12 +145,14 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
     if config_path is not None:
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
-            if is_commonroad(env_id) and multi_env:
-                env_configs['train_reset_config_path'] += '_split'
-            if is_commonroad(env_id) and part_data:
-                env_configs['train_reset_config_path'] += '_debug'
-                env_configs['test_reset_config_path'] += '_debug'
-                env_configs['meta_scenario_path'] += '_debug'
+            if is_commonroad(env_id):
+                env_configs['max_scene_per_env'] = kwargs['max_scene_per_env']
+                if multi_env:
+                    env_configs['train_reset_config_path'] += '_split'
+                if part_data:
+                    env_configs['train_reset_config_path'] += '_debug'
+                    env_configs['test_reset_config_path'] += '_debug'
+                    env_configs['meta_scenario_path'] += '_debug'
         if is_commonroad(env_id) and mode == 'test':
             env_configs["test_env"] = True
     else:

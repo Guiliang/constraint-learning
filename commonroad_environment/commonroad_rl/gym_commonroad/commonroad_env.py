@@ -63,6 +63,7 @@ class CommonroadEnv(gym.Env):
             play=False,
             config_file=PATH_PARAMS["configs"]["commonroad-v1"],
             logging_mode=1,
+            max_scene_per_env=None,
             **kwargs,
     ) -> None:
         """
@@ -141,8 +142,11 @@ class CommonroadEnv(gym.Env):
             path = pathlib.Path(path)
             problem_dict = {}
             for p in path.glob("*.pickle"):
-                with p.open("rb") as f:
-                    problem_dict[p.stem] = pickle.load(f)
+                if max_scene_per_env is not None and len(problem_dict) >= max_scene_per_env:
+                    break
+                else:
+                    with p.open("rb") as f:
+                        problem_dict[p.stem] = pickle.load(f)
             return problem_dict
 
         if not test_env and not play:

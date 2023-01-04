@@ -143,6 +143,8 @@ def train(config):
                                                 'train_env_id'] else None,
                                             circle_info=config['env']['circle_info'] if 'Circle' in config[
                                                 'env']['train_env_id'] else None,
+                                            max_scene_per_env=config['env']['max_scene_per_env']
+                                            if 'max_scene_per_env' in config['env'].keys() else None
                                             )
     all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
     print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
@@ -175,6 +177,8 @@ def train(config):
                                                   'train_env_id'] else None,
                                               circle_info=config['env']['circle_info'] if 'Circle' in config[
                                                   'env']['train_env_id'] else None,
+                                              max_scene_per_env=config['env']['max_scene_per_env']
+                                              if 'max_scene_per_env' in config['env'].keys() else None
                                               )
     if "planning" in config['running'].keys() and config['running']['planning']:
         planning_config = config['Plan']
