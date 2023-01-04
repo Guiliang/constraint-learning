@@ -156,8 +156,9 @@ venv.bak/
 # for this project
 save_model/*
 evaluate_model/*
-commonroad_environment/*
-bak_commonroad_environment/*
+commonroad_environment/commonroad_rl.egg-info/*
+commonroad_environment/commonroad_rl/tests/*
+commonroad_environment/commonroad_rl/tutorials/*
 data/highD/*
 data/inD/*
 data/exiD/*

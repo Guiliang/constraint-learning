@@ -523,7 +523,7 @@ def train(config):
             constraint_net.save(os.path.join(save_path, "constraint_net"))
             if isinstance(train_env, VecNormalize):
                 train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
-                if 'WGW' in config['env']['train_env_id']:
+                if 'iteration' in config.keys():
                     plt.figure(figsize=(5, 5))
                     plt.matshow(nominal_agent.v_m, origin='lower')
                     plt.gca().xaxis.set_ticks_position('bottom')
