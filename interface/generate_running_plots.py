@@ -95,18 +95,18 @@ def generate_plots():
     #     'PI-Lag-setting4': 'PI-Lag',
     # }
 
-    env_id = 'HCWithPos-v0'
-    max_episodes = 6000
-    average_num = 100
-    max_reward = 10000
-    min_reward = 0
-    plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
-    # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
-    label_key = [None, None, None, None]
-    img_size = None
-    save = True
-    title = 'Blocked Half-Cheetah'
-    constraint_keys = ['constraint']
+    # env_id = 'HCWithPos-v0'
+    # max_episodes = 6000
+    # average_num = 100
+    # max_reward = 10000
+    # min_reward = 0
+    # plot_key = ['reward', 'reward_nc', 'constraint', 'reward_valid']
+    # # label_key = ['reward', 'reward_nc', 'Constraint Violation Rate', 'reward_valid']
+    # label_key = [None, None, None, None]
+    # img_size = None
+    # save = True
+    # title = 'Blocked Half-Cheetah'
+    # constraint_keys = ['constraint']
     # plot_y_lim_dict = {'reward': (0, 7000),
     #                    'reward_nc': (0, 5000),
     #                    'constraint': (0, 1.1),
@@ -428,21 +428,26 @@ def generate_plots():
     # }
 
     # ================= rebuttal ====================
+    title = 'HighD Velocity Constraint - data 10%'
+    save = False
+    save_msg = '_data-{0}'.format(1e-1)
     method_names_labels_dict = {
-        # "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_no-buffer_vm-40": 'GACL',
-        # "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": 'BC2L',
-        # "ICRL_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": 'MECL',
-        'VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_vm-40': 'VICRL',
-        'VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_vm-40_data-1e-1': 'VICRL2',
-        'VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_vm-40_data-3e-1': 'VICRL3',
-        'VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_vm-40_data-5e-1': 'VICRL4',
-        # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_no-buffer_vm-40": "VICRL2",
-        # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40": "VICRL3",
-        # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40_VaR-1e-1": "VICRL4",
-        # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40_VaR-5e-1": "VICRL5",
-        # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40_VaR-7e-1": "VICRL6",
-        # "VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_vm-40_VaR-9e-1": "VICRL7",
-        # "PPO_highD_no-velocity_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO',
+        # "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_mspe-5e1_no-buffer_vm-40": "GACL",
+        # "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_mspe-5e1_no-buffer_vm-40_data-1e-1": "GACL",
+        # "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_mspe-5e1_no-buffer_vm-40_data-3e-1": "GACL",
+        # "GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_mspe-5e1_no-buffer_vm-40_data-5e-1": "GACL",
+        "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40": 'BC2L',
+        "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-5e-1": 'BC2L-0.5',
+        "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-3e-1": 'BC2L-0.3',
+        "Binary_highD_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-1e-1": 'BC2L-0.1',
+        # "ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40": "MECL",
+        # "ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-5e-1": "MECL-0.5",
+        # "ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-3e-1": "MECL-0.3",
+        # "ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-1e-1": "MECL-0.1",
+        # 'VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_vm-40': 'VICRL',
+        # 'VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_vm-40_data-5e-1': 'VICRL-0.5',
+        # 'VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_vm-40_data-3e-1': 'VICRL-0.3',
+        # 'VICRL_highD_velocity_constraint_p-9e-1-1e-1_no_is_bs--1-5e2_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_vm-40_data-1e-1': 'VICRL-0.1',
         "PPO_lag_highD_velocity_penalty_bs--1_fs-5k_nee-10_lr-5e-4_vm-40": 'PPO_lag',
         "Bound": 'Bound'
     }
@@ -721,9 +726,20 @@ def generate_plots():
         'PPO_lag2': '-',
         'Bound': '-',
         "GACL": ':',  # 'GAIL',
+        "GACL-0.1": ":",
+        "GACL-0.3": "--",
+        "GACL-0.5": "-.",
+        "GACL-Full": "-",
         "BC2L": '--',  # 'Binary',
+        "BC2L-0.1": ":",
+        "BC2L-0.3": "--",
+        "BC2L-0.5": "-.",
+        "BC2L-Full": "-",
         "MECL": '-.',  # 'ICRL',
-        "MECL2": '-.',  # 'ICRL',
+        "MECL-0.1": ":",
+        "MECL-0.3": "--",
+        "MECL-0.5": "-.",
+        "MECL-Full": "-",
         "VICRL-VaR": "-",
         "VICRL-SR": "-",
         "VICRL": "-",
@@ -735,7 +751,8 @@ def generate_plots():
         "VICRL6": "-",
         "VICRL7": "-",
         "VICRL8": "-",
-        "VICRL-0.3": ":",
+        "VICRL-0.1": ":",
+        "VICRL-0.3": "--",
         "VICRL-0.5": "-.",
         "VICRL-Full": "-",
         "Ram": "-",
