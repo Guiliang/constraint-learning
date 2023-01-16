@@ -19,7 +19,7 @@ export CUDA_VISIBLE_DEVICES=3
 #python train_gail.py ../config/highD_velocity_constraint/train_GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_mspe-5e1_no-buffer_vm-40_data-5e-1.yaml -n 5 -s 123 -l "$log_dir"
 #python train_gail.py ../config/highD_velocity_constraint/train_GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_mspe-5e1_no-buffer_vm-40_data-5e-1.yaml -n 5 -s 321 -l "$log_dir"
 #python train_gail.py ../config/highD_velocity_constraint/train_GAIL_velocity_constraint_no_is_bs--1-5e2_fs-5k_nee-10_lr-5e-4_mspe-5e1_no-buffer_vm-40_data-5e-1.yaml -n 5 -s 666 -l "$log_dir"
-python train_gail.py ../config/highD_velocity_constraint/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1.yaml -n 5 -s 123 -l "$log_dir"
-python train_gail.py ../config/highD_velocity_constraint/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1.yaml -n 5 -s 321 -l "$log_dir"
-python train_gail.py ../config/highD_velocity_constraint/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1.yaml -n 5 -s 666 -l "$log_dir"
+python train_gail.py ../config/highD_distance_constraint/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1.yaml -n 5 -s 123 -l "$log_dir"
+python train_gail.py ../config/highD_distance_constraint/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1.yaml -n 5 -s 321 -l "$log_dir"
+python train_gail.py ../config/highD_distance_constraint/train_GAIL_highD_slo_distance_constraint_no_is_bs--1--1_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1.yaml -n 5 -s 666 -l "$log_dir"
 cd ../
