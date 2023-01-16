@@ -16,7 +16,10 @@ export CUDA_VISIBLE_DEVICES=1
 #python train_icrl.py ../config/mujuco_HCWithPos-v0/train_ICRL_HCWithPos-v0_with-action_sub-5e-1.yaml -n 5 -s 456 -l "$log_dir"
 #python train_icrl.py ../config/mujuco_HCWithPos-v0/train_ICRL_HCWithPos-v0_with-action_sub-5e-1.yaml -n 5 -s 654 -l "$log_dir"
 #python train_icrl.py ../config/mujuco_HCWithPos-v0/train_ICRL_HCWithPos-v0_with-action_sub-5e-1.yaml -n 5 -s 666 -l "$log_dir"
-python train_icrl.py ../config/highD_velocity_constraint/train_ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-1e-2.yaml -n 5 -s 123 -l "$log_dir"
-python train_icrl.py ../config/highD_velocity_constraint/train_ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-1e-2.yaml -n 5 -s 321 -l "$log_dir"
-python train_icrl.py ../config/highD_velocity_constraint/train_ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-1e-2.yaml -n 5 -s 666 -l "$log_dir"
+#python train_icrl.py ../config/highD_velocity_constraint/train_ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-1e-2.yaml -n 5 -s 123 -l "$log_dir"
+#python train_icrl.py ../config/highD_velocity_constraint/train_ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-1e-2.yaml -n 5 -s 321 -l "$log_dir"
+#python train_icrl.py ../config/highD_velocity_constraint/train_ICRL_highD_velocity_constraint_bs--1-5e2_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_vm-40_data-1e-2.yaml -n 5 -s 666 -l "$log_dir"
+python train_icrl.py ../config/highD_velocity_constraint/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2.yaml -n 5 -s 123 -l "$log_dir"
+python train_icrl.py ../config/highD_velocity_constraint/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2.yaml -n 5 -s 321 -l "$log_dir"
+python train_icrl.py ../config/highD_velocity_constraint/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2.yaml -n 5 -s 666 -l "$log_dir"
 cd ../
