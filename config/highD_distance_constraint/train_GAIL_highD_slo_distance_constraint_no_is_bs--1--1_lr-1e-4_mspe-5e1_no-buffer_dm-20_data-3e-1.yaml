@@ -13,6 +13,7 @@ env:
   cost_gamma: 0.99  # no cost
   dont_normalize_obs: False
   dont_normalize_reward: False
+  max_scene_per_env: 50
   record_info_names: ["same_lane_leading_obstacle_distance"]
   record_info_input_dims: [22] # the dim of record info in inputs=(obs, action)
   visualize_info_ranges: [[ 0, 100] ]
