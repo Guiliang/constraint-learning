@@ -553,6 +553,24 @@ def get_plot_results_dir(env_id):
             "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_plr-1e-3_no-buffer_dm-20": [
                 '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-5e-4_plr-1e-3_no-buffer_dm-20-multi_env-May-28-2022-09:58-seed_123/',
             ],
+            "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-1": [
+                '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-1-multi_env-Jan-16-2023-16:04-seed_123/',
+                '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-1-multi_env-Jan-17-2023-01:53-seed_321/',
+                '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-1-multi_env-Jan-17-2023-11:28-seed_666/',
+            ],
+            "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2": [
+                '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2-multi_env-Jan-16-2023-16:04-seed_123/',
+                '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2-multi_env-Jan-17-2023-00:26-seed_321/',
+                '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2-multi_env-Jan-17-2023-08:36-seed_666/',
+            ],
+            "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-3e-1": [
+                '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-3e-1-multi_env-Jan-16-2023-16:04-seed_123/',
+                '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-3e-1-multi_env-Jan-17-2023-05:55-seed_321/',
+            ],
+            "ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1": [
+                '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1-multi_env-Jan-16-2023-16:05-seed_123/',
+                '../save_model/ICRL-highD-distance/train_ICRL_highD_slo_distance_constraint_bs--1-1e3_fs-5k_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1-multi_env-Jan-17-2023-12:54-seed_321/',
+            ],
             "VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_cl-64-64_no-buffer_dm-20": [
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-5e-4_cl-64-64_no-buffer_dm-20-multi_env-May-28-2022-10:19-seed_123/',
             ],
@@ -579,6 +597,42 @@ def get_plot_results_dir(env_id):
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_dm-20-multi_env-Sep-26-2022-12:56-seed_123/',
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_dm-20-multi_env-Sep-27-2022-23:20-seed_321/',
                 '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_no-buffer_dm-20-multi_env-Sep-27-2022-23:21-seed_666/',
+            ],
+            'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-1e-1': [
+                '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-1e-1-multi_env-Jan-16-2023-17:41-seed_123/',
+                '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-1e-1-multi_env-Jan-17-2023-03:41-seed_321/',
+                '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-1e-1-multi_env-Jan-17-2023-13:48-seed_666/',
+            ],
+            'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-1e-2': [
+                '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-1e-2-multi_env-Jan-16-2023-17:41-seed_123/',
+                '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-1e-2-multi_env-Jan-17-2023-01:51-seed_321/',
+                '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-1e-2-multi_env-Jan-17-2023-10:10-seed_666/',
+            ],
+            'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-3e-1': [
+                '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-3e-1-multi_env-Jan-16-2023-17:41-seed_123/',
+                '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-3e-1-multi_env-Jan-17-2023-07:03-seed_321/',
+            ],
+            'VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-5e-1': [
+                '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-5e-1-multi_env-Jan-16-2023-17:41-seed_123/',
+                '../save_model/VICRL-highD-distance/train_VICRL_highD_slo_distance_constraint_p-9e-1-1e-1_bs--1-1e3_fs-5k_nee-10_lr-1e-4_acbf-5e-1_mspe-5e1_no-buffer_dm-20_data-5e-1-multi_env-Jan-17-2023-10:49-seed_321/',
+            ],
+            'Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-1':[
+                '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-1-multi_env-Jan-16-2023-16:03-seed_123/',
+                '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-1-multi_env-Jan-17-2023-02:20-seed_321/',
+                '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-1-multi_env-Jan-17-2023-12:21-seed_666/',
+            ],
+            'Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2': [
+                '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2-multi_env-Jan-16-2023-16:03-seed_123/',
+                '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2-multi_env-Jan-17-2023-00:37-seed_321/',
+                '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-1e-2-multi_env-Jan-17-2023-09:19-seed_666/',
+            ],
+            'Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-3e-1': [
+                '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-3e-1-multi_env-Jan-16-2023-16:03-seed_123/',
+                '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-3e-1-multi_env-Jan-17-2023-05:26-seed_321/',
+            ],
+            'Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1':[
+                '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1-multi_env-Jan-16-2023-16:03-seed_123/',
+                '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-1e-4_mspe-5e1_no-buffer_dm-20_data-5e-1-multi_env-Jan-17-2023-08:54-seed_321/',
             ],
             "Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20": [
                 '../save_model/Binary-highD-distance/train_Binary_highD_slo_distance_constraint_no_is_bs--1-1e3_nee-10_lr-5e-4_no-buffer_dm-20-multi_env-May-30-2022-02:11-seed_123/',
