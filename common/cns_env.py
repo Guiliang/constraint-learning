@@ -60,7 +60,7 @@ def make_train_env(env_id, config_path, save_dir, group='PPO', base_seed=0, num_
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
             if is_commonroad(env_id):
-                env_configs['max_scene_per_env'] = kwargs['max_scene_per_env']
+                # env_configs['max_scene_per_env'] = kwargs['max_scene_per_env']
                 if multi_env:
                     env_configs['train_reset_config_path'] += '_split'
                 if part_data:
@@ -146,7 +146,7 @@ def make_eval_env(env_id, config_path, save_dir, group='PPO', num_threads=1,
         with open(config_path, "r") as config_file:
             env_configs = yaml.safe_load(config_file)
             if is_commonroad(env_id):
-                env_configs['max_scene_per_env'] = kwargs['max_scene_per_env']
+                # env_configs['max_scene_per_env'] = kwargs['max_scene_per_env']
                 if multi_env:
                     env_configs['train_reset_config_path'] += '_split'
                 if part_data:
