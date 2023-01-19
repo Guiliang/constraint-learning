@@ -1,3 +1,4 @@
+import copy
 import os
 from itertools import accumulate
 from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
@@ -11,11 +12,10 @@ from stable_baselines3.common.utils import update_learning_rate
 from torch import nn
 from tqdm import tqdm
 
-
 # =====================================================================================
 # GAIL Discriminator
 # =====================================================================================
-from utils.data_utils import del_and_make
+from utils.data_utils import del_and_make, idx2vector
 
 
 class GailDiscriminator(nn.Module):
@@ -41,10 +41,12 @@ class GailDiscriminator(nn.Module):
             num_spurious_features: Optional[float] = None,
             freeze_weights: Optional[bool] = False,
             eps: float = 1e-5,
-            device: str = "cpu"
+            device: str = "cpu",
+            recon_obs: bool = False,
+            env_configs: dict = {},
     ):
         super(GailDiscriminator, self).__init__()
-
+        self.env_configs = env_configs
         self.obs_dim = obs_dim
         self.acs_dim = acs_dim
         self.obs_select_dim = obs_select_dim
@@ -70,7 +72,7 @@ class GailDiscriminator(nn.Module):
         self.clip_obs = clip_obs
         self.device = device
         self.eps = eps
-
+        self.recon_obs = recon_obs
         self.freeze_weights = freeze_weights
 
         if optimizer_kwargs is None:
@@ -146,7 +148,7 @@ class GailDiscriminator(nn.Module):
         return out.detach().cpu().numpy()
 
     def reward_function(self, obs: np.ndarray, acs: np.ndarray, apply_log=True) -> np.ndarray:
-        assert obs.shape[-1] == self.obs_dim, ""
+        assert self.recon_obs or obs.shape[-1] == self.obs_dim, ""
         if not self.is_discrete:
             assert acs.shape[-1] == self.acs_dim, ""
 
@@ -158,6 +160,17 @@ class GailDiscriminator(nn.Module):
         else:
             # return np.squeeze(reward)
             return reward
+
+    def cost_function(self, obs: np.ndarray, acs: np.ndarray, force_mode: str = None) -> np.ndarray:
+        assert self.recon_obs or obs.shape[-1] == self.obs_dim, ""
+        if not self.is_discrete:
+            assert acs.shape[-1] == self.acs_dim, ""
+
+        x, orig_shape = self.prepare_nominal_data(obs, acs)
+        with th.no_grad():
+            out = self.__call__(x)
+        cost = 1 - out.detach().cpu().numpy()
+        return cost.squeeze(axis=-1)
 
     def call_forward(self, x: np.ndarray):
         with th.no_grad():
@@ -240,8 +253,11 @@ class GailDiscriminator(nn.Module):
     ) -> th.tensor:
 
         # We are expecting obs to have shape [batch_size, n_envs, obs_dim]
+        if self.recon_obs:
+            obs = idx2vector(obs, height=self.env_configs['map_height'], width=self.env_configs['map_width'])
+        else:
+            obs = copy.copy(obs)
         obs, orig_shape = self.flatten(obs)
-        acs, _ = self.flatten(acs)
         # No need to normalize as nominal obs are already normalized
         # obs = self.normalize_obs(obs, self.current_obs_mean, self.current_obs_var, self.clip_obs)
         acs = self.reshape_actions(acs)
@@ -257,6 +273,10 @@ class GailDiscriminator(nn.Module):
             obs: np.ndarray,
             acs: np.ndarray,
     ) -> th.tensor:
+        if self.recon_obs:
+            obs = idx2vector(obs, height=self.env_configs['map_height'], width=self.env_configs['map_width'])
+        else:
+            obs = copy.copy()
 
         obs = self.normalize_obs(obs, self.current_obs_mean, self.current_obs_var, self.clip_obs)
         acs = self.reshape_actions(acs)
@@ -354,7 +374,8 @@ class GailDiscriminator(nn.Module):
             obs_var: Optional[np.ndarray] = None,
             action_low: Optional[float] = None,
             action_high: Optional[float] = None,
-            device: str = "auto"
+            device: str = "auto",
+            recon_obs: bool = False
     ):
 
         state_dict = th.load(load_path)
@@ -388,7 +409,8 @@ class GailDiscriminator(nn.Module):
             obs_dim, acs_dim, hidden_sizes, None, None, expert_obs, expert_acs,
             is_discrete, obs_select_dim, acs_select_dim, None,
             None, clip_obs, obs_mean, obs_var, action_low, action_high,
-            device=device
+            device=device,
+            recon_obs=recon_obs
         )
         gail_net.network.load_state_dict(state_dict["network"])
 

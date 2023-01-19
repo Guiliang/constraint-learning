@@ -8,22 +8,26 @@ import warnings
 import gym
 import numpy as np
 import yaml
+from matplotlib import pyplot as plt
+
+from common.cns_sampler import ConstrainedRLSampler
 
 cwd = os.getcwd()
 sys.path.append(cwd.replace('/interface', ''))
 from utils.env_utils import check_if_duplicate_seed
+from stable_baselines3.iteration.policy_interation_gail import PolicyIterationGail
 from common.cns_env import make_train_env, make_eval_env, SaveEnvStatsCallback
 from common.cns_evaluation import CNSEvalCallback
 from common.cns_save_callbacks import CNSCheckpointCallback
-from common.cns_visualization import PlotCallback
+from common.cns_visualization import PlotCallback, constraint_visualization_2d, traj_visualization_2d
 from constraint_models.constraint_net.gail_net import GailDiscriminator, GailCallback
 from exploration.exploration import CostShapingCallback
 from stable_baselines3 import PPO
 from stable_baselines3.common import logger
 from stable_baselines3.common.utils import get_schedule_fn
-from stable_baselines3.common.vec_env import VecNormalize
-from utils.data_utils import read_args, load_config, process_memory, load_expert_data, print_resource
-from utils.model_utils import load_ppo_config
+from stable_baselines3.common.vec_env import VecNormalize, sync_envs_normalization
+from utils.data_utils import read_args, load_config, process_memory, load_expert_data, print_resource, del_and_make
+from utils.model_utils import load_ppo_config, load_policy_iteration_config
 from utils.true_constraint_functions import get_true_cost_function
 import stable_baselines3.common.callbacks as callbacks
 
@@ -44,12 +48,14 @@ def train(args):
     debug_msg = ''
     if debug_mode:
         config['device'] = 'cpu'
-        # config['verbose'] = 2  # the verbosity level: 0 no output, 1 info, 2 debug
-        config['running']['save_every'] = 2048
-        config['running']['eval_every'] = 1024
         debug_msg = 'debug-'
         partial_data = True
         # debug_msg += 'part-'
+        if 'iteration' in config.keys():
+            config['iteration']['max_iter'] = 2
+        else:
+            config['running']['save_every'] = 2048
+            config['running']['eval_every'] = 1024
     if partial_data:
         debug_msg += 'part-'
 
@@ -141,7 +147,11 @@ def train(args):
 
     # Set specs
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
-    obs_dim = train_env.observation_space.shape[0]
+    recon_obs = config['DISC']['recon_obs'] if 'recon_obs' in config['DISC'].keys() else False
+    if recon_obs:
+        obs_dim = env_configs['map_height'] * env_configs['map_width']
+    else:
+        obs_dim = train_env.observation_space.shape[0]
     acs_dim = train_env.action_space.n if is_discrete else train_env.action_space.shape[0]
     action_low, action_high = None, None
     if isinstance(train_env.action_space, gym.spaces.Box):
@@ -177,47 +187,50 @@ def train(args):
     else:
         gail_logger = logger.HumanOutputFormat(log_file)
 
-    # Do we want to restore gail from a saved model?
-    if config['DISC']['gail_path'] is not None:
-        discriminator = GailDiscriminator.load(
-            config.gail_path,
-            obs_dim=obs_dim,
-            acs_dim=acs_dim,
-            is_discrete=is_discrete,
-            expert_obs=expert_obs,
-            expert_acs=expert_acs,
-            obs_select_dim=config['DISC']['disc_obs_select_dim'],
-            acs_select_dim=config['DISC']['disc_acs_select_dim'],
-            clip_obs=None,
-            obs_mean=None,
-            obs_var=None,
-            action_low=action_low,
-            action_high=action_high,
-            device=config['device'],
-        )
-        discriminator.freeze_weights = config['DISC']['freeze_gail_weights']
-    else:  # Initialize GAIL and setup its callback
-        discriminator = GailDiscriminator(
-            obs_dim,
-            acs_dim,
-            config['DISC']['disc_layers'],
-            config['DISC']['disc_batch_size'],
-            get_schedule_fn(config['DISC']['disc_learning_rate']),
-            expert_obs,
-            expert_acs,
-            is_discrete,
-            obs_select_dim=config['DISC']['disc_obs_select_dim'],
-            acs_select_dim=config['DISC']['disc_acs_select_dim'],
-            clip_obs=config['DISC']['clip_obs'],
-            initial_obs_mean=None,
-            initial_obs_var=None,
-            action_low=action_low,
-            action_high=action_high,
-            num_spurious_features=config['DISC']['num_spurious_features'],
-            freeze_weights=config['DISC']['freeze_gail_weights'],
-            eps=float(config['DISC']['disc_eps']),
-            device=config['device']
-        )
+    # # Do we want to restore gail from a saved model?
+    # if config['DISC']['gail_path'] is not None:
+    #     discriminator = GailDiscriminator.load(
+    #         config.gail_path,
+    #         obs_dim=obs_dim,
+    #         acs_dim=acs_dim,
+    #         is_discrete=is_discrete,
+    #         expert_obs=expert_obs,
+    #         expert_acs=expert_acs,
+    #         obs_select_dim=config['DISC']['disc_obs_select_dim'],
+    #         acs_select_dim=config['DISC']['disc_acs_select_dim'],
+    #         clip_obs=None,
+    #         obs_mean=None,
+    #         obs_var=None,
+    #         action_low=action_low,
+    #         action_high=action_high,
+    #         device=config['device'],
+    #         recon_obs=recon_obs,
+    #     )
+    #     discriminator.freeze_weights = config['DISC']['freeze_gail_weights']
+    # else:  # Initialize GAIL and setup its callback
+    discriminator = GailDiscriminator(
+        obs_dim,
+        acs_dim,
+        config['DISC']['disc_layers'],
+        config['DISC']['disc_batch_size'],
+        get_schedule_fn(config['DISC']['disc_learning_rate']),
+        expert_obs,
+        expert_acs,
+        is_discrete,
+        obs_select_dim=config['DISC']['disc_obs_select_dim'],
+        acs_select_dim=config['DISC']['disc_acs_select_dim'],
+        clip_obs=config['DISC']['clip_obs'],
+        initial_obs_mean=None,
+        initial_obs_var=None,
+        action_low=action_low,
+        action_high=action_high,
+        num_spurious_features=config['DISC']['num_spurious_features'],
+        freeze_weights=config['DISC']['freeze_gail_weights'],
+        eps=float(config['DISC']['disc_eps']),
+        device=config['device'],
+        recon_obs=recon_obs,
+        env_configs=env_configs,
+    )
     # TODO: add more config
     true_cost_function = get_true_cost_function(env_id=config['env']['eval_env_id'],
                                                 env_configs=env_configs)
@@ -237,8 +250,41 @@ def train(args):
         all_callbacks = [gail_update]
 
     # Define and train model
-    ppo_parameters = load_ppo_config(config=config, train_env=train_env, seed=seed, log_file=log_file)
-    model = PPO(**ppo_parameters)
+    if 'PPO' in config.keys():
+        ppo_parameters = load_ppo_config(config=config,
+                                         train_env=train_env,
+                                         seed=seed,
+                                         log_file=log_file)
+        create_nominal_agent = lambda: PPO(**ppo_parameters)
+        reset_policy = None
+        reset_every = None
+        forward_timesteps = None
+    elif 'iteration' in config.keys():
+        if "planning" in config['running'].keys() and config['running']['planning']:
+            planning_config = config['Plan']
+            config['Plan']['top_candidates'] = int(config['running']['sample_rollouts'])
+        else:
+            planning_config = None
+        sampler = ConstrainedRLSampler(rollouts=int(config['running']['sample_rollouts']),
+                                       store_by_game=True,  # I move the step out
+                                       cost_info_str=config['env']['cost_info_str'],
+                                       sample_multi_env=False,
+                                       env_id=config['env']['eval_env_id'],
+                                       env=eval_env,
+                                       planning_config=planning_config)
+        iteration_parameters = load_policy_iteration_config(config=config,
+                                                            env_configs=env_configs,
+                                                            train_env=train_env,
+                                                            seed=seed,
+                                                            log_file=log_file)
+        create_nominal_agent = lambda: PolicyIterationGail(discriminator=discriminator,
+                                                           **iteration_parameters)
+        reset_policy = config['iteration']['reset_policy']
+        reset_every = config['iteration']['reset_every']
+        forward_timesteps = config['iteration']['max_iter']
+    else:
+        raise ValueError("Unknown model {0}.".format(config['group']))
+    model = create_nominal_agent()
 
     # All callbacks
     save_periodically = CNSCheckpointCallback(
@@ -263,8 +309,90 @@ def train(args):
     all_callbacks.extend([save_periodically, save_best])
 
     # Train
-    model.learn(total_timesteps=int(config['PPO']['timesteps']),
-                callback=all_callbacks)
+    if 'PPO' in config.keys():
+        model.learn(total_timesteps=int(config['PPO']['timesteps']),
+                    callback=all_callbacks)
+    elif 'iteration' in config.keys():
+        timesteps = 0.
+        start_time = time.time()
+        print("\nBeginning training", file=log_file, flush=True)
+        for itr in range(config['running']['n_iters']):
+            if reset_policy and itr % reset_every == 0:
+                print("\nResetting agent", file=log_file, flush=True)
+                model = create_nominal_agent()
+            current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
+
+            model.learn(
+                iterations=config['DISC']['backward_iters'],
+                total_timesteps=forward_timesteps,
+                cost_function=config['env']['cost_info_str'],
+                callback=all_callbacks
+            )
+            forward_metrics = logger.Logger.CURRENT.name_to_value
+            timesteps += model.num_timesteps
+
+            mem_prev, time_prev = print_resource(mem_prev=mem_prev,
+                                                 time_prev=time_prev,
+                                                 process_name='Training PolicyIterationLagrange model',
+                                                 log_file=log_file)
+
+            # Evaluate:
+            save_path = save_model_mother_dir + '/model_{0}_itrs'.format(itr)
+            if itr % config['running']['save_every'] == 0:
+                del_and_make(save_path)
+            else:
+                save_path = None
+            sync_envs_normalization(train_env, eval_env)
+            orig_observations, observations, actions, rewards, sum_rewards, lengths = sampler.sample_from_agent(
+                policy_agent=model,
+                new_env=eval_env,
+            )
+            if 'WGW' in config['env']['train_env_id'] and itr % config['running']['save_every'] == 0:
+                traj_visualization_2d(config=config,
+                                      observations=orig_observations,
+                                      save_path=save_path,
+                                      model_name=args.config_file.split('/')[-1].split('.')[0],
+                                      title='Iteration-{0}'.format(itr),
+                                      )
+
+            # Save
+            # (1) periodically
+            if itr % config['running']['save_every'] == 0:
+                model.save(os.path.join(save_path, "nominal_agent"))
+                if isinstance(train_env, VecNormalize):
+                    train_env.save(os.path.join(save_path, "train_env_stats.pkl"))
+                    if 'iteration' in config.keys():
+                        plt.figure(figsize=(5, 5))
+                        plt.matshow(model.v_m, origin='lower')
+                        plt.gca().xaxis.set_ticks_position('bottom')
+                        plt.colorbar()
+                        plt.title('Iteration {0}'.format(itr), fontsize=24)
+                        plt.savefig(os.path.join(save_path, "v_m_aid_{0}_iteration_{1}.png".format(
+                            args.config_file.split('/')[-1].split('.')[0], itr)))
+
+                if 'WGW' in config['env']['train_env_id'] and itr % config['running']['save_every'] == 0:
+                    constraint_visualization_2d(cost_function=discriminator.cost_function,
+                                                feature_range=config['env']["visualize_info_ranges"],
+                                                select_dims=config['env']["record_info_input_dims"],
+                                                obs_dim=train_env.observation_space.shape[0],
+                                                acs_dim=1 if is_discrete else train_env.action_space.shape[0],
+                                                save_path=save_path,
+                                                model_name=args.config_file.split('/')[-1].split('.')[0],
+                                                title='Iteration-{0}'.format(itr),
+                                                )
+                    if 'WGW' in config['env']['train_env_id'] and itr % config['running']['save_every'] == 0:
+                        constraint_visualization_2d(cost_function=discriminator.cost_function,
+                                                    feature_range=config['env']["visualize_info_ranges"],
+                                                    select_dims=config['env']["record_info_input_dims"],
+                                                    obs_dim=train_env.observation_space.shape[0],
+                                                    acs_dim=1 if is_discrete else train_env.action_space.shape[0],
+                                                    save_path=save_model_mother_dir,
+                                                    model_name=args.config_file.split('/')[-1].split('.')[0],
+                                                    title='{0}'.format(config['task']),
+                                                    )
+
+    else:
+        raise ValueError("Unknown model {0}.".format(config['group']))
 
     # Save final discriminator
     if not config['DISC']['freeze_gail_weights']:
