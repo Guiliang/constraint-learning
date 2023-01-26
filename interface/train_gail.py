@@ -172,14 +172,14 @@ def train(args):
         add_next_step=False,
         log_file=log_file
     )
-    # if config['running']['store_by_game']:
-    #     expert_obs = expert_obs_games
-    #     expert_acs = expert_acs_games
-    #     expert_rs = expert_rs_games
-    # else:
-    expert_obs = np.concatenate(expert_obs_games, axis=0)
-    expert_acs = np.concatenate(expert_acs_games, axis=0)
-    expert_rs = np.concatenate(expert_rs_games, axis=0)
+    if 'store_by_game' in config['running'].keys() and config['running']['store_by_game']:
+        expert_obs = expert_obs_games
+        expert_acs = expert_acs_games
+        expert_rs = expert_rs_games
+    else:
+        expert_obs = np.concatenate(expert_obs_games, axis=0)
+        expert_acs = np.concatenate(expert_acs_games, axis=0)
+        expert_rs = np.concatenate(expert_rs_games, axis=0)
 
     # Logger
     if log_file is None:
@@ -258,7 +258,7 @@ def train(args):
         create_nominal_agent = lambda: PPO(**ppo_parameters)
         reset_policy = None
         reset_every = None
-        forward_timesteps = None
+        # forward_timesteps = None
     elif 'iteration' in config.keys():
         if "planning" in config['running'].keys() and config['running']['planning']:
             planning_config = config['Plan']
@@ -281,7 +281,7 @@ def train(args):
                                                            **iteration_parameters)
         reset_policy = config['iteration']['reset_policy']
         reset_every = config['iteration']['reset_every']
-        forward_timesteps = config['iteration']['max_iter']
+        # forward_timesteps = config['iteration']['forward_timesteps']
     else:
         raise ValueError("Unknown model {0}.".format(config['group']))
     model = create_nominal_agent()
@@ -323,8 +323,8 @@ def train(args):
             current_progress_remaining = 1 - float(itr) / float(config['running']['n_iters'])
 
             model.learn(
-                iterations=config['DISC']['backward_iters'],
-                total_timesteps=forward_timesteps,
+                iteration=config['iteration']['max_iter'],
+                # total_timesteps=forward_timesteps,
                 cost_function=config['env']['cost_info_str'],
                 callback=all_callbacks
             )

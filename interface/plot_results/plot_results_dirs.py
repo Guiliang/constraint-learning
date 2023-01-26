@@ -927,6 +927,26 @@ def get_plot_results_dir(env_id):
             "Binary_without-action_by_games_max-nu-1_with-buffer-setting4": [
                 '../save_model/Binary-WallGrid/train_Binary_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting4-Dec-26-2022-21:14-seed_123/',
             ],
+            "GAIL_without-action_by_games_with-buffer-setting1": [
+                '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting1-Jan-20-2023-17:28-seed_123/',
+                # '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting1-Jan-19-2023-17:22-seed_123/',
+                # '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting1-Jan-19-2023-19:37-seed_123/',
+            ],
+            "GAIL_without-action_by_games_with-buffer-setting2": [
+                '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting2-Jan-20-2023-17:28-seed_123/',
+                # '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting2-Jan-19-2023-17:31-seed_123/',
+                # '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting2-Jan-20-2023-10:34-seed_123/',
+            ],
+            "GAIL_without-action_by_games_with-buffer-setting3": [
+                '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting3-Jan-20-2023-17:28-seed_123/',
+                # '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting3-Jan-19-2023-17:44-seed_123/'
+                # '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting3-Jan-20-2023-10:37-seed_123/',
+            ],
+            "GAIL_without-action_by_games_with-buffer-setting4": [
+                '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting4-Jan-20-2023-17:20-seed_123/',
+                # '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting4-Jan-19-2023-17:52-seed_123/',
+                # '../save_model/GAIL-WallGrid/train_GAIL_WGW-v0_without-action_by_games_with-buffer-setting4-Jan-20-2023-10:41-seed_123/',
+            ],
         }
     elif env_id == 'HCWithPos-v0':
         log_path_dict = {

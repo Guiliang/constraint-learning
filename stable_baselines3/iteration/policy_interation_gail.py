@@ -80,14 +80,15 @@ class PolicyIterationGail(ABC):
         return pi
 
     def learn(self,
-              total_timesteps: int,
+              iteration: int,
+              # total_timesteps: int,
               cost_function: Union[str, Callable],
               latent_info_str: Union[str, Callable] = '',
               callback=None,
-              iterations:int=1,):
+              ):
         policy_stable, dual_stable = False, False
         iter = 0
-        for iter in tqdm(range(total_timesteps)):
+        for iter in tqdm(range(iteration)):
             if policy_stable and dual_stable:
                 print("\nStable at Iteration {0}.".format(iter), file=self.log_file)
                 break
@@ -96,20 +97,20 @@ class PolicyIterationGail(ABC):
             self.policy_evaluation(cost_function)
             # Run the policy improvement algorithm
             policy_stable = self.policy_improvement(cost_function)
-            cumu_reward, length, dual_stable = self.dual_update(cost_function)
-        self.collect_rollouts(total_timesteps, iterations)
+            self.collect_rollouts_and_update(iteration)
         logger.record("train/iterations", iter)
-        logger.record("train/cumulative rewards", cumu_reward)
-        logger.record("train/length", length)
+        # logger.record("train/cumulative rewards", cumu_reward)
+        # logger.record("train/length", length)
 
-    def collect_rollouts(
-            self, total_timesteps, iterations
+    def collect_rollouts_and_update(
+            self, iteration
     ) -> bool:
 
         obs = self.env.reset()
-        actions_game, obs_game, costs_game = [], [], []
-        while len(actions_game) <= total_timesteps:
-
+        actions_game_all, obs_game_all = [], []
+        data_num = 0
+        for iter in tqdm(range(1)):
+            actions_game, obs_game = [], []
             while True:
                 actions, _ = self.predict(obs=obs, state=None)
                 actions_game.append(actions[0])
@@ -117,9 +118,12 @@ class PolicyIterationGail(ABC):
                 obs = obs_primes
                 obs_game.append(obs[0].tolist())
                 done = dones[0]
+                data_num += 1
                 if done:
                     break
-            self.discriminator.train(iterations, np.array(obs_game), np.array(actions_game))
+            obs_game_all.append(np.asarray(obs_game))
+            actions_game_all.append(np.asarray(actions_game))
+        self.discriminator.train_gridworld_nn(iteration, obs_game_all, actions_game_all)
 
         return True
 

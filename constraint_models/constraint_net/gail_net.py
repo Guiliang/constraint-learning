@@ -227,6 +227,92 @@ class GailDiscriminator(nn.Module):
                         "discriminator/mean_expert_preds": expert_preds.mean().item()}
         return disc_metrics
 
+    def train_gridworld_nn(
+            self,
+            iterations: np.ndarray,
+            nominal_obs: np.ndarray,
+            nominal_acs: np.ndarray,
+            obs_mean: Optional[np.ndarray] = None,
+            obs_var: Optional[np.ndarray] = None,
+            env_configs: Dict = None,
+            current_progress_remaining: float = 1,
+    ) -> Dict[str, Any]:
+        # Update learning rate
+        self._update_learning_rate(current_progress_remaining)
+
+        # Update normalization stats
+        self.current_obs_mean = obs_mean
+        self.current_obs_var = obs_var
+
+        # Prepare data
+        nominal_data_games = [self.prepare_nominal_data(nominal_obs[i], nominal_acs[i])[0]
+                              for i in range(len(nominal_obs))]
+        expert_data_games = [self.prepare_expert_data(self.expert_obs[i], self.expert_acs[i])
+                             for i in range(len(self.expert_obs))]
+
+        early_stop_itr = iterations
+        # loss = th.tensor(np.inf)
+        for itr in tqdm(range(iterations)):
+            for gid in range(min(len(nominal_data_games), len(expert_data_games))):
+                nominal_data = nominal_data_games[gid]
+                expert_data = expert_data_games[gid]
+
+                is_weights = th.ones(nominal_data.shape[0]).to(self.device)
+
+                nominal_preds_all = []
+                expert_preds_all = []
+                # Do a complete pass on the game data
+                for nom_batch_indices, exp_batch_indices in self.getindex(nominal_data.shape[0],
+                                                                          expert_data.shape[0]):
+                    # Get batch data
+                    nominal_batch = nominal_data[nom_batch_indices]
+                    expert_batch = expert_data[exp_batch_indices]
+                    is_batch = is_weights[nom_batch_indices][..., None]
+
+                    # Make predictions
+                    nominal_preds = self.__call__(nominal_batch)
+                    nominal_preds_all.append(nominal_preds)
+                    expert_preds = self.__call__(expert_batch)
+                    expert_preds_all.append(expert_preds)
+
+                # Calculate loss
+                expert_preds_all = th.cat(expert_preds_all)
+                nominal_preds_all = th.cat(nominal_preds_all)
+
+                nominal_loss = self.loss_fn(nominal_preds_all, th.zeros(*nominal_preds_all.size()).to(self.device))
+                expert_loss = self.loss_fn(expert_preds_all, th.ones(*expert_preds_all.size()).to(self.device))
+                loss = nominal_loss + expert_loss
+
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+
+        bw_metrics = {"backward/gail_loss": loss.item(),
+                      "backward/unweighted_nominal_loss": th.mean(th.log(nominal_preds + self.eps)).item(),
+                      "backward/nominal_loss": nominal_loss.item(),
+                      "backward/is_mean": th.mean(is_weights).detach().item(),
+                      "backward/is_max": th.max(is_weights).detach().item(),
+                      "backward/is_min": th.min(is_weights).detach().item(),
+                      "backward/nominal_preds_max": th.max(nominal_preds).item(),
+                      "backward/nominal_preds_min": th.min(nominal_preds).item(),
+                      "backward/nominal_preds_mean": th.mean(nominal_preds).item()
+                      }
+        return bw_metrics
+
+    def getindex(self, nom_size: int, exp_size: int) -> np.ndarray:
+        if self.batch_size is None:
+            yield np.arange(nom_size), np.arange(exp_size)
+        else:
+            size = min(nom_size, exp_size)
+            expert_indices = np.random.permutation(exp_size)
+            nom_indices = np.random.permutation(nom_size)
+            start_idx = 0
+            while start_idx < size:
+                batch_expert_indices = expert_indices[start_idx:start_idx + self.batch_size]
+                batch_nom_indices = nom_indices[start_idx:start_idx + self.batch_size]
+                yield batch_nom_indices, batch_expert_indices
+                start_idx += self.batch_size
+
     def select_appropriate_dims(self, x: Union[np.ndarray, th.tensor]) -> Union[np.ndarray, th.tensor]:
         return x[..., self.select_dim]
 
@@ -276,7 +362,7 @@ class GailDiscriminator(nn.Module):
         if self.recon_obs:
             obs = idx2vector(obs, height=self.env_configs['map_height'], width=self.env_configs['map_width'])
         else:
-            obs = copy.copy()
+            obs = copy.copy(obs)
 
         obs = self.normalize_obs(obs, self.current_obs_mean, self.current_obs_var, self.clip_obs)
         acs = self.reshape_actions(acs)
