@@ -9,5 +9,6 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 pip install -e ./mujuco_environment/
 cd ./interface/
 #nohup python train_icrl.py ../config/mujoco_WGW-v0/train_VICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_with-buffer-setting1.yaml -n 1 -s 123 -l "$log_dir" > nohup_vicrl.out 2>&1 &
-nohup python train_icrl.py ../config/mujoco_WGW-v0/train_VICRL_WGW-v0_without-action_by_games_max-nu-1_recon_obs_p-9e-2-1e-2_with-buffer-setting1.yaml -n 1 -s 123 -l "$log_dir" > nohup_vicrl.out 2>&1 &
+nohup python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 123 -l "$log_dir" > nohup_vicrl.out 2>&1 &
+nohup python train_icrl.py ../config/mujuco_HCWithPos-v0/train_VICRL_HCWithPos-v0_with_action_with_buffer_p-9e-1-1e-1_clr-5e-3_no_is.yaml -n 5 -s 123 -l "$log_dir" > nohup_vicrl.out 2>&1 &
 cd ../
