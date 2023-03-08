@@ -8,6 +8,10 @@ import gym
 import numpy as np
 import datetime
 import yaml
+from stable_baselines.common.vec_env import sync_envs_normalization
+
+from common.cns_sample import sample_from_multi_agents, sample_from_agent
+from common.cns_visualization import traj_visualization_2d
 
 warnings.filterwarnings("ignore")
 cwd = os.getcwd()
@@ -41,7 +45,8 @@ def train(args):
     if debug_mode:
         debug_msg = 'debug-'
         partial_data = True
-        config['interation']['stopping_threshold'] = 0.01
+        config['iteration']['stopping_threshold'] = 0.01
+        config['iteration']['max_iter'] = 2
     if partial_data:
         debug_msg += 'part-'
 
@@ -110,6 +115,7 @@ def train(args):
                                           constraint_id=config['env']['constraint_id'],
                                           latent_dim=config['running']['latent_dim'],
                                           )
+
 
     mem_loading_environment = process_memory()
     time_loading_environment = time.time()
@@ -208,6 +214,24 @@ def train(args):
                                save_name=os.path.join(path, "{0}".format(record_info_name)),
                                apply_scatter=True
                                )
+
+            # Sample nominal trajectories
+            sync_envs_normalization(train_env, eval_env)
+            sample_data = sample_from_agent(
+                agent=iteration_agent,
+                env=eval_env,
+                deterministic=False,
+                rollouts=int(config['running']['sample_rollouts']),
+                store_by_game=config['running']['store_by_game'],
+                store_code=False,
+            )
+            orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_data
+            traj_visualization_2d(config=config,
+                                  observations=orig_observations,
+                                  save_path=path,
+                                  model_name=args.config_file.split('/')[-1].split('.')[0],
+                                  title='Iteration-{0}'.format(itr),
+                                  )
 
         # (2) best
         if mean_nc_reward > best_true_reward:

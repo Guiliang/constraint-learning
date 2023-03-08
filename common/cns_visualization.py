@@ -11,25 +11,30 @@ from utils.model_utils import build_code, update_code
 from utils.plot_utils import plot_curve
 
 
-def traj_visualization_2d(config, codes, observations, save_path):
-    # tmp = config['env']["record_info_names"]
+def traj_visualization_2d(config, observations, save_path, model_name='', title='', axis_size=24):
     traj_num = len(observations)
-    plt.figure()
-    colors = ['b', 'r']
-    for c_id in range(config['CN']['latent_dim']):
-        for i in range(traj_num):
-            tmp = np.argmax(codes[i][0])
-            if c_id == tmp:
-                x = observations[i][:, config['env']["record_info_input_dims"][0]]
-                y = observations[i][:, config['env']["record_info_input_dims"][1]]
-                plt.plot(x, y, color=colors[c_id], label=c_id)
-                plt.scatter(x, y, color=colors[c_id], label=c_id)
-    plt.xlim(config['env']["visualize_info_ranges"][0])
-    plt.xlim(config['env']["visualize_info_ranges"][1])
-    plt.xlabel(config['env']["record_info_names"][0])
-    plt.ylabel(config['env']["record_info_names"][1])
-    plt.legend()
-    plt.savefig(os.path.join(save_path, "2d_traj_visual.png".format()))
+    import matplotlib as mpl
+    mpl.rcParams['xtick.labelsize'] = axis_size
+    mpl.rcParams['ytick.labelsize'] = axis_size
+    plt.figure(figsize=(5, 5))
+    for i in range(traj_num)[0: 5]:
+        x = observations[i][:, config['env']["record_info_input_dims"][0]]
+        y = observations[i][:, config['env']["record_info_input_dims"][1]]
+        plt.plot(x, y, label='{0}th Traj'.format(i))
+        plt.scatter(x, y)
+    xticks = np.arange(config['env']["visualize_info_ranges"][0][0],
+                       config['env']["visualize_info_ranges"][0][1] + 1, 1)
+    plt.xticks(xticks)
+    yticks = np.arange(config['env']["visualize_info_ranges"][1][0],
+                       config['env']["visualize_info_ranges"][1][1] + 1, 1)
+    plt.yticks(yticks)
+    # plt.yticks(config['env']["visualize_info_ranges"][1])
+    # plt.xlabel(config['env']["record_info_names"][0], fontsize=axis_size)
+    # plt.ylabel(config['env']["record_info_names"][1], fontsize=axis_size)
+    plt.legend(fontsize=15, loc='lower right')
+    plt.grid(linestyle='--')
+    plt.title('{0}'.format(title), fontsize=axis_size)
+    plt.savefig(os.path.join(save_path, "2d_traj_visual_{0}_{1}.png".format(model_name, title)))
 
 
 def traj_visualization_1d(config, codes, observations, save_path):

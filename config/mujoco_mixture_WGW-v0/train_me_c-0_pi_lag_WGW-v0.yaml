@@ -16,15 +16,17 @@ env:
   dont_normalize_reward: True
   dont_normalize_cost: True  # cost
   record_info_names: ['x_position', 'y_position']
-  record_info_input_dims: [ 0, 1 ] # the dim of record info in inputs=(obs, action)
+  record_info_input_dims: [ 1, 0 ]  # height, width
   visualize_info_ranges: [ [ 0, 6 ], [ 0, 6 ]  ]
 
 running:
-  n_iters: 1
+  n_iters: 10
+  sample_rollouts: 10
   n_eval_episodes: 10
   save_every: 1
   latent_dim: 2
   render: False
+  store_by_game: True
 
 iteration:
   stopping_threshold: 0.001

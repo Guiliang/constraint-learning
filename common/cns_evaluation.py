@@ -87,7 +87,7 @@ def evaluate_iteration_policy(
             episode_costs.append(costs)
             for i in range(env.num_envs):
                 for record_info_name in record_info_names:
-                    record_infos[record_info_name].append(np.mean(infos[i][record_info_name]))
+                    record_infos[record_info_name].append(np.mean(_infos[i][record_info_name]))
                 if not is_constraint[i]:
                     if orig_costs[i]:
                         is_constraint[i] = True

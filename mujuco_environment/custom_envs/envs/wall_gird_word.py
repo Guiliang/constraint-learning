@@ -221,6 +221,8 @@ class WallGridworld(gym.Env):
         last_state = self.state
         next_state = st_prob[sampled_idx][0]
         reward = self.reward_mat[next_state[0]][next_state[1]]
+        if action >= 4:
+            reward -= 0.1
         self.curr_state = next_state
         # return {
         #     "next_state": list(self.state),

@@ -55,7 +55,6 @@ def sample_from_multi_agents(agents, latent_dim, env, rollouts, deterministic=Fa
     return all_orig_obs, all_obs, all_acs, all_rs, all_codes, sum_rewards, lengths
 
 
-
 def sample_from_agent(agent, env, rollouts, deterministic=False, store_by_game=False, **sample_parameters):
     if isinstance(env, vec_env.VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
@@ -69,9 +68,8 @@ def sample_from_agent(agent, env, rollouts, deterministic=False, store_by_game=F
         # Avoid double reset, as VecEnv are reset automatically
         if i == 0:
             obs = env.reset()
-            code = sample_parameters['init_codes']
-        # benchmark_id = env.venv.envs[0].benchmark_id
-        # print('senario id', benchmark_id)
+            if sample_parameters['store_code']:
+                code = sample_parameters['init_codes']
 
         done, states = False, None
         episode_sum_reward = 0.0
@@ -102,9 +100,12 @@ def sample_from_agent(agent, env, rollouts, deterministic=False, store_by_game=F
                 if sample_parameters['store_code']:
                     all_codes.append(code)
             # action_code = np.concatenate([actions, codes], axis=1)
-            obs, reward, done, _info = env.step_with_code(action, code)
             if sample_parameters['store_code']:
+                obs, reward, done, _info = env.step(action, code)
                 code = np.asarray([_info[0]["new_code"]])
+            else:
+                obs, reward, done, _info = env.step(action)
+            agent.admissible_actions = _info[0]['admissible_actions']
             if store_by_game:
                 rs_game.append(reward)
             else:
