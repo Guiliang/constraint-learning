@@ -22,7 +22,8 @@ cd ./interface/
 #nohup python train_meicrl.py ../config/mujoco_mixture_WGW-v0/train_MEICRL_WGW-v0_with_buffer.yaml -s 123 -n 1 -l "$log_dir" > nohup.out 2>&1 &
 #nohup python train_meicrl.py ../config/mujoco_mixture_WGW-v0/train_MEICRL_WGW-v0_max_nu-1e0.yaml -s 123 -n 1 -l "$log_dir" > nohup.out 2>&1 &
 #nohup python train_meicrl.py ../config/mujoco_mixture_WGW-v0/train_MEICRL_WGW-v0_aclr-1e0.yaml -s 123 -n 1 -l "$log_dir" > nohup.out 2>&1 &
-nohup python train_meicrl.py ../config/mujoco_mixture_WGW-v0/train_MEICRL_WGW-v0_aclr-1e0_clr-1e-2.yaml -s 123 -n 1 -l "$log_dir" > nohup.out 2>&1 &
+#nohup python train_meicrl.py ../config/mujoco_mixture_WGW-v0/train_MEICRL_WGW-v0_aclr-1e0_clr-1e-2.yaml -s 123 -n 1 -l "$log_dir" > nohup.out 2>&1 &
+nohup python train_meicrl.py ../config/mujuco_mixture_HCWithPos-v0/train_MEICRL_HCWithPos-v0_cbs-64_lr-5e-5_ft-2e5_exp-neg-coef-5e-1_piv-1e1_plr-1e-2_weight-5e-1.yaml -s 123 -n 1 -l "$log_dir" > nohup.out 2>&1 &
 #process_id=$!
 #wait $process_id
 #echo shell finish running round $process_id

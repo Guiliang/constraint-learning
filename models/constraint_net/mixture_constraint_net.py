@@ -55,6 +55,7 @@ class MixtureConstraintNet(ConstraintNet):
             eta: float = 0.1,
             device: str = "cpu",
             log_file=None,
+            recon_obs: bool = False,
     ):
         super(MixtureConstraintNet, self).__init__(obs_dim=obs_dim,
                                                    acs_dim=acs_dim,
@@ -83,6 +84,7 @@ class MixtureConstraintNet(ConstraintNet):
                                                    eps=eps,
                                                    device=device,
                                                    log_file=log_file,
+                                                   recon_obs=recon_obs,
                                                    build_net=False)
         self.latent_dim = latent_dim
         self.max_seq_length = max_seq_length

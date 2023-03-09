@@ -1,3 +1,4 @@
+import copy
 import os
 from itertools import accumulate
 from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
@@ -9,6 +10,8 @@ from cirl_stable_baselines3.common.torch_layers import create_mlp
 from cirl_stable_baselines3.common.utils import update_learning_rate
 from torch import nn
 from tqdm import tqdm
+
+from utils.data_utils import idx2vector
 
 
 class ConstraintNet(nn.Module):
@@ -41,7 +44,8 @@ class ConstraintNet(nn.Module):
             eps: float = 1e-5,
             device: str = "cpu",
             log_file=None,
-            build_net=True,
+            build_net: bool = True,
+            recon_obs: bool = False,
     ):
         super(ConstraintNet, self).__init__()
         self.task = task
@@ -63,6 +67,7 @@ class ConstraintNet(nn.Module):
         self.clip_obs = clip_obs
         self.device = device
         self.eps = eps
+        self.recon_obs = recon_obs
 
         self.train_gail_lambda = train_gail_lambda
 
@@ -281,6 +286,11 @@ class ConstraintNet(nn.Module):
             obs: np.ndarray,
             acs: np.ndarray,
     ) -> th.tensor:
+
+        if self.recon_obs:
+            obs = idx2vector(obs, height=self.env_configs['map_height'], width=self.env_configs['map_width'])
+        else:
+            obs = copy.copy(obs)
 
         obs = self.normalize_obs(obs, self.current_obs_mean, self.current_obs_var, self.clip_obs)
         acs = self.reshape_actions(acs)

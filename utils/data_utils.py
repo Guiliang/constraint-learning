@@ -497,3 +497,15 @@ def build_rnn_input(max_seq_length, input_data_list):
             input_seqs.append(np.stack(store_seq, dim=0))
     tmp = torch.stack(input_seqs, dim=0)
     return torch.stack(input_seqs, dim=0)
+
+
+def idx2vector(indices, height, width):
+    vector_all = []
+    for idx in indices:
+        map = np.zeros(shape=[height, width])
+        x, y = int(round(idx[0], 0)), int(round(idx[1], 0))
+        # if x - idx[0] != 0:
+        #     print('debug')
+        map[x, y] = 1  # + idx[0] - x + idx[1] - y
+        vector_all.append(map.flatten())
+    return np.asarray(vector_all)
