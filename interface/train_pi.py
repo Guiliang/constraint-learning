@@ -226,11 +226,13 @@ def train(args):
                 store_code=False,
             )
             orig_observations, observations, actions, rewards, sum_rewards, lengths = sample_data
+            codes = [np.array([[int(i == int(config['env']['constraint_id'])) for i in range(3)]]) for i in range(len(orig_observations))]
             traj_visualization_2d(config=config,
                                   observations=orig_observations,
                                   save_path=path,
                                   model_name=args.config_file.split('/')[-1].split('.')[0],
                                   title='Iteration-{0}'.format(itr),
+                                  codes=codes,
                                   )
 
         # (2) best

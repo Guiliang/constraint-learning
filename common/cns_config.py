@@ -4,7 +4,7 @@ from utils.data_utils import get_input_features_dim
 from utils.env_utils import is_commonroad, get_obs_feature_names
 
 
-def get_cns_config(config, train_env, expert_obs, expert_acs, log_file):
+def get_cns_config(config, train_env, expert_obs, expert_acs, env_configs, log_file):
     # Initialize constraint net, true constraint net
     all_obs_feature_names = get_obs_feature_names(train_env, config['env']['train_env_id'])
     print("The observed features are: {0}".format(all_obs_feature_names), file=log_file, flush=True)
@@ -22,10 +22,13 @@ def get_cns_config(config, train_env, expert_obs, expert_acs, log_file):
           file=log_file,
           flush=True)
 
+    recon_obs = config['CN']['recon_obs'] if 'recon_obs' in config['CN'].keys() else False
     is_discrete = isinstance(train_env.action_space, gym.spaces.Discrete)
     print('is_discrete', is_discrete, file=log_file, flush=True)
-
-    obs_dim = train_env.observation_space.shape[0]
+    if recon_obs:
+        obs_dim = env_configs['map_height'] * env_configs['map_width']
+    else:
+        obs_dim = train_env.observation_space.shape[0]
     acs_dim = train_env.action_space.n if is_discrete else train_env.action_space.shape[0]
     action_low, action_high = None, None
     if isinstance(train_env.action_space, gym.spaces.Box):
@@ -46,6 +49,7 @@ def get_cns_config(config, train_env, expert_obs, expert_acs, log_file):
     cn_acs_select_dim = get_input_features_dim(feature_select_names=cn_acs_select_name,
                                                all_feature_names=['a_ego_0', 'a_ego_1'] if is_commonroad(
                                                    env_id=config['env']['train_env_id']) else None)
+
 
     cn_parameters = {
         'obs_dim': obs_dim,
@@ -71,7 +75,9 @@ def get_cns_config(config, train_env, expert_obs, expert_acs, log_file):
         'eps': config['CN']['cn_eps'],
         'device': config['device'],
         'task': config['task'],
-        'log_file': log_file
+        'log_file': log_file,
+        'recon_obs': config['CN']['recon_obs'],
+        'env_configs': env_configs,
     }
 
     return cn_parameters

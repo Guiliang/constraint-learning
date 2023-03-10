@@ -11,7 +11,7 @@ from utils.model_utils import build_code, update_code
 from utils.plot_utils import plot_curve
 
 
-def traj_visualization_2d(config, observations, save_path, model_name='', title='', axis_size=24):
+def traj_visualization_2d(config, codes, observations, save_path, model_name='', title='', axis_size=24):
     traj_num = len(observations)
     import matplotlib as mpl
     mpl.rcParams['xtick.labelsize'] = axis_size
@@ -20,7 +20,7 @@ def traj_visualization_2d(config, observations, save_path, model_name='', title=
     for i in range(traj_num)[0: 5]:
         x = observations[i][:, config['env']["record_info_input_dims"][0]]
         y = observations[i][:, config['env']["record_info_input_dims"][1]]
-        plt.plot(x, y, label='{0}th Traj'.format(i))
+        plt.plot(x, y, label='{0}th Traj, code {1}'.format(i, np.argmax(codes[i][0])))
         plt.scatter(x, y)
     xticks = np.arange(config['env']["visualize_info_ranges"][0][0],
                        config['env']["visualize_info_ranges"][0][1] + 1, 1)

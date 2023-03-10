@@ -69,3 +69,4 @@ CN:
   n_probings: 10
   reverse_probing: False
   contrastive_weight: 1.0
+  recon_obs: True

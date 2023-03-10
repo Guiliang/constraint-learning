@@ -229,7 +229,12 @@ def train(config):
         icrl_logger = logger.HumanOutputFormat(log_file)
 
     # Init cns
-    cn_parameters = get_cns_config(config, train_env, expert_obs, expert_acs, log_file)
+    cn_parameters = get_cns_config(config=config,
+                                   train_env=train_env,
+                                   expert_obs=expert_obs,
+                                   expert_acs=expert_acs,
+                                   env_configs=env_configs,
+                                   log_file=log_file)
     if 'InfoICRL' == config['group']:
         cn_parameters.update({'latent_dim': config['CN']['latent_dim']})
         constraint_net = InfoConstraintNet(**cn_parameters)
@@ -447,7 +452,7 @@ def train(config):
                 constraint_visualization_2d(cost_function_with_code=constraint_net.cost_function_with_code,
                                             feature_range=config['env']["visualize_info_ranges"],
                                             select_dims=config['env']["record_info_input_dims"],
-                                            obs_dim=constraint_net.obs_dim,
+                                            obs_dim=train_env.observation_space.shape[0],
                                             acs_dim=1 if is_discrete else constraint_net.acs_dim,
                                             save_path=save_path,
                                             latent_dim=config['CN']['latent_dim']
@@ -459,7 +464,7 @@ def train(config):
                     constraint_visualization_1d(cost_function=constraint_net.cost_function_with_code,
                                                 feature_range=config['env']["visualize_info_ranges"][record_info_idx],
                                                 select_dim=config['env']["record_info_input_dims"][record_info_idx],
-                                                obs_dim=constraint_net.obs_dim,
+                                                obs_dim=train_env.observation_space.shape[0],
                                                 acs_dim=1 if is_discrete else constraint_net.acs_dim,
                                                 save_name=os.path.join(save_path,
                                                                        "cid-{0}_{1}_visual.png".

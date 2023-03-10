@@ -46,6 +46,7 @@ class ConstraintNet(nn.Module):
             log_file=None,
             build_net: bool = True,
             recon_obs: bool = False,
+            env_configs: dict = {},
     ):
         super(ConstraintNet, self).__init__()
         self.task = task
@@ -68,6 +69,7 @@ class ConstraintNet(nn.Module):
         self.device = device
         self.eps = eps
         self.recon_obs = recon_obs
+        self.env_configs = env_configs
 
         self.train_gail_lambda = train_gail_lambda
 
