@@ -367,13 +367,13 @@ def train(config):
         if config['CN']['cn_normalize']:
             mean, var = sampling_env.obs_rms.mean, sampling_env.obs_rms.var
 
-        backward_metrics = constraint_net.train_nn(iterations=config['CN']['backward_iters'],
-                                                   nominal_obs=sample_obs,
-                                                   nominal_acs=sample_acts,
-                                                   episode_lengths=lengths,
-                                                   obs_mean=mean,
-                                                   obs_var=var,
-                                                   current_progress_remaining=current_progress_remaining)
+        backward_metrics = constraint_net.train_traj_nn(iterations=config['CN']['backward_iters'],
+                                                        nominal_obs=sample_obs,
+                                                        nominal_acs=sample_acts,
+                                                        episode_lengths=lengths,
+                                                        obs_mean=mean,
+                                                        obs_var=var,
+                                                        current_progress_remaining=current_progress_remaining)
 
         mem_prev, time_prev = print_resource(mem_prev=mem_prev, time_prev=time_prev,
                                              process_name='Training CN model', log_file=log_file)

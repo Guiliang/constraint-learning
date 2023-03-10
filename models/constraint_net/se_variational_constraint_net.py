@@ -299,7 +299,7 @@ class SelfExplainableVariationalConstraintNet(VariationalConstraintNet):
 
         return bw_metrics
 
-    def train_nn(
+    def train_traj_nn(
             self,
             iterations: int,
             nominal_obs: np.ndarray,

@@ -244,7 +244,7 @@ class MixtureConstraintNet(ConstraintNet):
                 yield batch_nom_indices, batch_expert_indices, batch_neg_expert_indices
                 start_idx += self.batch_size
 
-    def train_nn(
+    def train_traj_nn(
             self,
             iterations: np.ndarray,
             nominal_obs: np.ndarray,

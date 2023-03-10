@@ -164,7 +164,7 @@ class MixtureConstraintNet(ConstraintNet):
             out = self.__call__(th.tensor(x, dtype=th.float32).to(self.device))
         return out
 
-    def train_nn(
+    def train_traj_nn(
             self,
             iterations: np.ndarray,
             nominal_obs: np.ndarray,

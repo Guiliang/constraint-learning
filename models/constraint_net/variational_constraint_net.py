@@ -137,7 +137,7 @@ class VariationalConstraintNet(ConstraintNet):
             prior=prior).mean()
         return analytical_kld_loss
 
-    def train_nn(
+    def train_traj_nn(
             self,
             iterations: np.ndarray,
             nominal_obs: np.ndarray,
